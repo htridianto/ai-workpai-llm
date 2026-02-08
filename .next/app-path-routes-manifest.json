@@ -1,0 +1,12 @@
+{
+  "/(auth)/login/page": "/login",
+  "/(dashboard)/generated/page": "/generated",
+  "/(dashboard)/page": "/",
+  "/(dashboard)/settings/page": "/settings",
+  "/(dashboard)/workspaces/page": "/workspaces",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/restapi/login-demo/route": "/restapi/login-demo",
+  "/restapi/login-google/route": "/restapi/login-google",
+  "/restapi/login/route": "/restapi/login"
+}

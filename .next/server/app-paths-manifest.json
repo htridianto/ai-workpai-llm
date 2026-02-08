@@ -1,0 +1,12 @@
+{
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(dashboard)/generated/page": "app/(dashboard)/generated/page.js",
+  "/(dashboard)/page": "app/(dashboard)/page.js",
+  "/(dashboard)/settings/page": "app/(dashboard)/settings/page.js",
+  "/(dashboard)/workspaces/page": "app/(dashboard)/workspaces/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/restapi/login-demo/route": "app/restapi/login-demo/route.js",
+  "/restapi/login-google/route": "app/restapi/login-google/route.js",
+  "/restapi/login/route": "app/restapi/login/route.js"
+}
