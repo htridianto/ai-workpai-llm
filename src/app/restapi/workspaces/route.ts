@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { Store } from '../store';
 import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 const DEFAULT_COLORS = ['accent-500', 'green-500', 'red-500', 'purple-500', 'indigo-500', 'blue-500'];
 
@@ -9,8 +9,7 @@ export async function GET(request: Request) {
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
             console.warn("RAG_API_URL not set, falling back to mock store");
-            const workspaces = Store.getWorkspaces();
-             return NextResponse.json(workspaces);
+            return NextResponse.json({ message: 'Failed to get workspace: Internal Server Error' }, { status: 500 });
         }
 
         // Get token from cookie manually since we are in an API route
@@ -86,17 +85,6 @@ export async function POST(req: Request) {
         // const token = tokenCookie ? tokenCookie.split('=')[1] : null;
         const token = process.env.RAG_API_KEY || "56PZKDF-F2ZMR8P-HQJZBRQ-A403QRE";
 
-        // Simple nanoid-like generator within function to avoid ESM issues
-        const nanoid = (size: number = 10) => {
-            const alphabets = 'abcdefghijklmnopqrstuvwxyz';
-            let str = alphabets[Math.floor(Math.random() * alphabets.length)];            
-
-            const chars = '0123456789'+alphabets;
-            for (let i = 0; i < size-1; i++) {
-                str += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return str;
-        };
         const slug = `ws-${nanoid(12)}`;
         const payload = {
             name: slug, 

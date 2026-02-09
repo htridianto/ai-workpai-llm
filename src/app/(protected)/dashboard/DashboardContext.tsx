@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation';
 import { streamChatResponse, ChatService } from '../../../services/chatService';
 import { WorkspaceService } from '../../../services/workspaceService';
 import { MockApi } from '../../../services/mockApiService';
-import { AuthService } from '../../../services/authService';
-import { Message, ChatSession, Role, Attachment, AppSettings, ContextItem, ExportFormat, GeneratedFile, Workspace } from '../../../types';
+// import { AuthService } from '../../../services/authService';
+import { Message, ChatSession, Role, Attachment, AppSettings, ContextItem, ExportFormat, GeneratedFile, Workspace, UserProfile } from '../../../types';
 import { AVAILABLE_MODELS, DEFAULT_SYSTEM_INSTRUCTION } from '../../../constants';
 import { ToastType } from '../../../components/Shared/Toast';
+import { signOut, useSession } from 'next-auth/react';
 
 const SETTINGS_KEY = 'anything_llm_settings';
 
@@ -57,9 +58,11 @@ interface DashboardContextType {
   handleRemoveContextItem: (id: string) => Promise<void>;
   handleToggleContextItemActive: (id: string) => Promise<void>;
   updateThreshold: (val: number) => void;
-  handleLogout: () => void;
-  
+  handleLogout: () => void;  
   refreshWorkspaces: () => Promise<void>;
+
+  userProfile: UserProfile | null;
+  setUserProfile: (profile: UserProfile | null) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -98,16 +101,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-     if (document.documentElement.classList.contains('dark')) {
-         setIsDarkMode(true);
-     } else {
+     if (document.documentElement.classList.contains('light')) {
          setIsDarkMode(false);
      }
   }, []);
 
   // Logout Wrapper
   const handleLogout = () => {
-    AuthService.logout();
+      signOut({ 
+        callbackUrl: "/login", // Redirect ke halaman login setelah logout
+        redirect: true 
+      });  
   };
 
   // Load Initial Data
@@ -375,6 +379,46 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+
+  const { data: session, status } = useSession();  
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
+  useEffect(() => {
+    if (session) {
+      console.log(session);
+      setUserProfile({
+        id: session?.user?.id || '',
+        userName: session?.user?.userName || 'Unknown',
+        email: session?.user?.email || 'Unknown',
+        displayName: session?.user?.name || 'Unknown',
+        bio: (session?.user as any)?.bio || '',
+        avatar: (session?.user as any)?.image,
+        lastLoggedIn: (session?.user as any)?.lastLoggedIn || new Date().toLocaleString(),
+      });
+    }      
+  }, [session]);
+
+  // let userProfile: UserProfile | null = null;  
+  // const getUserProfile = async (setProfile: (profile: UserProfile | null) => void) => {
+  //   if(!userProfile) {
+  //     const {data: session} = await useSession();
+
+  //     if (session) {
+  //       console.log(session);
+  //       userProfile = {
+  //         id: session?.user?.id || '',
+  //         userName: session?.user?.userName || 'Unknown',
+  //         email: session?.user?.email || 'Unknown',
+  //         displayName: session?.user?.name || 'Unknown',
+  //         bio: (session?.user as any)?.bio || '',
+  //         avatar: (session?.user as any)?.image,
+  //         lastLoggedIn: (session?.user as any)?.lastLoggedIn || new Date().toLocaleString(),
+  //       };
+  //     }
+  //   }
+  //   setProfile(userProfile);
+  // };
+
   const contextValue = useMemo(() => ({
       isSidebarOpen, setIsSidebarOpen,
       isContextOpen, setIsContextOpen,
@@ -389,7 +433,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       handleSelectWorkspace, createNewSession, deleteSession, renameSession,
       handleSendMessage, handleGenerateDocument, handleRemoveContextItem,
       handleToggleContextItemActive, updateThreshold, handleLogout,
-      refreshWorkspaces
+      refreshWorkspaces, userProfile, setUserProfile
   }), [
       isSidebarOpen, isContextOpen, isDarkMode, toast,
       workspaces, currentWorkspaceId, sessions, currentSessionId,

@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: "AI Agent Workspace",
 };
 
+import { NextAuthProvider } from "@/components/NextAuthProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -17,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} text-slate-200 selection:bg-accent-500/30 selection:text-accent-200 bg-charcoal-950`}>
-        {children}
+        <NextAuthProvider>
+          {children}
+        </NextAuthProvider>
       </body>
     </html>
   );

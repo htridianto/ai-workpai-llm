@@ -84,12 +84,15 @@ export type UserRole = 'admin' | 'manager' | 'default';
 
 export interface UserProfile {
   id: string;
-  name: string;
+  userName: string;
   email: string;
-  role: UserRole;
+  displayName?: string;  
+  role?: string;
   bio?: string;   
   avatar?: string;
-  status: 'active' | 'invited';
+  status?: 'active' | 'invited';
+  password?: string;
+  lastLoggedIn?: string; 
 }
 
 export type LLMProvider = 'openai' | 'gemini' | 'ollama' | 'anthropic';

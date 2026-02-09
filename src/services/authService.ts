@@ -1,11 +1,12 @@
 
+import { signIn, signOut } from 'next-auth/react';
 import { UserProfile } from '../types';
 
 
 const storage_auth_name = 'workpai_llm_auth';
 const storage_token_name = process.env.NEXT_PUBLIC_COOKIE_TOKEN_NAME || 'auth_token';
 
-export const AuthService = {
+export const AuthService = {  
   login: async (email: string, password: string): Promise<{ user: UserProfile, token: string }> => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi';
@@ -91,7 +92,6 @@ export const AuthService = {
 
   logout: () => {
       document.cookie = `${storage_token_name}=; path=/; max-age=0; SameSite=Lax`;
-      localStorage.removeItem(storage_auth_name);
-      window.location.href = '/login';
+      localStorage.removeItem(storage_auth_name);    
   }
 };

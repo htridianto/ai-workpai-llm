@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Mail, Lock, ArrowRight, AlertCircle, Sparkles, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
 import { AuthService } from '../../../services/authService';
+import { useSearchParams } from "next/navigation";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -15,7 +16,21 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const getErrorMessage = (code: string | null) => {
+  switch (code) {
+    case "user_not_found":
+    case "UserNotFound":
+      return "User tidak ditemukan atau silakan login via Google.";
+    case "invalid_password":
+    case "InvalidPassword":
+      return "Password yang Anda masukkan salah.";
+    default:
+      return "Gagal masuk. Periksa kembali akun Anda.";
+  }
+};     
+
 export default function AuthPage() {
+  
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,9 +38,15 @@ export default function AuthPage() {
   const [loadingText, setLoadingText] = useState('');
   const [error, setError] = useState('');
 
-  const onLogin = () => {
-    router.push('/');
-  };
+  const searchParams = useSearchParams();
+  const errorParam = searchParams.get("error");
+  const codeParam = searchParams.get("code");
+  
+  useEffect(() => {
+    if(errorParam === "CredentialsSignin"){
+      setError( getErrorMessage(codeParam || null) );   
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,28 +54,50 @@ export default function AuthPage() {
     setIsLoading(true);
     setLoadingText('Authenticating...');
 
-    try {
-      // 1. API Call
-      await AuthService.login(email, password);
-      
-      // 2. Setup Data Environment (Default: Populated for standard login)
-      localStorage.removeItem('anything_llm_mock_workspaces');
-      localStorage.removeItem('anything_llm_mock_sessions');
-      localStorage.removeItem('anything_llm_mock_generated_files');
-      localStorage.removeItem('anything_llm_mock_generated_folders');
+    await signIn("credentials", {
+      identifier: email,
+      password,
+      redirect: true,
+      callbackUrl: "/dashboard"
+    });
 
-      setLoadingText('Redirecting to dashboard...');
-      setTimeout(() => {
-        onLogin();
-      }, 500);
+    // const result = await signIn("credentials", {
+    //   identifier: email,
+    //   password,
+    //   redirect: false
+    // });
+    // setIsLoading(false);
+    // if(result.error || result.code){   
+    //   setError( getErrorMessage(result.code || null) );    
+    //   return;
+    // }    
+    // setTimeout(() => {
+    //     router.push('/');
+    //   }, 500);
+
+    // try {
+    //   // 1. API Call
+    //   await AuthService.login(email, password);
       
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed');
-      setIsLoading(false);
-    }
+    //   // 2. Setup Data Environment (Default: Populated for standard login)
+    //   localStorage.removeItem('anything_llm_mock_workspaces');
+    //   localStorage.removeItem('anything_llm_mock_sessions');
+    //   localStorage.removeItem('anything_llm_mock_generated_files');
+    //   localStorage.removeItem('anything_llm_mock_generated_folders');
+
+    //   setLoadingText('Redirecting to dashboard...');
+    //   setTimeout(() => {
+    //     router.push('/');
+    //   }, 500);
+      
+    // } catch (err: any) {
+    //   setError(err.message || 'Authentication failed');
+    //   setIsLoading(false);
+    // }
   };
 
   const handleGoogleLogin = async () => {
+    /*
     setError('');
     setIsLoading(true);
     setLoadingText('Connecting to Google...');
@@ -78,6 +121,8 @@ export default function AuthPage() {
       setError('Google sign-in failed. Please try again.');
       setIsLoading(false);
     }
+    */
+    signIn('google', { callbackUrl: "/dashboard" });
   };
 
   const handleDemoLogin = async () => {
@@ -97,7 +142,7 @@ export default function AuthPage() {
       
       setLoadingText('Finalizing workspace...');
       setTimeout(() => {
-        onLogin();
+        router.push('/');
       }, 500);
 
     } catch (err: any) {
@@ -105,7 +150,7 @@ export default function AuthPage() {
        setIsLoading(false);
     }
   };
-
+  
   return (
     <>
       <div className="mb-8">

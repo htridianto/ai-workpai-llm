@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+// import { useSession } from "next-auth/react";
 import { 
   ArrowLeft, 
   User, 
@@ -19,13 +20,10 @@ import { LLMSettings } from './_components/LLMSettings';
 
 type SettingsTab = 'profile' | 'team' | 'billing' | 'llm';
 
-export default function SettingsPage() {
+export default function SettingsPage() {  
   const router = useRouter();
   const { setToast } = useDashboard();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
-
-  // --- Profile State ---
-  const [profile, setProfile] = useState<{name: string, email: string, bio: string, password?: string}>({ name: 'Admin User', email: 'admin@local.host', bio: '', password: '' });
 
   // --- Team State ---
   const [users, setUsers] = useState<UserProfile[]>(DUMMY_USERS);
@@ -42,28 +40,19 @@ export default function SettingsPage() {
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free');
 
   useEffect(() => {
-    const storedAuth = localStorage.getItem('workpai_llm_auth');
-    if (storedAuth) {
-      try {
-        const user = JSON.parse(storedAuth);
-        if (user && user.name && user.email) {
-            setProfile({ name: user.name, email: user.email, bio: user.bio || '' });
-        }
-      } catch (e) {
-        console.error("Failed to parse auth data", e);
-      }
-    }
+    // const storedAuth = localStorage.getItem('workpai_llm_auth');
+    // if (storedAuth) {
+    //   try {
+    //     const user = JSON.parse(storedAuth);
+    //     if (user && user.name && user.email) {
+    //         setProfile({ name: user.name, email: user.email, bio: user.bio || '' });
+    //     }
+    //   } catch (e) {
+    //     console.error("Failed to parse auth data", e);
+    //   }
+    // }
   }, []);
 
-  // Handlers
-  const handleSaveProfile = () => {
-      setToast({ message: 'Profile updated is under development!', type: 'success' });
-      // If password was changed, we might want to clear the field or keep it? 
-      // Usually keep it empty after save unless error.
-      if (profile.password) {
-          setProfile(prev => ({ ...prev, password: '' }));
-      }
-  };
   const handleDeleteUser = (id: string) => setUsers(prev => prev.filter(u => u.id !== id));
   const handleSaveLLM = () => alert(`LLM Configuration for ${llmConfig.provider} saved!`);
   const handleInviteUser = () => alert("Invite feature simulated");
@@ -119,11 +108,7 @@ export default function SettingsPage() {
             <div className="bg-white dark:bg-charcoal-900 rounded-2xl shadow-sm border border-gray-200 dark:border-charcoal-800 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
               
               {activeTab === 'profile' && (
-                <ProfileSettings 
-                  profile={profile} 
-                  setProfile={setProfile} 
-                  onSave={handleSaveProfile} 
-                />
+                <ProfileSettings />
               )}
 
               {activeTab === 'team' && (

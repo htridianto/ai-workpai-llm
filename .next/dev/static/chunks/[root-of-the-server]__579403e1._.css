@@ -239,8 +239,8 @@
     --text-2xl--line-height: calc(2 / 1.5);
     --text-3xl: 1.875rem;
     --text-3xl--line-height: calc(2.25 / 1.875);
-    --text-5xl: 3rem;
-    --text-5xl--line-height: 1;
+    --text-4xl: 2.25rem;
+    --text-4xl--line-height: calc(2.5 / 2.25);
     --font-weight-normal: 400;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
@@ -807,6 +807,14 @@
     margin-block: calc(var(--spacing) * 1);
   }
 
+  .my-8 {
+    margin-block: calc(var(--spacing) * 8);
+  }
+
+  .ms-2 {
+    margin-inline-start: calc(var(--spacing) * 2);
+  }
+
   .-mt-1 {
     margin-top: calc(var(--spacing) * -1);
   }
@@ -865,6 +873,10 @@
 
   .mr-6 {
     margin-right: calc(var(--spacing) * 6);
+  }
+
+  .mb-0 {
+    margin-bottom: calc(var(--spacing) * 0);
   }
 
   .mb-0\.5 {
@@ -948,6 +960,10 @@
 
   .inline-flex {
     display: inline-flex;
+  }
+
+  .table {
+    display: table;
   }
 
   .aspect-\[4\/3\] {
@@ -2330,9 +2346,9 @@
     line-height: var(--tw-leading, var(--text-3xl--line-height));
   }
 
-  .text-5xl {
-    font-size: var(--text-5xl);
-    line-height: var(--tw-leading, var(--text-5xl--line-height));
+  .text-4xl {
+    font-size: var(--text-4xl);
+    line-height: var(--tw-leading, var(--text-4xl--line-height));
   }
 
   .text-base {
@@ -3751,34 +3767,8 @@
     }
   }
 
-  .dark\:bg-slate-200:where(.dark, .dark *) {
-    background-color: var(--color-slate-200);
-  }
-
-  .dark\:bg-slate-300:where(.dark, .dark *) {
-    background-color: var(--color-slate-300);
-  }
-
-  .dark\:bg-slate-600:where(.dark, .dark *) {
-    background-color: var(--color-slate-600);
-  }
-
   .dark\:bg-transparent:where(.dark, .dark *) {
     background-color: #0000;
-  }
-
-  .dark\:bg-white:where(.dark, .dark *) {
-    background-color: var(--color-white);
-  }
-
-  .dark\:bg-white\/50:where(.dark, .dark *) {
-    background-color: #ffffff80;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .dark\:bg-white\/50:where(.dark, .dark *) {
-      background-color: color-mix(in oklab, var(--color-white) 50%, transparent);
-    }
   }
 
   .dark\:bg-white\/80:where(.dark, .dark *) {

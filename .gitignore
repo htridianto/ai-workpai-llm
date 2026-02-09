@@ -22,4 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.next/*
+.next
+.next/
+
+/src/generated/prisma
+
+.env
+.env.local
+*.db

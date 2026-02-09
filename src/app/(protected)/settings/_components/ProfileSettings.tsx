@@ -1,15 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
+import { UserProfile } from '@/types';
+import { useDashboard } from '../../dashboard/DashboardContext';
 
-interface ProfileSettingsProps {
-  profile: { name: string; email: string; bio: string; password?: string };
-  setProfile: (p: { name: string; email: string; bio: string; password?: string }) => void;
-  onSave: () => void;
+interface ProfileSettingsProps {      
 }
 
-export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, setProfile, onSave }) => {
-  
-  // Profile data is managed by parent (SettingsPage)
+export const ProfileSettings: React.FC<ProfileSettingsProps> = () => {  
+  let{ userProfile, setUserProfile, setToast: showToast } = useDashboard();
+  const [profile, setProfile] = useState<UserProfile | null>();
+
+  const handleSaveProfile = () => {
+      if(profile)setUserProfile(profile);
+      showToast({ message: 'Profile updated is under development!', type: 'success' });
+  };
+
+  useEffect(() => {
+    if(userProfile && !profile) setProfile(userProfile);
+  }, [userProfile]);
+
+  if (!profile) {
+    return <p>Memuat data...</p>;
+  }
 
   return (
     <div className="space-y-6">
@@ -20,19 +32,24 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, setPr
       
       <div className="flex items-center gap-6 pb-6 border-b border-gray-200 dark:border-charcoal-800">
         <div className="w-20 h-20 rounded-full bg-accent-500 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-accent-500/20">
-          {profile.name.charAt(0)}
+          {
+            profile?.avatar ? (
+              <img src={profile.avatar} alt="Avatar" className="w-full h-full rounded-full" />
+            ) : (
+              profile?.displayName?.toLocaleUpperCase().charAt(0)
+            )
+          }
         </div>
         <div>
-          <button className="px-4 py-2 bg-white dark:bg-charcoal-800 border border-gray-300 dark:border-charcoal-600 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-charcoal-700 transition-colors">
-            Change Avatar
-          </button>
+          <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">{profile?.userName}</span>
+          <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">{profile?.lastLoggedIn}</span>
         </div>
       </div>
 
       <form 
         onSubmit={(e) => {
           e.preventDefault();
-          onSave();
+          handleSaveProfile();
         }}
         className="grid gap-6 max-w-lg"
       >
@@ -42,8 +59,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, setPr
             type="text" 
             name="name"
             autoComplete="name"
-            value={profile.name}
-            onChange={(e) => setProfile({...profile, name: e.target.value})}
+            value={profile?.displayName}
+            onChange={(e) => setProfile({...profile!, displayName: e.target.value})}
             className="w-full px-4 py-2.5 bg-gray-50 dark:bg-charcoal-950 border border-gray-200 dark:border-charcoal-700 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none transition-all"
           />
         </div>
@@ -53,8 +70,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, setPr
             type="email" 
             name="email"
             autoComplete="email"
-            value={profile.email}
-            onChange={(e) => setProfile({...profile, email: e.target.value})}
+            value={profile?.email}
+            onChange={(e) => setProfile({...profile!, email: e.target.value})}
             className="w-full px-4 py-2.5 bg-gray-50 dark:bg-charcoal-950 border border-gray-200 dark:border-charcoal-700 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none transition-all"
           />
         </div>
@@ -62,8 +79,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, setPr
           <label className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">Bio</label>
           <textarea 
              name="bio"
-             value={profile.bio}
-             onChange={(e) => setProfile({...profile, bio: e.target.value})}
+             value={profile?.bio}
+             onChange={(e) => setProfile({...profile!, bio: e.target.value})}
              rows={3}
              className="w-full px-4 py-2.5 bg-gray-50 dark:bg-charcoal-950 border border-gray-200 dark:border-charcoal-700 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none transition-all resize-none"
              placeholder="Tell us a little about yourself..."
@@ -75,8 +92,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, setPr
              type="password"
              name="new-password"
              autoComplete="new-password"
-             value={profile.password || ''}
-             onChange={(e) => setProfile({...profile, password: e.target.value})}
+             value={profile?.password || ''}
+             onChange={(e) => setProfile({...profile!, password: e.target.value})}
              className="w-full px-4 py-2.5 bg-gray-50 dark:bg-charcoal-950 border border-gray-200 dark:border-charcoal-700 rounded-xl focus:ring-2 focus:ring-accent-500 focus:border-transparent outline-none transition-all"
              placeholder="Leave empty to keep current password"
           />
@@ -92,8 +109,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ profile, setPr
           </button>
         </div>
       </form>
-
-
     </div>
   );
 };

@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 46, "column": 0}, "map": {"version":3,"sources":["file:///Users/htridianto/Development/products/ai-agents/workspace-anythingllm/workpai-llm/src/app/restapi/login-google/route.ts"],"sourcesContent":["import { NextResponse } from 'next/server';\n\nexport async function POST() {\n  try {\n    // Simulate OAuth handshake latency\n    await new Promise((resolve) => setTimeout(resolve, 1200));\n\n    const token = 'mock-google-oauth-token-secure-abc-789';\n    \n    return NextResponse.json({\n      success: true,\n      token,\n      user: {\n        id: 'u-google-123',\n        name: 'Google User',\n        email: 'user@gmail.com',\n        role: 'user',\n        avatar: 'https://lh3.googleusercontent.com/a/default-user'\n      }\n    });\n\n  } catch (error) {\n    return NextResponse.json(\n      { message: 'Google authentication failed.' },\n      { status: 500 }\n    );\n  }\n}\n"],"names":[],"mappings":";;;;AAAA;;AAEO,eAAe;IACpB,IAAI;QACF,mCAAmC;QACnC,MAAM,IAAI,QAAQ,CAAC,UAAY,WAAW,SAAS;QAEnD,MAAM,QAAQ;QAEd,OAAO,gJAAY,CAAC,IAAI,CAAC;YACvB,SAAS;YACT;YACA,MAAM;gBACJ,IAAI;gBACJ,MAAM;gBACN,OAAO;gBACP,MAAM;gBACN,QAAQ;YACV;QACF;IAEF,EAAE,OAAO,OAAO;QACd,OAAO,gJAAY,CAAC,IAAI,CACtB;YAAE,SAAS;QAAgC,GAC3C;YAAE,QAAQ;QAAI;IAElB;AACF"}}]
-}
