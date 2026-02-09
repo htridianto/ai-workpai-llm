@@ -1,18 +1,9 @@
 
 import { UserProfile } from '../types';
 
-// Mock user data to simulate a database response
-const MOCK_USER: UserProfile = {
-  id: 'u-admin',
-  name: 'Admin User',
-  email: 'admin@local.host',
-  role: 'admin',
-  status: 'active',
-  avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=f97316&color=fff'
-};
 
-const storage_auth_name = 'anything_llm_auth';
-const storage_token_name = 'auth_token';
+const storage_auth_name = 'workpai_llm_auth';
+const storage_token_name = process.env.NEXT_PUBLIC_COOKIE_TOKEN_NAME || 'auth_token';
 
 export const AuthService = {
   login: async (email: string, password: string): Promise<{ user: UserProfile, token: string }> => {
@@ -34,7 +25,7 @@ export const AuthService = {
 
       // Keep client-side storage logic for now
       document.cookie = `${storage_token_name}=${data.token}; path=/; max-age=86400; SameSite=Lax`;
-      localStorage.setItem(storage_auth_name, 'true');
+      localStorage.setItem(storage_auth_name, JSON.stringify(data.user));
       
       return {
           user: data.user,
@@ -49,7 +40,7 @@ export const AuthService = {
   loginWithGoogle: async (): Promise<{ user: UserProfile, token: string }> => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi';
-      const response = await fetch(`${baseUrl}/login-google`, {
+      const response = await fetch(`${baseUrl}/login/google`, {
         method: 'POST',
       });
 
@@ -60,7 +51,7 @@ export const AuthService = {
       }
 
       document.cookie = `${storage_token_name}=${data.token}; path=/; max-age=86400; SameSite=Lax`;
-      localStorage.setItem(storage_auth_name, 'true');
+      localStorage.setItem(storage_auth_name, JSON.stringify(data.user));
       
       return {
           user: data.user,
@@ -75,7 +66,7 @@ export const AuthService = {
   loginDemo: async (): Promise<{ user: UserProfile, token: string }> => {
     try {
       const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi';
-      const response = await fetch(`${baseUrl}/login-demo`, {
+      const response = await fetch(`${baseUrl}/login/demo`, {
         method: 'POST',
       });
 
@@ -86,7 +77,7 @@ export const AuthService = {
       }
 
       document.cookie = `${storage_token_name}=${data.token}; path=/; max-age=86400; SameSite=Lax`;
-      localStorage.setItem(storage_auth_name, 'true');
+      localStorage.setItem(storage_auth_name, JSON.stringify(data.user));
       
       return {
           user: data.user,

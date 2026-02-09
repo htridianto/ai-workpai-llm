@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation';
-import { streamChatResponse } from '../../../services/geminiService';
+import { streamChatResponse, ChatService } from '../../../services/chatService';
+import { WorkspaceService } from '../../../services/workspaceService';
 import { MockApi } from '../../../services/mockApiService';
 import { AuthService } from '../../../services/authService';
 import { Message, ChatSession, Role, Attachment, AppSettings, ContextItem, ExportFormat, GeneratedFile, Workspace } from '../../../types';
@@ -57,6 +58,8 @@ interface DashboardContextType {
   handleToggleContextItemActive: (id: string) => Promise<void>;
   updateThreshold: (val: number) => void;
   handleLogout: () => void;
+  
+  refreshWorkspaces: () => Promise<void>;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -108,38 +111,36 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Load Initial Data
-  useEffect(() => {
-    const fetchData = async () => {
+  const refreshWorkspaces = async () => {
       setIsLoadingData(true);
       try {
         const [fetchedWorkspaces, fetchedSessions] = await Promise.all([
-            MockApi.fetchWorkspaces(),
-            MockApi.fetchSessions()
+            WorkspaceService.fetchWorkspaces(),
+            ChatService.fetchSessions()
         ]);
         
         setWorkspaces(fetchedWorkspaces);
         setSessions(fetchedSessions);
-
-        let initialWsId = fetchedWorkspaces.length > 0 ? fetchedWorkspaces[0].id : null;
-        setCurrentWorkspaceId(initialWsId);
-
-        if (initialWsId) {
-            const workspaceSessions = fetchedSessions.filter(s => s.workspaceId === initialWsId);
-            if (workspaceSessions.length > 0) {
-                 const sorted = workspaceSessions.sort((a, b) => b.createdAt - a.createdAt);
-                 setCurrentSessionId(sorted[0].id);
-            } else {
-                 setCurrentSessionId(null);
-            }
+        
+        if (!currentWorkspaceId && fetchedWorkspaces.length > 0) {
+             const initialWsId = fetchedWorkspaces[0].id; 
+             setCurrentWorkspaceId(initialWsId);
         }
-      } catch (err) {
+        
+      } catch (err: any) {
         console.error("Failed to fetch data", err);
+        setToast({ 
+          message: 'Failed to load workspaces', 
+          type: 'error', 
+          subMessage: err.message || 'Please try refreshing data or log in again.' 
+        });
       } finally {
         setIsLoadingData(false);
       }
-    };
+  };
 
-    fetchData();
+  useEffect(() => {
+    refreshWorkspaces();
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
@@ -150,11 +151,11 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }, [settings]);
 
-  // Derived State
-  const currentWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
-  const filteredSessions = sessions.filter(s => s.workspaceId === currentWorkspaceId);
-  const currentSession = sessions.find(s => s.id === currentSessionId);
-  const currentContextItems = currentWorkspace?.contextItems || [];
+  // Derived State (Memoized)
+  const currentWorkspace = useMemo(() => workspaces.find(w => w.id === currentWorkspaceId), [workspaces, currentWorkspaceId]);
+  const filteredSessions = useMemo(() => sessions.filter(s => s.workspaceId === currentWorkspaceId), [sessions, currentWorkspaceId]);
+  const currentSession = useMemo(() => sessions.find(s => s.id === currentSessionId), [sessions, currentSessionId]);
+  const currentContextItems = useMemo(() => currentWorkspace?.contextItems || [], [currentWorkspace]);
 
   const updateSessionState = (updatedSession: ChatSession) => {
     setSessions(prev => {
@@ -168,7 +169,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleSelectWorkspace = (id: string) => {
-      setCurrentWorkspaceId(id);
+      // Navigation happens here, the useEffect in [workspaceId]/page.tsx will sync state
+      router.push('/dashboard/' + id);
+      
       const wsSessions = sessions.filter(s => s.workspaceId === id).sort((a,b) => b.createdAt - a.createdAt);
       if(wsSessions.length > 0) {
           setCurrentSessionId(wsSessions[0].id);
@@ -186,10 +189,18 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       messages: [],
       modelId: settings.defaultModelId,
       createdAt: Date.now(),
+      contextItemIds: [], 
     };
+    
+    // We need to find the workspace to get items. 
+    const ws = workspaces.find(w => w.id === currentWorkspaceId);
+    if (ws) {
+        newSession.contextItemIds = ws.contextItems.map(i => i.id);
+    }
+
     setSessions(prev => [newSession, ...prev]);
     setCurrentSessionId(newSession.id);
-    await MockApi.createSession(newSession);
+    await ChatService.createSession(newSession);
   };
 
   const deleteSession = async (id: string, e: React.MouseEvent) => {
@@ -200,12 +211,12 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       if (remaining.length > 0) setCurrentSessionId(remaining[0].id);
       else setCurrentSessionId(null);
     }
-    await MockApi.deleteSession(id);
+    await ChatService.deleteSession(id);
   };
 
   const renameSession = async (id: string, newTitle: string) => {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, title: newTitle } : s));
-    await MockApi.renameSession(id, newTitle);
+    await ChatService.renameSession(id, newTitle);
   };
 
   const handleSendMessage = async (text: string, attachments: Attachment[]) => {
@@ -216,6 +227,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     if (!sessionToUse) {
        const newId = uuidv4();
+       const ws = workspaces.find(w => w.id === currentWorkspaceId);
+       const initialContextIds = ws ? ws.contextItems.map(i => i.id) : [];
+
        const newSession: ChatSession = {
         id: newId,
         workspaceId: currentWorkspaceId,
@@ -223,6 +237,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         messages: [],
         modelId: settings.defaultModelId,
         createdAt: Date.now(),
+        contextItemIds: initialContextIds
        };
        sessionToUse = newSession;
        isNewSession = true;
@@ -249,13 +264,16 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setIsStreaming(true);
     setStreamingContent('');
 
-    if(isNewSession) await MockApi.createSession(updatedSession);
-    else await MockApi.updateSession(updatedSession);
+    if(isNewSession) await ChatService.createSession(updatedSession);
+    else await ChatService.updateSession(updatedSession);
 
     try {
-      const activeContext = (currentWorkspace?.contextItems || []).filter(item => item.isActive !== false);
+      const activeContext = (currentWorkspace?.contextItems || []).filter(item => 
+          updatedSession.contextItemIds.includes(item.id)
+      );
+      
       const wsSystemInstruction = currentWorkspace?.systemInstruction || settings.systemInstruction;
-      const systemWithContext = `${wsSystemInstruction}\n\n[CONTEXT DOCUMENTS FROM WORKSPACE "${currentWorkspace?.title}"]: ${activeContext.map(i => i.name).join(', ')}`;
+      const systemWithContext = wsSystemInstruction + '\\n\\n[CONTEXT DOCUMENTS FROM WORKSPACE "' + (currentWorkspace?.title || '') + '"]: ' + activeContext.map(i => i.name).join(', ');
 
       const responseText = await streamChatResponse(
         session.modelId,
@@ -280,7 +298,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         messages: [...updatedSession.messages, botMessage]
       };
       updateSessionState(finalSession);
-      await MockApi.updateSession(finalSession);
+      await ChatService.updateSession(finalSession);
 
     } catch (error) {
       console.error("Chat error", error);
@@ -296,7 +314,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         messages: [...updatedSession.messages, errorMessage]
       };
       updateSessionState(errorSession);
-      await MockApi.updateSession(errorSession);
+      await ChatService.updateSession(errorSession);
     } finally {
       setIsStreaming(false);
       setStreamingContent('');
@@ -309,7 +327,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
       const newFile: GeneratedFile = {
           id: uuidv4(),
-          name: `Generated_${format.toUpperCase()}_${new Date().getTime()}.${format}`,
+          name: 'Generated_' + format.toUpperCase() + '_' + new Date().getTime() + '.' + format,
           type: format,
           dateCreated: Date.now(),
           size: Math.floor(Math.random() * 5000000) + 1024,
@@ -320,7 +338,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setToast({
         message: 'File Generated Successfully',
         type: 'success',
-        subMessage: `${newFile.name} has been saved to your Generated Content.`
+        subMessage: newFile.name + ' has been saved to your Generated Content.'
       });
   };
 
@@ -329,17 +347,24 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     const updatedContextItems = currentWorkspace.contextItems.filter(i => i.id !== id);
     const updatedWs = { ...currentWorkspace, contextItems: updatedContextItems };
     updateWorkspaceState(updatedWs);
-    await MockApi.updateWorkspace(updatedWs);
+    // await WorkspaceService.updateWorkspace(updatedWs.id, updatedWs);
   };
 
-  const handleToggleContextItemActive = async (id: string) => {
-    if (!currentWorkspace) return;
-    const updatedContextItems = currentWorkspace.contextItems.map(item => 
-      item.id === id ? { ...item, isActive: item.isActive === false ? true : false } : item
-    );
-    const updatedWs = { ...currentWorkspace, contextItems: updatedContextItems };
-    updateWorkspaceState(updatedWs);
-    await MockApi.updateWorkspace(updatedWs);
+  const handleToggleContextItemActive = async (itemId: string) => {
+    if (!currentSession) return;
+    
+    const isCurrentlyActive = currentSession.contextItemIds?.includes(itemId);
+    let newContextIds: string[];
+
+    if (isCurrentlyActive) {
+        newContextIds = currentSession.contextItemIds.filter(id => id !== itemId);
+    } else {
+        newContextIds = [...(currentSession.contextItemIds || []), itemId];
+    }
+
+    const updatedSession = { ...currentSession, contextItemIds: newContextIds };
+    updateSessionState(updatedSession);
+    await ChatService.updateSession(updatedSession);
   };
 
   const updateThreshold = (val: number) => {
@@ -350,8 +375,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  return (
-    <DashboardContext.Provider value={{
+  const contextValue = useMemo(() => ({
       isSidebarOpen, setIsSidebarOpen,
       isContextOpen, setIsContextOpen,
       isDarkMode, toggleTheme,
@@ -364,8 +388,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       currentWorkspace, filteredSessions, currentSession, currentContextItems,
       handleSelectWorkspace, createNewSession, deleteSession, renameSession,
       handleSendMessage, handleGenerateDocument, handleRemoveContextItem,
-      handleToggleContextItemActive, updateThreshold, handleLogout
-    }}>
+      handleToggleContextItemActive, updateThreshold, handleLogout,
+      refreshWorkspaces
+  }), [
+      isSidebarOpen, isContextOpen, isDarkMode, toast,
+      workspaces, currentWorkspaceId, sessions, currentSessionId,
+      isLoadingData, isStreaming, streamingContent, settings,
+      currentWorkspace, filteredSessions, currentSession, currentContextItems
+  ]);
+
+  return (
+    <DashboardContext.Provider value={contextValue}>
       {children}
     </DashboardContext.Provider>
   );

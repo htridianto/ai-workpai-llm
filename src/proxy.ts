@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get('auth_token')?.value;
+  const token = request.cookies.get(process.env.NEXT_PUBLIC_COOKIE_TOKEN_NAME || 'auth_token')?.value;
+  // console.log('token', process.env.NEXT_PUBLIC_COOKIE_TOKEN_NAME, token);
   const { pathname } = request.nextUrl;
 
   const isPublicPath = pathname === '/login' || pathname.startsWith('/_next') || pathname.startsWith('/static');

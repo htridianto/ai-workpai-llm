@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
@@ -11,19 +11,21 @@ import {
 } from 'lucide-react';
 import { UserProfile, LLMConfiguration } from '../../../types';
 import { DUMMY_USERS } from '../../../services/mockData';
-import { ProfileSettings } from '../../../components/Settings/ProfileSettings';
-import { TeamSettings } from '../../../components/Settings/TeamSettings';
-import { BillingSettings } from '../../../components/Settings/BillingSettings';
-import { LLMSettings } from '../../../components/Settings/LLMSettings';
+import { ProfileSettings } from './_components/ProfileSettings';
+import { useDashboard } from '../dashboard/DashboardContext';
+import { TeamSettings } from './_components/TeamSettings';
+import { BillingSettings } from './_components/BillingSettings';
+import { LLMSettings } from './_components/LLMSettings';
 
 type SettingsTab = 'profile' | 'team' | 'billing' | 'llm';
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { setToast } = useDashboard();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
 
   // --- Profile State ---
-  const [profile, setProfile] = useState({ name: 'Admin User', email: 'admin@local.host' });
+  const [profile, setProfile] = useState<{name: string, email: string, bio: string, password?: string}>({ name: 'Admin User', email: 'admin@local.host', bio: '', password: '' });
 
   // --- Team State ---
   const [users, setUsers] = useState<UserProfile[]>(DUMMY_USERS);
@@ -39,11 +41,33 @@ export default function SettingsPage() {
   // --- Billing State ---
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free');
 
+  useEffect(() => {
+    const storedAuth = localStorage.getItem('workpai_llm_auth');
+    if (storedAuth) {
+      try {
+        const user = JSON.parse(storedAuth);
+        if (user && user.name && user.email) {
+            setProfile({ name: user.name, email: user.email, bio: user.bio || '' });
+        }
+      } catch (e) {
+        console.error("Failed to parse auth data", e);
+      }
+    }
+  }, []);
+
   // Handlers
-  const handleSaveProfile = () => alert("Profile updated successfully!");
+  const handleSaveProfile = () => {
+      setToast({ message: 'Profile updated is under development!', type: 'success' });
+      // If password was changed, we might want to clear the field or keep it? 
+      // Usually keep it empty after save unless error.
+      if (profile.password) {
+          setProfile(prev => ({ ...prev, password: '' }));
+      }
+  };
   const handleDeleteUser = (id: string) => setUsers(prev => prev.filter(u => u.id !== id));
   const handleSaveLLM = () => alert(`LLM Configuration for ${llmConfig.provider} saved!`);
   const handleInviteUser = () => alert("Invite feature simulated");
+
 
   const renderSidebarItem = (tab: SettingsTab, icon: React.ReactNode, label: string) => (
     <button

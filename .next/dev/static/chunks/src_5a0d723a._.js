@@ -2817,6 +2817,7 @@ __turbopack_context__.s([
     ()=>DashboardLayout
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$layers$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Layers$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/layers.js [app-client] (ecmascript) <export default as Layers>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f28$protected$292f$dashboard$2f$_components$2f$Sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/(protected)/dashboard/_components/Sidebar.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f28$protected$292f$dashboard$2f$_components$2f$ContextSidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/(protected)/dashboard/_components/ContextSidebar.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$Shared$2f$Toast$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/Shared/Toast.tsx [app-client] (ecmascript)");
@@ -2825,6 +2826,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$constants$2e$ts__$5b$
 ;
 var _s = __turbopack_context__.k.signature();
 'use client';
+;
 ;
 ;
 ;
@@ -2843,7 +2845,7 @@ function DashboardShell({ children }) {
                         className: "w-10 h-10 border-4 border-charcoal-200 dark:border-charcoal-800 border-t-accent-500 rounded-full animate-spin"
                     }, void 0, false, {
                         fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                        lineNumber: 28,
+                        lineNumber: 29,
                         columnNumber: 12
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2851,18 +2853,18 @@ function DashboardShell({ children }) {
                         children: "Loading Workspace..."
                     }, void 0, false, {
                         fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                        lineNumber: 29,
+                        lineNumber: 30,
                         columnNumber: 12
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                lineNumber: 27,
+                lineNumber: 28,
                 columnNumber: 10
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-            lineNumber: 26,
+            lineNumber: 27,
             columnNumber: 8
         }, this);
     }
@@ -2888,7 +2890,7 @@ function DashboardShell({ children }) {
                 onToggleTheme: toggleTheme
             }, void 0, false, {
                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                lineNumber: 39,
+                lineNumber: 40,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2908,27 +2910,27 @@ function DashboardShell({ children }) {
                                                 className: "w-5 h-0.5 bg-current mb-1"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                                lineNumber: 65,
+                                                lineNumber: 66,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "w-5 h-0.5 bg-current mb-1"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                                lineNumber: 66,
+                                                lineNumber: 67,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "w-5 h-0.5 bg-current"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                                lineNumber: 67,
+                                                lineNumber: 68,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                        lineNumber: 61,
+                                        lineNumber: 62,
                                         columnNumber: 18
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2939,7 +2941,7 @@ function DashboardShell({ children }) {
                                                 children: currentSession?.title || 'New Chat'
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                                lineNumber: 71,
+                                                lineNumber: 72,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2949,41 +2951,54 @@ function DashboardShell({ children }) {
                                                     children: currentModelName || 'Select Model'
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                                    lineNumber: 75,
+                                                    lineNumber: 76,
                                                     columnNumber: 21
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                                lineNumber: 74,
+                                                lineNumber: 75,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                        lineNumber: 70,
+                                        lineNumber: 71,
                                         columnNumber: 14
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                lineNumber: 59,
+                                lineNumber: 60,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "flex items-center gap-3",
-                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                    onClick: ()=>setIsContextOpen(!isContextOpen),
-                                    className: `flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isContextOpen ? 'bg-accent-500 text-white shadow-lg shadow-accent-500/20' : 'bg-gray-100 dark:bg-charcoal-800 text-charcoal-500 hover:bg-gray-200 dark:hover:bg-charcoal-700'}`,
-                                    children: [
-                                        currentContextItems.filter((i)=>i.isActive !== false).length,
-                                        " Active Context"
-                                    ]
-                                }, void 0, true, {
-                                    fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                                    lineNumber: 81,
-                                    columnNumber: 15
-                                }, this)
-                            }, void 0, false, {
+                                className: "flex items-center gap-2",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "h-6 w-px bg-gray-200 dark:bg-charcoal-800 mx-2"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
+                                        lineNumber: 82,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        onClick: ()=>setIsContextOpen(!isContextOpen),
+                                        className: `p-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium ${isContextOpen ? 'bg-gray-100 dark:bg-charcoal-800 text-accent-600 dark:text-accent-400' : 'text-charcoal-500 dark:text-charcoal-400 hover:text-slate-900 dark:hover:text-slate-200'}`,
+                                        title: "Toggle Context Panel",
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$layers$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Layers$3e$__["Layers"], {
+                                            size: 18
+                                        }, void 0, false, {
+                                            fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
+                                            lineNumber: 89,
+                                            columnNumber: 15
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
+                                        lineNumber: 84,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
                                 lineNumber: 80,
                                 columnNumber: 11
@@ -2991,7 +3006,7 @@ function DashboardShell({ children }) {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                        lineNumber: 58,
+                        lineNumber: 59,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -2999,13 +3014,13 @@ function DashboardShell({ children }) {
                         children: children
                     }, void 0, false, {
                         fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                        lineNumber: 90,
+                        lineNumber: 102,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                lineNumber: 57,
+                lineNumber: 58,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f28$protected$292f$dashboard$2f$_components$2f$ContextSidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ContextSidebar"], {
@@ -3017,7 +3032,7 @@ function DashboardShell({ children }) {
                 onToggleActive: handleToggleContextItemActive
             }, void 0, false, {
                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                lineNumber: 95,
+                lineNumber: 107,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$Shared$2f$Toast$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Toast"], {
@@ -3027,13 +3042,13 @@ function DashboardShell({ children }) {
                 onClose: ()=>setToast(null)
             }, void 0, false, {
                 fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-                lineNumber: 104,
+                lineNumber: 116,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-        lineNumber: 38,
+        lineNumber: 39,
         columnNumber: 5
     }, this);
 }
@@ -3049,12 +3064,12 @@ function DashboardLayout({ children }) {
             children: children
         }, void 0, false, {
             fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-            lineNumber: 117,
+            lineNumber: 129,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/(protected)/dashboard/layout.tsx",
-        lineNumber: 116,
+        lineNumber: 128,
         columnNumber: 5
     }, this);
 }

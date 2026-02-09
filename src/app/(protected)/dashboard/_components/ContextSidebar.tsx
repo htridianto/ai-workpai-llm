@@ -9,23 +9,20 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { ContextItem } from '../../../../types';
 
-interface ContextSidebarProps {
-  isOpen: boolean;
-  contextItems: ContextItem[];
-  similarityThreshold: number;
-  onUpdateThreshold: (val: number) => void;
-  onRemoveItem: (id: string) => void;
-  onToggleActive: (id: string) => void;
-}
+import { useDashboard } from '../DashboardContext';
 
-export const ContextSidebar: React.FC<ContextSidebarProps> = ({
-  isOpen,
-  contextItems = [],
-  similarityThreshold,
-  onUpdateThreshold,
-  onRemoveItem,
-  onToggleActive
-}) => {
+export const ContextSidebar: React.FC = () => {
+  const {
+    isContextOpen: isOpen,
+    currentContextItems: contextItems,
+    currentWorkspace,
+    currentSession,
+    updateThreshold: onUpdateThreshold,
+    handleRemoveContextItem: onRemoveItem,
+    handleToggleContextItemActive: onToggleActive
+  } = useDashboard();
+
+  const similarityThreshold = currentWorkspace?.similarityThreshold || 0.7;
   const [activeTab, setActiveTab] = useState<'documents' | 'settings'>('documents');
 
   return (
@@ -42,7 +39,7 @@ export const ContextSidebar: React.FC<ContextSidebarProps> = ({
           <div className="flex items-center border-b border-gray-200 dark:border-charcoal-800">
              <button 
               onClick={() => setActiveTab('documents')}
-              className={`flex-1 py-4 text-sm font-medium text-center transition-colors border-b-2 ${
+              className={`flex-1 py-4 text-sm font-medium text-left transition-colors border-b-2 ${
                 activeTab === 'documents' 
                   ? 'border-accent-500 text-slate-800 dark:text-slate-100' 
                   : 'border-transparent text-charcoal-500 dark:text-charcoal-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -50,7 +47,7 @@ export const ContextSidebar: React.FC<ContextSidebarProps> = ({
              >
                Context
              </button>
-             <button 
+             {/* <button 
               onClick={() => setActiveTab('settings')}
               className={`flex-1 py-4 text-sm font-medium text-center transition-colors border-b-2 ${
                 activeTab === 'settings' 
@@ -59,7 +56,7 @@ export const ContextSidebar: React.FC<ContextSidebarProps> = ({
               }`}
              >
                Vector Settings
-             </button>
+             </button> */}
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -76,31 +73,36 @@ export const ContextSidebar: React.FC<ContextSidebarProps> = ({
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {contextItems.map(item => (
+                        {contextItems.map(item => {
+                           const isActive = currentSession?.contextItemIds?.includes(item.id);
+                           
+                           return (
                            <div key={item.id} className="flex items-center gap-3 p-3 bg-white dark:bg-charcoal-800 rounded-lg border border-gray-200 dark:border-charcoal-700 shadow-sm group">
                              
                              {/* Checkbox */}
                              <div className="relative flex items-center">
                                 <input 
                                   type="checkbox" 
-                                  checked={item.isActive !== false} // Default to true if undefined
+                                  checked={!!isActive} 
                                   onChange={() => onToggleActive(item.id)}
-                                  className="w-4 h-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500 cursor-pointer"
+                                  disabled={!currentSession}
+                                  className="w-4 h-4 rounded border-gray-300 text-accent-600 focus:ring-accent-500 cursor-pointer disabled:opacity-50"
                                 />
                              </div>
 
                              {item.type === 'link' ? <LinkIcon size={16} className="text-blue-500 dark:text-blue-400" /> : <FileText size={16} className="text-orange-500 dark:text-orange-400" />}
                              <div className="flex-1 min-w-0">
-                               <p className={`text-sm truncate transition-colors ${item.isActive !== false ? 'text-slate-700 dark:text-slate-200' : 'text-charcoal-400 line-through'}`}>
+                               <p className={`text-sm truncate transition-colors ${isActive ? 'text-slate-700 dark:text-slate-200' : 'text-charcoal-400 line-through'}`}>
                                    {item.name}
                                </p>
                                <p className="text-[10px] text-charcoal-400 flex items-center gap-1">
                                  {item.status === 'indexed' && <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>}
                                  {item.status.toUpperCase()}
+                                 {!currentSession && <span className="ml-2 text-red-500">(No Active Session)</span>}
                                </p>
                              </div>
                            </div>
-                        ))}
+                        )})}
                       </div>
                     )}
                   </div>

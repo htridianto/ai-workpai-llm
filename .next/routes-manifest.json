@@ -17,17 +17,42 @@
   "headers": [],
   "rewrites": {
     "beforeFiles": [],
-    "afterFiles": [],
+    "afterFiles": [
+      {
+        "source": "/",
+        "destination": "/dashboard",
+        "regex": "^/(?:/)?$"
+      }
+    ],
     "fallback": []
   },
-  "dynamicRoutes": [],
-  "staticRoutes": [
+  "dynamicRoutes": [
     {
-      "page": "/",
-      "regex": "^/(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/(?:/)?$"
+      "page": "/dashboard/[workspaceId]",
+      "regex": "^/dashboard/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPworkspaceId": "nxtPworkspaceId"
+      },
+      "namedRegex": "^/dashboard/(?<nxtPworkspaceId>[^/]+?)(?:/)?$"
     },
+    {
+      "page": "/restapi/chatsession/[sessionId]",
+      "regex": "^/restapi/chatsession/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPsessionId": "nxtPsessionId"
+      },
+      "namedRegex": "^/restapi/chatsession/(?<nxtPsessionId>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/restapi/workspaces/[workspaceId]",
+      "regex": "^/restapi/workspaces/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPworkspaceId": "nxtPworkspaceId"
+      },
+      "namedRegex": "^/restapi/workspaces/(?<nxtPworkspaceId>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
     {
       "page": "/_global-error",
       "regex": "^/_global\\-error(?:/)?$",
@@ -39,6 +64,12 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/dashboard",
+      "regex": "^/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard(?:/)?$"
     },
     {
       "page": "/generated",
@@ -53,22 +84,40 @@
       "namedRegex": "^/login(?:/)?$"
     },
     {
+      "page": "/restapi/chat",
+      "regex": "^/restapi/chat(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/restapi/chat(?:/)?$"
+    },
+    {
+      "page": "/restapi/chatsession",
+      "regex": "^/restapi/chatsession(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/restapi/chatsession(?:/)?$"
+    },
+    {
       "page": "/restapi/login",
       "regex": "^/restapi/login(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/restapi/login(?:/)?$"
     },
     {
-      "page": "/restapi/login-demo",
-      "regex": "^/restapi/login\\-demo(?:/)?$",
+      "page": "/restapi/login/demo",
+      "regex": "^/restapi/login/demo(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/restapi/login\\-demo(?:/)?$"
+      "namedRegex": "^/restapi/login/demo(?:/)?$"
     },
     {
-      "page": "/restapi/login-google",
-      "regex": "^/restapi/login\\-google(?:/)?$",
+      "page": "/restapi/login/google",
+      "regex": "^/restapi/login/google(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/restapi/login\\-google(?:/)?$"
+      "namedRegex": "^/restapi/login/google(?:/)?$"
+    },
+    {
+      "page": "/restapi/workspaces",
+      "regex": "^/restapi/workspaces(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/restapi/workspaces(?:/)?$"
     },
     {
       "page": "/settings",

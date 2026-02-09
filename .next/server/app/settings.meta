@@ -2,14 +2,14 @@
   "headers": {
     "x-nextjs-stale-time": "300",
     "x-nextjs-prerender": "1",
-    "x-next-cache-tags": "_N_T_/layout,_N_T_/(dashboard)/layout,_N_T_/(dashboard)/settings/layout,_N_T_/(dashboard)/settings/page,_N_T_/settings"
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(protected)/layout,_N_T_/(protected)/settings/layout,_N_T_/(protected)/settings/page,_N_T_/settings"
   },
   "segmentPaths": [
     "/_tree",
     "/_full",
-    "/!KGRhc2hib2FyZCk/settings/__PAGE__",
-    "/!KGRhc2hib2FyZCk/settings",
-    "/!KGRhc2hib2FyZCk",
+    "/!KHByb3RlY3RlZCk/settings/__PAGE__",
+    "/!KHByb3RlY3RlZCk/settings",
+    "/!KHByb3RlY3RlZCk",
     "/_index",
     "/_head"
   ]

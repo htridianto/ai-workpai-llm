@@ -6,6 +6,7 @@ import { ChatSession, Role, UserProfile, GeneratedFile, Folder, Workspace, AppNo
 export const DUMMY_WORKSPACES: Workspace[] = [
   {
     id: 'ws-marketing',
+    slug: 'marketing-brand',
     title: 'Marketing & Brand',
     description: 'Campaign assets, brand guidelines, and Q1 strategy docs.',
     symbol: 'M',
@@ -17,12 +18,13 @@ export const DUMMY_WORKSPACES: Workspace[] = [
       { id: 'f-mkt-1', name: 'Campaigns 2024', dateCreated: Date.now() - 500000 },
     ],
     contextItems: [
-      { id: 'ctx-mkt-1', name: 'Brand_Guidelines_v2.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now(), isActive: true, folderId: 'f-mkt-1' },
-      { id: 'ctx-mkt-2', name: 'https://competitor.com/pricing', type: 'link', status: 'indexed', dateAdded: Date.now(), isActive: true }
+      { id: 'ctx-mkt-1', name: 'Brand_Guidelines_v2.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now(), folderId: 'f-mkt-1' },
+      { id: 'ctx-mkt-2', name: 'https://competitor.com/pricing', type: 'link', status: 'indexed', dateAdded: Date.now() }
     ]
   },
   {
     id: 'ws-engineering',
+    slug: 'engineering',
     title: 'Engineering',
     description: 'API documentation, architecture decision records (ADRs), and sprint logs.',
     symbol: 'E',
@@ -32,12 +34,13 @@ export const DUMMY_WORKSPACES: Workspace[] = [
     systemInstruction: 'You are a principal software engineer.',
     folders: [],
     contextItems: [
-      { id: 'ctx-eng-1', name: 'API_Spec_OAS3.yaml', type: 'txt', status: 'indexed', dateAdded: Date.now(), isActive: true },
-      { id: 'ctx-eng-2', name: 'Migration_Plan_Legacy.pdf', type: 'pdf', status: 'indexing', dateAdded: Date.now(), isActive: true }
+      { id: 'ctx-eng-1', name: 'API_Spec_OAS3.yaml', type: 'txt', status: 'indexed', dateAdded: Date.now() },
+      { id: 'ctx-eng-2', name: 'Migration_Plan_Legacy.pdf', type: 'pdf', status: 'indexing', dateAdded: Date.now() }
     ]
   },
   {
     id: 'ws-legal',
+    slug: 'legal-hr',
     title: 'Legal & HR',
     description: 'Contract templates, employee handbook, and compliance docs.',
     symbol: 'L',
@@ -49,8 +52,8 @@ export const DUMMY_WORKSPACES: Workspace[] = [
       { id: 'f-leg-1', name: 'Contracts', dateCreated: Date.now() - 200000 }
     ],
     contextItems: [
-      { id: 'ctx-leg-1', name: 'NDA_Template_2025.docx', type: 'pdf', status: 'indexed', dateAdded: Date.now(), isActive: true, folderId: 'f-leg-1' },
-      { id: 'ctx-leg-2', name: 'Employee_Handbook.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now(), isActive: true }
+      { id: 'ctx-leg-1', name: 'NDA_Template_2025.docx', type: 'pdf', status: 'indexed', dateAdded: Date.now(), folderId: 'f-leg-1' },
+      { id: 'ctx-leg-2', name: 'Employee_Handbook.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now() }
     ]
   }
 ];
@@ -62,6 +65,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
     workspaceId: 'ws-marketing',
     title: 'Q1 Strategy Brainstorm',
     modelId: 'gemini-3-flash-preview',
+    contextItemIds: ['ctx-mkt-1'],
     createdAt: Date.now() - 900000,
     messages: [
       {
@@ -84,6 +88,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
     title: 'Competitor Pricing Analysis',
     modelId: 'gemini-3-pro-preview',
     createdAt: Date.now() - 100000000, // Older
+    contextItemIds: [],
     messages: []
   },
   // Engineering Chats
@@ -92,6 +97,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
     workspaceId: 'ws-engineering',
     title: 'API Authentication Error',
     modelId: 'gemini-3-pro-preview',
+    contextItemIds: ['ctx-eng-1'],
     createdAt: Date.now() - 300000,
     messages: [
       {
@@ -108,6 +114,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
     workspaceId: 'ws-legal',
     title: 'NDA Clause Review',
     modelId: 'gemini-3-flash-preview',
+    contextItemIds: ['ctx-leg-1'],
     createdAt: Date.now() - 50000,
     messages: []
   }
@@ -115,8 +122,8 @@ export const DUMMY_SESSIONS: ChatSession[] = [
 
 export const DUMMY_USERS: UserProfile[] = [
   { id: 'u-admin', name: 'Admin User', email: 'admin@local.host', role: 'admin', status: 'active' },
-  { id: 'u2', name: 'Sarah Connor', email: 'sarah@skynet.com', role: 'editor', status: 'active' },
-  { id: 'u3', name: 'John Doe', email: 'john@example.com', role: 'viewer', status: 'invited' },
+  { id: 'u2', name: 'Sarah Connor', email: 'sarah@skynet.com', role: 'default', status: 'active' },
+  { id: 'u3', name: 'John Doe', email: 'john@example.com', role: 'default', status: 'invited' },
 ];
 
 export const DUMMY_GENERATED_FOLDERS: Folder[] = [

@@ -1,64 +1,45 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
+  Box, 
+  MessageSquare, 
+  Plus, 
   Settings, 
   LogOut, 
-  Plus,
-  Layout,
+  Moon, 
   Sun,
-  Moon,
+  Layout,
   FileBox,
-  MessageSquare,
-  Edit2,
-  Trash2,
   Search,
   X,
-  Box,
-  Hash
+  Edit2,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatSession, Workspace } from '../../../../types';
 import { ConfirmationModal } from '../../../../components/Shared/ConfirmationModal';
 import { InputModal } from '../../../../components/Shared/InputModal';
 import { useRouter } from 'next/navigation';
+import { useDashboard } from '../DashboardContext';
 
-interface SidebarProps {
-  // Workspaces
-  workspaces: Workspace[];
-  currentWorkspaceId: string | null;
-  onSelectWorkspace: (id: string) => void;
-  // Chats
-  sessions: ChatSession[]; // Already filtered by workspace
-  currentSessionId: string | null;
-  onNewChat: () => void;
-  onSelectSession: (id: string) => void;
-  onDeleteSession: (id: string, e: React.MouseEvent) => void;
-  onRenameSession: (id: string, newTitle: string) => void;
-  // Layout
-  isOpen: boolean;
-  onToggle: () => void;
-  onLogout: () => void;
-  onOpenSwitchModal?: () => void;
-  isDarkMode: boolean;
-  onToggleTheme: () => void;
-}
+export const Sidebar = React.memo(() => {
+  const {
+      workspaces,
+      currentWorkspaceId,
+      handleSelectWorkspace: onSelectWorkspace,
+      sessions: allSessions, // Renaming to avoid conflict if needed, or just use sessions
+      filteredSessions: sessions, // We want the filtered ones
+      currentSessionId,
+      createNewSession: onNewChat,
+      setCurrentSessionId: onSelectSession,
+      deleteSession: onDeleteSession,
+      renameSession: onRenameSession,
+      handleLogout: onLogout,
+      isSidebarOpen: isOpen,
+      isDarkMode,
+      toggleTheme: onToggleTheme
+  } = useDashboard();
 
-export const Sidebar: React.FC<SidebarProps> = ({
-  workspaces,
-  currentWorkspaceId,
-  onSelectWorkspace,
-  sessions,
-  currentSessionId,
-  onNewChat,
-  onSelectSession,
-  onDeleteSession,
-  onRenameSession,
-  onLogout,
-  onOpenSwitchModal,
-  isOpen,
-  isDarkMode,
-  onToggleTheme
-}) => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
@@ -111,8 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return groups;
   }, [sessions, searchQuery]);
 
-  const activeWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
-
+  const activeWorkspace = workspaces.find(w => w.slug === currentWorkspaceId);
   return (
     <>
       <AnimatePresence mode='wait'>
@@ -130,11 +110,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {workspaces.map(ws => (
                     <button
                         key={ws.id}
-                        onClick={() => onSelectWorkspace(ws.id)}
+                        onClick={() => onSelectWorkspace(ws.slug)}
                         className={`group relative w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                            currentWorkspaceId === ws.id 
-                            ? 'bg-accent-500 text-white shadow-lg shadow-accent-500/20' 
-                            : 'bg-white dark:bg-charcoal-800 text-charcoal-500 dark:text-charcoal-400 hover:bg-accent-100 dark:hover:bg-charcoal-700'
+                            currentWorkspaceId === ws.slug
+                            ? `bg-${ws.color || 'accent-500'} text-white shadow-lg shadow-accent-500/20` 
+                            : `bg-white dark:bg-charcoal-800 text-${ws.color || 'charcoal-500'} x-dark:text-charcoal-400 hover:bg-accent-100 dark:hover:bg-charcoal-700`
                         }`}
                         title={ws.title}
                     >
@@ -145,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         )}
                         {/* Tooltip (Glassmorphism) */}
                         <div className="absolute left-14 bg-charcoal-900/80 backdrop-blur-xl border border-white/10 text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none z-50 transition-all duration-200 shadow-xl scale-95 group-hover:scale-100 origin-left">
-                            <span className="font-bold block text-sm mb-0.5">{ws.title}</span>
+                            <span className="font-bold block text-xs mb-0.5 text-left text-accent-500">{ws.title}</span>
                             {ws.description && <span className="block font-normal text-[10px] opacity-70 max-w-[180px] truncate">{ws.description}</span>}
                         </div>
                     </button>
@@ -219,7 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
 
                 {/* Search */}
-                {/* <div className="px-4 py-2">
+                <div className="px-4 py-2">
                     <div className="relative">
                         <Search size={14} className="absolute left-3 top-2.5 text-charcoal-400" />
                         <input 
@@ -227,13 +207,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             placeholder="Find a chat..." 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-8 py-2 bg-gray-200 dark:bg-charcoal-800 border-none rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-accent-500 placeholder-charcoal-500"
+                            className="w-full pl-9 pr-8 py-2 bg-gray-200 dark:bg-charcoal-800 border-none rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-accent-500 focus:outline-none placeholder-charcoal-500"
                         />
                          {searchQuery && (
                             <button onClick={() => setSearchQuery('')} className="absolute right-2 top-2 text-charcoal-400 hover:text-slate-500"><X size={14} /></button>
                         )}
                     </div>
-                </div> */}
+                </div>
 
                 {/* Session List */}
                 <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-charcoal-300 dark:scrollbar-thumb-charcoal-700 space-y-4">
@@ -262,7 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                             >
                                                 <MessageSquare size={14} className={currentSessionId === session.id ? 'text-accent-500' : 'text-charcoal-400'} />
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-sm font-medium truncate pr-6">{session.title}</p>
+                                                    <p className="text-xs font-normal truncate pr-6">{session.title}</p>
                                                 </div>
                                                 
                                                 {/* Hover Actions */}
@@ -353,4 +333,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
       />
     </>
   );
-};
+});

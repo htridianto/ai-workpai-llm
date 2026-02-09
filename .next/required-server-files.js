@@ -295,7 +295,17 @@ self.__SERVER_FILES_MANIFEST={
     "turbopack": {
       "root": "/Users/htridianto/Development/products/ai-agents/workspace-anythingllm/workpai-llm"
     },
-    "distDirRoot": ".next"
+    "distDirRoot": ".next",
+    "_originalRewrites": {
+      "beforeFiles": [],
+      "afterFiles": [
+        {
+          "source": "/",
+          "destination": "/dashboard"
+        }
+      ],
+      "fallback": []
+    }
   },
   "appDir": "/Users/htridianto/Development/products/ai-agents/workspace-anythingllm/workpai-llm",
   "relativeAppDir": "",

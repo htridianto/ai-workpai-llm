@@ -50,7 +50,7 @@ const AuthService = {
     loginWithGoogle: async ()=>{
         try {
             const baseUrl = ("TURBOPACK compile-time value", "/restapi") || '/restapi';
-            const response = await fetch(`${baseUrl}/login-google`, {
+            const response = await fetch(`${baseUrl}/login/google`, {
                 method: 'POST'
             });
             const data = await response.json();
@@ -70,7 +70,7 @@ const AuthService = {
     loginDemo: async ()=>{
         try {
             const baseUrl = ("TURBOPACK compile-time value", "/restapi") || '/restapi';
-            const response = await fetch(`${baseUrl}/login-demo`, {
+            const response = await fetch(`${baseUrl}/login/demo`, {
                 method: 'POST'
             });
             const data = await response.json();
@@ -182,7 +182,7 @@ function AuthPage() {
         setIsLoading(true);
         setLoadingText('Authenticating...');
         try {
-            // 1. Simulate API Call
+            // 1. API Call
             await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$authService$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AuthService"].login(email, password);
             // 2. Setup Data Environment (Default: Populated for standard login)
             localStorage.removeItem('anything_llm_mock_workspaces');
@@ -394,7 +394,7 @@ function AuthPage() {
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                        type: "email",
+                                        type: "text",
                                         value: email,
                                         onChange: (e)=>setEmail(e.target.value),
                                         className: "block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-charcoal-700 rounded-xl bg-gray-50 dark:bg-charcoal-950 text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-charcoal-600 focus:outline-none focus:ring-1 focus:ring-accent-500 focus:border-accent-500 transition-all",

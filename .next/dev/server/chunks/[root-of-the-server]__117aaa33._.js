@@ -53,7 +53,8 @@ __turbopack_context__.s([
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$middleware$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/server.js [middleware] (ecmascript)");
 ;
 function proxy(request) {
-    const token = request.cookies.get('auth_token')?.value;
+    const token = request.cookies.get(("TURBOPACK compile-time value", "workpai_llm_token") || 'auth_token')?.value;
+    // console.log('token', process.env.NEXT_PUBLIC_COOKIE_TOKEN_NAME, token);
     const { pathname } = request.nextUrl;
     const isPublicPath = pathname === '/login' || pathname.startsWith('/_next') || pathname.startsWith('/static');
     if (!isPublicPath && !token) {

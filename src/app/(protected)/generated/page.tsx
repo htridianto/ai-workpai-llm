@@ -16,14 +16,14 @@ import {
 import { GeneratedFile, Folder } from '../../../types';
 import { MockApi } from '../../../services/mockApiService';
 import { DUMMY_USERS } from '../../../services/mockData';
-import { FileCard } from '../../../components/Generated/FileCard';
-import { FileRow } from '../../../components/Generated/FileRow';
-import { FolderCard } from '../../../components/Generated/FolderCard';
-import { FolderRow } from '../../../components/Generated/FolderRow';
-import { GeneratedSidebar, GeneratedCategory } from '../../../components/Generated/GeneratedSidebar';
+import { FileCard } from './_components/FileCard';
+import { FileRow } from './_components/FileRow';
+import { FolderCard } from './_components/FolderCard';
+import { FolderRow } from './_components/FolderRow';
+import { GeneratedSidebar, GeneratedCategory } from './_components/GeneratedSidebar';
 import { ConfirmationModal } from '../../../components/Shared/ConfirmationModal';
-import { GeneratedFilePreviewModal } from '../../../components/Generated/GeneratedFilePreviewModal';
-import { ShareModal } from '../../../components/Generated/ShareModal';
+import { GeneratedFilePreviewModal } from './_components/GeneratedFilePreviewModal';
+import { ShareModal } from './_components/ShareModal';
 import { InputModal } from '../../../components/Shared/InputModal';
 import { Toast, ToastType } from '../../../components/Shared/Toast';
 

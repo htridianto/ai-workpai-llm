@@ -21,17 +21,19 @@ import {
 } from 'lucide-react';
 import { Workspace, ContextItem, Folder as FolderType } from '../../../types';
 import { MockApi } from '../../../services/mockApiService';
+import { WorkspaceService } from '../../../services/workspaceService';
 import { InputModal } from '../../../components/Shared/InputModal';
 import { ConfirmationModal } from '../../../components/Shared/ConfirmationModal';
 import { FilePreviewModal } from '../../../components/Shared/FilePreviewModal';
 import { WorkspaceModal } from '../../../components/Shared/WorkspaceModal';
-import { FolderTree } from '../../../components/Workspaces/FolderTree';
+import { FolderTree } from './_components/FolderTree';
 import { Toast, ToastType } from '../../../components/Shared/Toast';
 
 // New Sub-Components
-import { AddContextPanel } from '../../../components/Workspaces/AddContextPanel';
-import { WorkspaceList } from '../../../components/Workspaces/WorkspaceList';
-import { FileManager } from '../../../components/Workspaces/FileManager';
+import { AddContextPanel } from './_components/AddContextPanel';
+import { WorkspaceList } from './_components/WorkspaceList';
+import { FileManager } from './_components/FileManager';
+import { useDashboard } from '../dashboard/DashboardContext';
 
 // Define Virtual Folders
 const VIRTUAL_FOLDERS = [
@@ -42,6 +44,7 @@ const VIRTUAL_FOLDERS = [
 
 export default function WorkspacesPage() {
   const router = useRouter();
+  const { refreshWorkspaces } = useDashboard();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -91,12 +94,17 @@ export default function WorkspacesPage() {
 
   const loadWorkspaces = async () => {
     setIsLoading(true);
-    const data = await MockApi.fetchWorkspaces();
-    setWorkspaces(data);
-    if (data.length > 0 && !selectedWorkspaceId) {
-        setSelectedWorkspaceId(data[0].id);
+    try {
+        const data = await WorkspaceService.fetchWorkspaces();
+        setWorkspaces(data);
+        if (data.length > 0 && !selectedWorkspaceId) {
+            setSelectedWorkspaceId(data[0].id);
+        }
+    } catch (err) {
+        setToast({ message: "Failed to load workspaces", type: "error" });
+    } finally {
+        setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const selectedWorkspace = workspaces.find(s => s.id === selectedWorkspaceId);
@@ -104,92 +112,36 @@ export default function WorkspacesPage() {
   // --- Workspace Actions ---
 
   const handleCreateWorkspace = async () => {
-    // 1. Check Limit
-    if (workspaces.length >= 4) {
+    // 1. Check Limit (Optional, maybe remove for real API or keep as UI safeguard)
+    if (workspaces.length >= 5) { // Bumped limit for now
         setToast({ 
-            message: "Free Tier Limit Reached", 
-            subMessage: "You have reached the maximum of 4 workspaces on the Free plan. Please upgrade to create more.",
+            message: "Workspace Limit Reached", 
+            subMessage: "You have reached the maximum number of workspaces.",
             type: 'error' 
         });
         return;
     }
 
-    const newWorkspace: Workspace = {
-      id: uuidv4(),
-      title: 'New Workspace',
-      description: 'A new workspace for your documents and chats.',
-      createdAt: Date.now(),
-      similarityThreshold: 0.7,
-      contextItems: [],
-      folders: [],
-      symbol: 'W',
-      color: 'bg-slate-500'
-    };
-    await MockApi.createWorkspace(newWorkspace);
-    const updated = await MockApi.fetchWorkspaces();
-    setWorkspaces(updated);
-    setSelectedWorkspaceId(newWorkspace.id);
-    setToast({ message: "Workspace Created", type: "success" });
-  };
+    try {
+        // Retrieve user ID from localStorage
+        const savedAuth = localStorage.getItem('workpai_llm_auth');
+        const user = savedAuth ? JSON.parse(savedAuth) : null;
+        const userId = user?.id;
 
-  const handleCreateDemoWorkspace = async () => {
-    // Check limit for demo as well
-    if (workspaces.length >= 4) {
-        setToast({ 
-            message: "Free Tier Limit Reached", 
-            subMessage: "You cannot create a demo workspace because you have reached the limit of 4 workspaces.",
-            type: 'error' 
-        });
-        return;
-    }
-
-    const folder1Id = uuidv4();
-    const folder2Id = uuidv4();
-
-    const demoWorkspace: Workspace = {
-      id: uuidv4(),
-      title: 'Demo Project',
-      description: 'A demo workspace pre-populated with folders and documents to showcase features.',
-      symbol: 'D',
-      color: 'bg-indigo-500',
-      createdAt: Date.now(),
-      similarityThreshold: 0.6,
-      systemInstruction: 'You are a helpful demo assistant.',
-      folders: [
-        { id: folder1Id, name: 'Financials', dateCreated: Date.now() },
-        { id: folder2Id, name: 'Marketing', dateCreated: Date.now() }
-      ],
-      contextItems: [
-        { id: uuidv4(), name: 'Q1_Budget_Analysis.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now(), isActive: true, folderId: folder1Id },
-        { id: uuidv4(), name: 'Campaign_Brief_v2.txt', type: 'txt', status: 'indexed', dateAdded: Date.now(), isActive: true, folderId: folder2Id },
-        { id: uuidv4(), name: 'Competitor_Analysis.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now(), isActive: true, folderId: folder2Id },
-        { id: uuidv4(), name: 'Meeting_Notes.txt', type: 'txt', status: 'indexed', dateAdded: Date.now(), isActive: true },
-        // Add sample whatsapp for demo
-        { id: uuidv4(), name: 'WA +15550192: Product Team', type: 'whatsapp', status: 'indexed', dateAdded: Date.now(), isActive: true },
-        { id: uuidv4(), name: 'WA +15550192: Design Group', type: 'whatsapp', status: 'indexed', dateAdded: Date.now(), isActive: true },
-        { id: uuidv4(), name: 'WA +447700900: Client A', type: 'whatsapp', status: 'indexed', dateAdded: Date.now(), isActive: true }
-      ]
-    };
-
-    setIsLoading(true);
-    await MockApi.createWorkspace(demoWorkspace);
-    const updated = await MockApi.fetchWorkspaces();
-    setWorkspaces(updated);
-    setSelectedWorkspaceId(demoWorkspace.id);
-    setIsLoading(false);
-    setToast({ message: "Demo Workspace Ready", type: "success" });
-  };
-
-  const handleDeleteWorkspace = async () => {
-    if (itemToEditId) {
-      await MockApi.deleteWorkspace(itemToEditId);
-      setWorkspaces(prev => prev.filter(s => s.id !== itemToEditId));
-      if (selectedWorkspaceId === itemToEditId) {
-        setSelectedWorkspaceId(null);
-      }
-      setIsDeleteModalOpen(false);
-      setItemToEditId(null);
-      setToast({ message: "Workspace Deleted", type: "info" });
+        const newWorkspaceData: any = {
+          title: 'New Workspace ' + (workspaces.length + 1),
+          description: 'A new workspace for your documents and chats.',
+          user_id: userId
+          // other defaults handled by API/Service
+        };
+        
+        await WorkspaceService.createWorkspace(newWorkspaceData);
+        // Refresh list
+        loadWorkspaces(); 
+        refreshWorkspaces();
+        setToast({ message: "Workspace Created", type: "success" });
+    } catch (err: any) {
+        setToast({ message: "Failed to create workspace", type: "error", subMessage: err.message });
     }
   };
 
@@ -198,13 +150,110 @@ export default function WorkspacesPage() {
       const ws = workspaces.find(s => s.id === itemToEditId);
       if(ws) {
           const updatedWs = { ...ws, title, description };
-          await MockApi.updateWorkspace(updatedWs);
+          await WorkspaceService.updateWorkspace(updatedWs.slug, updatedWs);
           setWorkspaces(prev => prev.map(s => s.id === itemToEditId ? updatedWs : s));
+          refreshWorkspaces();
       }
       setIsEditWorkspaceModalOpen(false);
       setItemToEditId(null);
       setToast({ message: "Workspace Updated", type: "success" });
     }
+  };    
+
+  const handleDeleteWorkspace = async () => {
+    if (itemToEditId) {
+      const ws = workspaces.find(s => s.id === itemToEditId);
+      if(ws) {  
+        await WorkspaceService.deleteWorkspace(ws.slug);
+        setWorkspaces(prev => prev.filter(s => s.id !== itemToEditId));
+        if (selectedWorkspaceId === itemToEditId) {
+          setSelectedWorkspaceId(null);
+        }
+        refreshWorkspaces();
+        setIsDeleteModalOpen(false);
+        setItemToEditId(null);
+        setToast({ message: "Workspace Deleted", type: "info" });
+      }else{
+        setToast({ message: "Workspace to delete not found", type: "error" });
+      }
+    }else {
+        setToast({ message: "Workspace to delete not found", type: "error" });
+    }
+  };
+
+  const handleCreateDemoWorkspace = async () => {
+    // Check limit for demo as well
+    if (workspaces.length >= 5) {
+        setToast({ 
+            message: "Free Tier Limit Reached", 
+            subMessage: "You cannot create a demo workspace because you have reached the limit of 4 workspaces.",
+            type: 'error' 
+        });
+        return;
+    }
+
+    // Retrieve user ID from localStorage
+    const savedAuth = localStorage.getItem('workpai_llm_auth');
+    const user = savedAuth ? JSON.parse(savedAuth) : null;
+    const userId = user?.id;    
+
+    const newWorkspaceData: any = [{
+        title: 'Marketing & Brand',
+        description: 'Campaign assets, brand guidelines, and Q1 strategy docs.',
+        user_id: userId
+    }, {
+        title: 'Engineering',
+        description: 'API documentation, architecture decision records (ADRs), and sprint logs.',
+        user_id: userId
+    }, {
+        title: 'Legal & HR',
+        description: 'Contract templates, employee handbook, and compliance docs.',
+        user_id: userId
+    }];        
+    setIsLoading(true);
+    await Promise.all(newWorkspaceData.map(async (workspace) => {
+        await WorkspaceService.createWorkspace(workspace);
+    }));
+    setIsLoading(false);
+    loadWorkspaces();
+    refreshWorkspaces();
+    setToast({ message: "Demo Workspace Created", type: "success" });
+
+    // const folder1Id = uuidv4();
+    // const folder2Id = uuidv4();
+    // const demoWorkspace: Workspace = {
+    //   id: uuidv4(),
+    //   slug: 'demo-project',
+    //   title: 'Demo Project',
+    //   description: 'A demo workspace pre-populated with folders and documents to showcase features.',
+    //   symbol: 'D',
+    //   color: 'bg-indigo-500',
+    //   createdAt: Date.now(),
+    //   similarityThreshold: 0.6,
+    //   systemInstruction: 'You are a helpful demo assistant.',
+    //   folders: [
+    //     { id: folder1Id, name: 'Financials', dateCreated: Date.now() },
+    //     { id: folder2Id, name: 'Marketing', dateCreated: Date.now() }
+    //   ],
+    //   contextItems: [
+    //     { id: uuidv4(), name: 'Q1_Budget_Analysis.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now(), folderId: folder1Id },
+    //     { id: uuidv4(), name: 'Campaign_Brief_v2.txt', type: 'txt', status: 'indexed', dateAdded: Date.now(), folderId: folder2Id },
+    //     { id: uuidv4(), name: 'Competitor_Analysis.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now(), folderId: folder2Id },
+    //     { id: uuidv4(), name: 'Meeting_Notes.txt', type: 'txt', status: 'indexed', dateAdded: Date.now() },
+    //     // Add sample whatsapp for demo
+    //     { id: uuidv4(), name: 'WA +15550192: Product Team', type: 'whatsapp', status: 'indexed', dateAdded: Date.now() },
+    //     { id: uuidv4(), name: 'WA +15550192: Design Group', type: 'whatsapp', status: 'indexed', dateAdded: Date.now() },
+    //     { id: uuidv4(), name: 'WA +447700900: Client A', type: 'whatsapp', status: 'indexed', dateAdded: Date.now() }
+    //   ]
+    // };
+
+    // setIsLoading(true);
+    // await MockApi.createWorkspace(demoWorkspace);
+    // const updated = await MockApi.fetchWorkspaces();
+    // setWorkspaces(updated);
+    // setSelectedWorkspaceId(demoWorkspace.id);
+    // setIsLoading(false);
+    // setToast({ message: "Demo Workspace Ready", type: "success" });
   };
 
   // --- Context Handling ---
@@ -492,7 +541,7 @@ export default function WorkspacesPage() {
           onDeleteWorkspace={(id) => { setItemToEditId(id); setIsDeleteModalOpen(true); }}
           onCollapse={() => setIsWorkspaceSidebarOpen(false)}
           onNavigateHome={() => router.push('/')}
-          onEnterChat={(id) => router.push(`/?workspaceId=${id}`)}
+          onEnterChat={(id) => router.push(`/dashboard/${id}`)}
       />
 
       {/* RIGHT PANEL: File Manager */}
@@ -665,7 +714,7 @@ export default function WorkspacesPage() {
          isOpen={isDeleteModalOpen}
          title="Delete Workspace?"
          message={`Are you sure you want to delete "${workspaces.find(s => s.id === itemToEditId)?.title}"?`}
-         validationString={workspaces.find(s => s.id === itemToEditId)?.title}
+         validationString={workspaces.find(s => s.id === itemToEditId)?.slug}
          isDanger={true}
          onConfirm={handleDeleteWorkspace}
          onCancel={() => { setIsDeleteModalOpen(false); setItemToEditId(null); }}

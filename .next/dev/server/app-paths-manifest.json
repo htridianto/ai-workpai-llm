@@ -1,5 +1,13 @@
 {
   "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(protected)/dashboard/[workspaceId]/page": "app/(protected)/dashboard/[workspaceId]/page.js",
   "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
-  "/restapi/login/route": "app/restapi/login/route.js"
+  "/(protected)/workspaces/page": "app/(protected)/workspaces/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/restapi/chatsession/[sessionId]/route": "app/restapi/chatsession/[sessionId]/route.js",
+  "/restapi/chatsession/route": "app/restapi/chatsession/route.js",
+  "/restapi/login/demo/route": "app/restapi/login/demo/route.js",
+  "/restapi/login/google/route": "app/restapi/login/google/route.js",
+  "/restapi/workspaces/[workspaceId]/route": "app/restapi/workspaces/[workspaceId]/route.js",
+  "/restapi/workspaces/route": "app/restapi/workspaces/route.js"
 }

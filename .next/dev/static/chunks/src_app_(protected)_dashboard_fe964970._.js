@@ -865,7 +865,7 @@ const InputArea = ({ onSend, disabled })=>{
                                 onChange: handleChange,
                                 onKeyDown: handleKeyDown,
                                 placeholder: "Send a message...",
-                                className: "flex-1 bg-transparent border-none focus:ring-0 resize-none max-h-[200px] py-2.5 text-slate-800 dark:text-slate-200 placeholder-charcoal-400 dark:placeholder-charcoal-500 leading-relaxed min-h-[44px]",
+                                className: "flex-1 bg-transparent border-none focus:ring-0 focus:outline-none resize-none max-h-[200px] py-2.5 text-slate-800 dark:text-slate-200 placeholder-charcoal-400 dark:placeholder-charcoal-500 leading-relaxed min-h-[44px]",
                                 rows: 1,
                                 disabled: disabled
                             }, void 0, false, {

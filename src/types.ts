@@ -32,6 +32,7 @@ export interface Folder {
 
 export interface Workspace {
   id: string;
+  slug: string;
   title: string;
   description?: string;
   symbol?: string; // Emoji or abbreviation
@@ -40,7 +41,7 @@ export interface Workspace {
   similarityThreshold: number;
   contextItems: ContextItem[];
   folders: Folder[];
-  systemInstruction?: string;
+  systemInstruction?: string;  
 }
 
 export interface ChatSession {
@@ -50,6 +51,7 @@ export interface ChatSession {
   messages: Message[];
   modelId: string;
   createdAt: number;
+  contextItemIds: string[]; // IDs of active context items for this session
 }
 
 export interface ContextItem {
@@ -58,7 +60,6 @@ export interface ContextItem {
   type: 'pdf' | 'txt' | 'link' | 'database' | 'whatsapp';
   status: 'indexed' | 'indexing' | 'error';
   dateAdded: number;
-  isActive?: boolean;
   folderId?: string; 
   progress?: number; // 0-100
 }
@@ -79,13 +80,14 @@ export interface AppSettings {
 
 // --- Settings & Admin Types ---
 
-export type UserRole = 'admin' | 'editor' | 'viewer';
+export type UserRole = 'admin' | 'manager' | 'default';
 
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  bio?: string;   
   avatar?: string;
   status: 'active' | 'invited';
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Mail, Lock, ArrowRight, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle, Sparkles, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { AuthService } from '../../../services/authService';
@@ -34,7 +34,7 @@ export default function AuthPage() {
     setLoadingText('Authenticating...');
 
     try {
-      // 1. Simulate API Call
+      // 1. API Call
       await AuthService.login(email, password);
       
       // 2. Setup Data Environment (Default: Populated for standard login)
@@ -60,11 +60,11 @@ export default function AuthPage() {
     setLoadingText('Connecting to Google...');
     
     try {
-      // 1. Setup Data Environment (Empty for Google)
-      localStorage.setItem('anything_llm_mock_workspaces', JSON.stringify([]));
-      localStorage.setItem('anything_llm_mock_sessions', JSON.stringify([]));
-      localStorage.setItem('anything_llm_mock_generated_files', JSON.stringify([]));
-      localStorage.setItem('anything_llm_mock_generated_folders', JSON.stringify([]));
+      // 1. Setup Data Environment (Populated for Demo)
+      localStorage.removeItem('anything_llm_mock_workspaces');
+      localStorage.removeItem('anything_llm_mock_sessions');
+      localStorage.removeItem('anything_llm_mock_generated_files');
+      localStorage.removeItem('anything_llm_mock_generated_folders');
 
       // 2. Simulate OAuth
       await AuthService.loginWithGoogle();
@@ -145,13 +145,13 @@ export default function AuthPage() {
 
       <form onSubmit={handleLogin} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-charcoal-300 mb-1.5 ml-1">Email</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-charcoal-300 mb-1.5 ml-1">Username</label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-charcoal-500 group-focus-within:text-accent-500 dark:group-focus-within:text-accent-400 transition-colors">
-              <Mail size={20} />
+              <User size={20} />
             </div>
             <input 
-              type="email" 
+              type="text" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-charcoal-700 rounded-xl bg-gray-50 dark:bg-charcoal-950 text-slate-900 dark:text-slate-200 placeholder-slate-400 dark:placeholder-charcoal-600 focus:outline-none focus:ring-1 focus:ring-accent-500 focus:border-accent-500 transition-all"

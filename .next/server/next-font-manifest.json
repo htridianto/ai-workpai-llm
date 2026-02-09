@@ -3,16 +3,19 @@
     "[project]/src/app/(auth)/login/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/src/app/(dashboard)/generated/page": [
+    "[project]/src/app/(protected)/dashboard/[workspaceId]/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/src/app/(dashboard)/page": [
+    "[project]/src/app/(protected)/dashboard/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/src/app/(dashboard)/settings/page": [
+    "[project]/src/app/(protected)/generated/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
-    "[project]/src/app/(dashboard)/workspaces/page": [
+    "[project]/src/app/(protected)/settings/page": [
+      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
+    ],
+    "[project]/src/app/(protected)/workspaces/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2"
     ],
     "[project]/src/app/_not-found/page": [

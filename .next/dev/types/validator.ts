@@ -56,6 +56,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/(protected)/dashboard/[workspaceId]/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/dashboard/[workspaceId]">> = Specific
+  const handler = {} as typeof import("../../../src/app/(protected)/dashboard/[workspaceId]/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/(protected)/dashboard/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/dashboard">> = Specific
@@ -92,19 +101,46 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
-// Validate ../../../src/app/restapi/login-demo/route.ts
+// Validate ../../../src/app/restapi/chat/route.ts
 {
-  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/login-demo">> = Specific
-  const handler = {} as typeof import("../../../src/app/restapi/login-demo/route.js")
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/chat">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/chat/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
 }
 
-// Validate ../../../src/app/restapi/login-google/route.ts
+// Validate ../../../src/app/restapi/chatsession/[sessionId]/route.ts
 {
-  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/login-google">> = Specific
-  const handler = {} as typeof import("../../../src/app/restapi/login-google/route.js")
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/chatsession/[sessionId]">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/chatsession/[sessionId]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/chatsession/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/chatsession">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/chatsession/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/login/demo/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/login/demo">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/login/demo/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/login/google/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/login/google">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/login/google/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
@@ -114,6 +150,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/login">> = Specific
   const handler = {} as typeof import("../../../src/app/restapi/login/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/workspaces/[workspaceId]/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/workspaces/[workspaceId]">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/workspaces/[workspaceId]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/workspaces/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/workspaces">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/workspaces/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
@@ -136,6 +190,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends LayoutConfig<"/dashboard">> = Specific
   const handler = {} as typeof import("../../../src/app/(protected)/dashboard/layout.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/(protected)/layout.tsx
+{
+  type __IsExpected<Specific extends LayoutConfig<"/">> = Specific
+  const handler = {} as typeof import("../../../src/app/(protected)/layout.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check

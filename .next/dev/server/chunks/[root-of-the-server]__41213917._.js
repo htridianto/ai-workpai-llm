@@ -61,29 +61,54 @@ async function POST(request) {
                 status: 400
             });
         }
-        // Simulate database lookup latency
-        await new Promise((resolve)=>setTimeout(resolve, 800));
-        // Valid credentials check
-        if (email === 'admin@local.host' && password === 'password') {
-            const token = 'mock-jwt-token-xyz-123-signed-securely';
+        // Real authentication against STREAM_API_URL
+        const streamApiUrl = process.env.STREAM_API_URL;
+        if (!streamApiUrl) {
+            console.error("STREAM_API_URL is not defined in environment variables.");
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                success: true,
-                token,
-                user: {
-                    id: 'u-admin',
-                    name: 'Admin User',
-                    email: 'admin@local.host',
-                    role: 'admin',
-                    avatar: '/avatars/admin.png'
-                }
+                message: 'Server configuration error.'
+            }, {
+                status: 500
             });
         }
+        const payload = {
+            username: email,
+            password
+        };
+        const authResponse = await fetch(`${streamApiUrl}/api/request-token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        const authData = await authResponse.json();
+        // console.log('authData', payload,JSON.stringify(authData, null, 2));
+        if (!authResponse.ok || !authData.valid || !authData.user) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                message: authData.message || 'Invalid credentials.'
+            }, {
+                status: 401
+            } // 401 = Unauthorized
+            );
+        }
+        // Success - map the response to our user structure
+        // Assuming authData returns { token, ... } or similar. Adjust based on actual API response if needed.
+        // For now, we'll return the token and a user object derived from the input or response.
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            message: 'Invalid email or password.'
-        }, {
-            status: 401
+            success: true,
+            token: authData.token,
+            user: {
+                id: authData.user?.id || 'u-external',
+                name: authData.user?.display_name || authData.user?.username,
+                email: authData.user?.email || email,
+                role: authData.user?.role || 'user',
+                bio: authData.user?.bio || '',
+                avatar: '/avatars/admin.png' // Default avatar
+            }
         });
     } catch (error) {
+        console.error("Login error:", error);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             message: 'An error occurred during login.'
         }, {
