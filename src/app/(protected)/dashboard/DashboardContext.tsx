@@ -98,13 +98,16 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
+    localStorage.setItem('isDarkMode', (!isDarkMode).toString());
   };
 
-  useEffect(() => {
-     if (document.documentElement.classList.contains('light')) {
-         setIsDarkMode(false);
+  useEffect(() => {    
+     if (isDarkMode) {
+         document.documentElement.classList.add('dark');
+     } else {
+         document.documentElement.classList.remove('dark');
      }
-  }, []);
+  }, [isDarkMode]);
 
   // Logout Wrapper
   const handleLogout = () => {
@@ -144,6 +147,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    localStorage.getItem('isDarkMode') === 'true' ? setIsDarkMode(true) : setIsDarkMode(false);
     refreshWorkspaces();
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     if (savedSettings) {
