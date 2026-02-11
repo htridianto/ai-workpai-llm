@@ -10,7 +10,7 @@ import {
   CreditCard, 
   Cpu
 } from 'lucide-react';
-import { UserProfile, LLMConfiguration } from '../../../types';
+import { UserProfile, LLMConfiguration } from '../../../types/types';
 import { DUMMY_USERS } from '../../../services/mockData';
 import { ProfileSettings } from './_components/ProfileSettings';
 import { useDashboard } from '../dashboard/DashboardContext';

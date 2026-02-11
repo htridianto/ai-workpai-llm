@@ -23,11 +23,11 @@ export default function AuthLayout({
              <Box size={32} className="text-accent-500" /> 
           </div>          
 
-          <h1 className="text-4xl font-bold mb-0 leading-tight text-slate-900 dark:text-white">
-            Your Private 
-            <span className="ms-2 text-transparent bg-clip-text bg-gradient-to-r from-accent-500 to-red-600 dark:from-accent-400 dark:to-red-500">WorkPai</span>
-          </h1>          
-          <span className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">based on AnythingLLM</span>
+          <h1 className="text-4xl font-bold mb-0 leading-tight text-slate-900 dark:text-white">            
+            <span className="ms-2 text-6xl text-transparent bg-clip-text bg-gradient-to-r from-accent-500 to-red-600 dark:from-accent-400 dark:to-red-500">WorkpAI</span>
+            <span className="text-xs text-slate-300 dark:text-slate-500 text-normal leading-tight ms-2">based on anythingLLM</span>
+            <br /> <span className="ms-2"></span>Your Private RAG
+          </h1>                    
 
           <p className="text-md text-slate-600 dark:text-charcoal-400 my-8 leading-relaxed">
             Manage vector databases, orchestrate local models, and interact with your documents in a high-fidelity environment.

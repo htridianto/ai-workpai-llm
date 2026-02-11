@@ -10,7 +10,7 @@ import {
   Sparkles,
   ArrowRight
 } from 'lucide-react';
-import { Workspace } from '../../../../types';
+import { Workspace } from '../../../../types/types';
 
 interface WorkspaceListProps {
   isOpen: boolean;

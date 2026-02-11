@@ -19,7 +19,7 @@ import {
   Box, 
   Edit2 
 } from 'lucide-react';
-import { Workspace, ContextItem, Folder as FolderType } from '../../../types';
+import { Workspace, ContextItem, Folder as FolderType } from '../../../types/types';
 import { MockApi } from '../../../services/mockApiService';
 import { WorkspaceService } from '../../../services/workspaceService';
 import { InputModal } from '../../../components/Shared/InputModal';

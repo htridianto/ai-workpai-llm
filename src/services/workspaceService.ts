@@ -1,4 +1,4 @@
-import { Workspace } from '../types';
+import { Workspace } from '../types/types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi';
 

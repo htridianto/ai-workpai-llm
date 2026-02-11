@@ -1,45 +1,41 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { nanoid } from 'nanoid';
+import { auth } from '@/lib/auth';
+import { getToken } from "next-auth/jwt";
 
 const DEFAULT_COLORS = ['accent-500', 'green-500', 'red-500', 'purple-500', 'indigo-500', 'blue-500'];
 
 export async function GET(request: Request) {
+    const session = await auth();
+    console.log('----workspaces:GET:session', session)
+    // const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
+    // console.log('----workspaces:GET:token', token)
+
+    if (!session) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
             console.warn("RAG_API_URL not set, falling back to mock store");
             return NextResponse.json({ message: 'Failed to get workspace: Internal Server Error' }, { status: 500 });
         }
-
-        // Get token from cookie manually since we are in an API route
-        const tokenCookie = request.headers.get('cookie')?.split(';').find(c => c.trim().startsWith((process.env.NEXT_PUBLIC_COOKIE_TOKEN_NAME || 'auth_token') + '='));
-        const token = tokenCookie ? tokenCookie.split('=')[1] : null;
-
         const response = await fetch(`${ragApiUrl}/api/workspaces`, {
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${session.sessionToken}`
             }
         });
 
         console.log('workspaces', JSON.stringify(response, null, 2));
 
         if (!response.ok) {
-            // If external fails (e.g. 401), maybe fallback or error?
-            // If 401, probably should return 401. 
-            // For dev/demo, if fallback is desired, we could. But "real login" implies we want real data.
             const message = await response.json();
             console.error("External API error:", response.status, message?.error);
-            // Fallback for now if external fails, to keep app working? 
-            // Or better to propagate error so we know.
-            // Let's propagate error behavior but return empty list or mock? 
-            // User requested "get from env... output to client", implies replacement.
-             return NextResponse.json({ message: message?.error ||'Failed to fetch external workspaces' }, { status: response.status });
+            return NextResponse.json({ message: message?.error ||'Failed to fetch external workspaces' }, { status: response.status });
         }
 
         const data = await response.json();
-        // Transform data.workspaces
-        
         const workspaces = (data.workspaces || []).map((ws: any) => ({
             id: String(ws.id), // Ensure string ID
             title: ws.name,

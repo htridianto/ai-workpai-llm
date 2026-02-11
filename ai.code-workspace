@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "../../opensource/anything-llm"
+		},
+		{
+			"path": "../../opensource/ragflow"
 		}
 	]
 }

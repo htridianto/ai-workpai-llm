@@ -1,6 +1,6 @@
 import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { UserProfile } from '../../../../types';
+import { UserProfile } from '../../../../types/types';
 
 interface TeamSettingsProps {
   users: UserProfile[];

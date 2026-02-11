@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileText, Calendar, HardDrive, Download } from 'lucide-react';
-import { GeneratedFile } from '../../../../types';
+import { GeneratedFile } from '../../../../types/types';
 
 interface GeneratedFilePreviewModalProps {
   file: GeneratedFile | null;

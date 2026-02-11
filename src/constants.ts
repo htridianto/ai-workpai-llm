@@ -1,4 +1,4 @@
-import { ModelConfig } from './types';
+import { ModelConfig } from './types/types';
 
 export const AVAILABLE_MODELS: ModelConfig[] = [
   {

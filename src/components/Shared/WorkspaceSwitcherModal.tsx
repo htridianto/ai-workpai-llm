@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Box, Check } from 'lucide-react';
-import { Workspace } from '../../types';
+import { Workspace } from '../../types/types';
 
 interface WorkspaceSwitcherModalProps {
   isOpen: boolean;

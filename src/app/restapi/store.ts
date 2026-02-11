@@ -1,4 +1,4 @@
-import { Workspace, ChatSession } from '../../types';
+import { Workspace, ChatSession } from '../../types/types';
 import { DUMMY_WORKSPACES, DUMMY_SESSIONS } from '../../services/mockData';
 
 // In-memory store

@@ -15,7 +15,7 @@ import {
   Loader2,
   RefreshCw
 } from 'lucide-react';
-import { Folder as FolderType, ContextItem } from '../../../../types';
+import { Folder as FolderType, ContextItem } from '../../../../types/types';
 
 interface FileManagerProps {
   currentFolders: FolderType[];

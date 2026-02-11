@@ -16,7 +16,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChatSession, Workspace } from '../../../../types';
+import { ChatSession, Workspace } from '../../../../types/types';
 import { ConfirmationModal } from '../../../../components/Shared/ConfirmationModal';
 import { InputModal } from '../../../../components/Shared/InputModal';
 import { useRouter } from 'next/navigation';

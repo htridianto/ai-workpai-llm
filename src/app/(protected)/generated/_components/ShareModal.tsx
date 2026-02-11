@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, UserPlus, Search, Check } from 'lucide-react';
-import { UserProfile } from '../../../../types';
+import { UserProfile } from '../../../../types/types';
 
 interface ShareModalProps {
   isOpen: boolean;

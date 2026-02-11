@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileText, Database, Link as LinkIcon, Calendar, MessageCircle, Table, Image, ExternalLink } from 'lucide-react';
-import { ContextItem } from '../../types';
+import { ContextItem } from '../../types/types';
 
 interface FilePreviewModalProps {
   file: ContextItem | null;

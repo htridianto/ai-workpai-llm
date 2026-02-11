@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Clock, FileText, Info, AlertTriangle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AppNotification } from '../../types';
+import { AppNotification } from '../../types/types';
 import { MockApi } from '../../services/mockApiService';
 import { useRouter } from 'next/navigation';
 

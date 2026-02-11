@@ -7,7 +7,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ContextItem } from '../../../../types';
+import { ContextItem } from '../../../../types/types';
 
 import { useDashboard } from '../DashboardContext';
 

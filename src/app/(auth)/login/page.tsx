@@ -29,8 +29,7 @@ const getErrorMessage = (code: string | null) => {
   }
 };     
 
-export default function AuthPage() {
-  
+export default function AuthPage() {  
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,6 +44,8 @@ export default function AuthPage() {
   useEffect(() => {
     if(errorParam === "CredentialsSignin"){
       setError( getErrorMessage(codeParam || null) );   
+    }else if(errorParam === "AccessDenied"){
+      setError( "Access Denied. Please try again later." );   
     }
   }, []);
 
@@ -97,6 +98,12 @@ export default function AuthPage() {
   };
 
   const handleGoogleLogin = async () => {
+    setError('');
+    setIsLoading(true);
+    setLoadingText('Connecting to Google...');
+    
+    await signIn('google', { callbackUrl: "/dashboard" });
+
     /*
     setError('');
     setIsLoading(true);
@@ -122,7 +129,6 @@ export default function AuthPage() {
       setIsLoading(false);
     }
     */
-    signIn('google', { callbackUrl: "/dashboard" });
   };
 
   const handleDemoLogin = async () => {
@@ -130,25 +136,31 @@ export default function AuthPage() {
     setIsLoading(true);
     setLoadingText('Provisioning demo instance...');
     
-    try {
-      // 1. Setup Data Environment (Populated for Demo)
-      localStorage.removeItem('anything_llm_mock_workspaces');
-      localStorage.removeItem('anything_llm_mock_sessions');
-      localStorage.removeItem('anything_llm_mock_generated_files');
-      localStorage.removeItem('anything_llm_mock_generated_folders');
+    await signIn("credentials", {
+      identifier: 'demo',
+      password: 'password123',
+      redirect: true,
+      callbackUrl: "/dashboard"
+    });    
+    // try {
+    //   // 1. Setup Data Environment (Populated for Demo)
+    //   localStorage.removeItem('anything_llm_mock_workspaces');
+    //   localStorage.removeItem('anything_llm_mock_sessions');
+    //   localStorage.removeItem('anything_llm_mock_generated_files');
+    //   localStorage.removeItem('anything_llm_mock_generated_folders');
 
-      // 2. Simulate Demo Setup
-      await AuthService.loginDemo();
+    //   // 2. Simulate Demo Setup
+    //   await AuthService.loginDemo();
       
-      setLoadingText('Finalizing workspace...');
-      setTimeout(() => {
-        router.push('/');
-      }, 500);
+    //   setLoadingText('Finalizing workspace...');
+    //   setTimeout(() => {
+    //     router.push('/');
+    //   }, 500);
 
-    } catch (err: any) {
-       setError('Failed to launch demo instance.');
-       setIsLoading(false);
-    }
+    // } catch (err: any) {
+    //    setError('Failed to launch demo instance.');
+    //    setIsLoading(false);
+    // }
   };
   
   return (

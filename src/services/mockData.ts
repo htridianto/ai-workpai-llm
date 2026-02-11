@@ -1,7 +1,7 @@
 
 
 
-import { ChatSession, Role, UserProfile, GeneratedFile, Folder, Workspace, AppNotification } from '../types';
+import { ChatSession, Role, UserProfile, GeneratedFile, Folder, Workspace, AppNotification } from '../types/types';
 
 export const DUMMY_WORKSPACES: Workspace[] = [
   {

@@ -1,6 +1,6 @@
 
 import { signIn, signOut } from 'next-auth/react';
-import { UserProfile } from '../types';
+import { UserProfile } from '../types/types';
 
 
 const storage_auth_name = 'workpai_llm_auth';

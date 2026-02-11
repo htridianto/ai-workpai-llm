@@ -13,7 +13,7 @@ import {
   ChevronRight,
   Menu
 } from 'lucide-react';
-import { GeneratedFile, Folder } from '../../../types';
+import { GeneratedFile, Folder } from '../../../types/types';
 import { MockApi } from '../../../services/mockApiService';
 import { DUMMY_USERS } from '../../../services/mockData';
 import { FileCard } from './_components/FileCard';

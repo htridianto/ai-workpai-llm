@@ -1,6 +1,6 @@
 import React, { useState, useRef, ChangeEvent } from 'react';
 import { Send, Paperclip, X, Image as ImageIcon, CornerDownLeft } from 'lucide-react';
-import { Attachment } from '../../../../types';
+import { Attachment } from '../../../../types/types';
 
 interface InputAreaProps {
   onSend: (text: string, attachments: Attachment[]) => void;

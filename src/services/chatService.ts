@@ -1,4 +1,4 @@
-import { Message, Role, Attachment } from '../types';
+import { Message, Role, Attachment } from '../types/types';
 
 export const streamChatResponse = async (
   modelId: string,
@@ -59,7 +59,7 @@ export const streamChatResponse = async (
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi';
 
-import { ChatSession } from '../types';
+import { ChatSession } from '../types/types';
 
 export const ChatService = {
     fetchSessions: async (): Promise<ChatSession[]> => {

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
-import { UserProfile } from '@/types';
+import { UserProfile } from '@/types/types';
 import { useDashboard } from '../../dashboard/DashboardContext';
+import Image from 'next/image';
 
 interface ProfileSettingsProps {      
 }
@@ -33,8 +34,14 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = () => {
       <div className="flex items-center gap-6 pb-6 border-b border-gray-200 dark:border-charcoal-800">
         <div className="w-20 h-20 rounded-full bg-accent-500 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-accent-500/20">
           {
-            profile?.avatar ? (
-              <img src={profile.avatar} alt="Avatar" className="w-full h-full rounded-full" />
+            profile?.image ? (
+              <Image 
+                src={profile.image} 
+                alt="Avatar"
+                width={128}  
+                height={128}  
+                className="w-full h-full rounded-full"
+              />
             ) : (
               profile?.displayName?.toLocaleUpperCase().charAt(0)
             )
@@ -42,6 +49,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = () => {
         </div>
         <div>
           <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">{profile?.userName}</span>
+          <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">Role: {profile?.role}</span>
           <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">{profile?.lastLoggedIn}</span>
         </div>
       </div>

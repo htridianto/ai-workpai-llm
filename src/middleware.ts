@@ -1,18 +1,34 @@
 import NextAuth from "next-auth";
 import { authConfig } from "./lib/auth.config";
 
-export default NextAuth(authConfig).auth;
+const { auth } = NextAuth(authConfig);
+
+export default auth((req) => {
+  const isLoggedIn = !!req.auth;
+  const { nextUrl } = req;
+
+  const isPublicPath = nextUrl.pathname === '/login' || 
+                       nextUrl.pathname.startsWith('/restapi/auth');
+
+  if (isPublicPath) {
+    if (isLoggedIn && nextUrl.pathname === '/login') {
+      return Response.redirect(new URL('/dashboard', nextUrl));
+    }
+    return;
+  }
+
+  if (!isLoggedIn) {
+    let callbackUrl = nextUrl.pathname;
+    if (nextUrl.search) {
+      callbackUrl += nextUrl.search;
+    }
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+    return Response.redirect(new URL(`/login?callbackUrl=${encodedCallbackUrl}`, nextUrl));
+  }
+});
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - restapi (Custom API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    '/((?!api|restapi|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };

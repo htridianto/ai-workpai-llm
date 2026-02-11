@@ -3,7 +3,7 @@
 
 
 import { v4 as uuidv4 } from 'uuid';
-import { ChatSession, GeneratedFile, Folder, Workspace, AppNotification } from '../types';
+import { ChatSession, GeneratedFile, Folder, Workspace, AppNotification } from '../types/types';
 import { DUMMY_SESSIONS, DUMMY_WORKSPACES, DUMMY_GENERATED_FILES, DUMMY_GENERATED_FOLDERS, DUMMY_NOTIFICATIONS } from './mockData';
 
 // Simulate network delay

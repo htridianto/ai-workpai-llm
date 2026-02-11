@@ -7,7 +7,7 @@ import { streamChatResponse, ChatService } from '../../../services/chatService';
 import { WorkspaceService } from '../../../services/workspaceService';
 import { MockApi } from '../../../services/mockApiService';
 // import { AuthService } from '../../../services/authService';
-import { Message, ChatSession, Role, Attachment, AppSettings, ContextItem, ExportFormat, GeneratedFile, Workspace, UserProfile } from '../../../types';
+import { Message, ChatSession, Role, Attachment, AppSettings, ContextItem, ExportFormat, GeneratedFile, Workspace, UserProfile } from '../../../types/types';
 import { AVAILABLE_MODELS, DEFAULT_SYSTEM_INSTRUCTION } from '../../../constants';
 import { ToastType } from '../../../components/Shared/Toast';
 import { signOut, useSession } from 'next-auth/react';
@@ -379,24 +379,24 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-
-  const { data: session, status } = useSession();  
+  const { data: sessionData, status: sessionStatus } = useSession();  
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   useEffect(() => {
-    if (session) {
-      console.log(session);
+    if (sessionData) {
+      console.log(sessionData);
       setUserProfile({
-        id: session?.user?.id || '',
-        userName: session?.user?.userName || 'Unknown',
-        email: session?.user?.email || 'Unknown',
-        displayName: session?.user?.name || 'Unknown',
-        bio: (session?.user as any)?.bio || '',
-        avatar: (session?.user as any)?.image,
-        lastLoggedIn: (session?.user as any)?.lastLoggedIn || new Date().toLocaleString(),
+        id: sessionData?.user?.id || '',
+        userName: sessionData?.user?.userName || 'Unknown',
+        email: sessionData?.user?.email || 'Unknown',
+        displayName: sessionData?.user?.name || 'Unknown',
+        role: (sessionData?.user as any)?.role || 'Unknown',
+        bio: (sessionData?.user as any)?.bio || '',
+        image: (sessionData?.user as any)?.image,
+        lastLoggedIn: (sessionData?.user as any)?.lastLoggedIn || new Date().toLocaleString(),
       });
     }      
-  }, [session]);
+  }, [sessionData]);
 
   // let userProfile: UserProfile | null = null;  
   // const getUserProfile = async (setProfile: (profile: UserProfile | null) => void) => {

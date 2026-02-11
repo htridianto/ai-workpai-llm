@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Eye, Download, Trash2, Share2, FileText, Presentation, FileSpreadsheet, Image as ImageIcon, Music, Video, File, Star, Users } from 'lucide-react';
-import { GeneratedFile, ExportFormat } from '../../../../types';
+import { GeneratedFile, ExportFormat } from '../../../../types/types';
 
 interface FileRowProps {
   file: GeneratedFile;
