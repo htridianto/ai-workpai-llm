@@ -1,6 +1,8 @@
 {
   "/(auth)/login/page": "app/(auth)/login/page.js",
   "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
+  "/(protected)/settings/page": "app/(protected)/settings/page.js",
+  "/(protected)/workspaces/page": "app/(protected)/workspaces/page.js",
   "/restapi/auth/[...nextauth]/route": "app/restapi/auth/[...nextauth]/route.js",
   "/restapi/chatsession/route": "app/restapi/chatsession/route.js",
   "/restapi/workspaces/route": "app/restapi/workspaces/route.js"

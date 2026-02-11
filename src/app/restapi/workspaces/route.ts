@@ -1,18 +1,17 @@
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
 import { nanoid } from 'nanoid';
-import { auth } from '@/lib/auth';
 import { getToken } from "next-auth/jwt";
+import { auth } from '@/lib/auth';
 
 const DEFAULT_COLORS = ['accent-500', 'green-500', 'red-500', 'purple-500', 'indigo-500', 'blue-500'];
 
 export async function GET(request: Request) {
     const session = await auth();
     console.log('----workspaces:GET:session', session)
-    // const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
-    // console.log('----workspaces:GET:token', token)
+    const token = await getToken({ req: request as any, secret: process.env.AUTH_SECRET });
+    console.log('----workspaces:GET:token', token)
 
-    if (!session) {
+    if (!token) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
     try {
@@ -23,7 +22,7 @@ export async function GET(request: Request) {
         }
         const response = await fetch(`${ragApiUrl}/api/workspaces`, {
             headers: {
-                'Authorization': `Bearer ${session.sessionToken}`
+                'Authorization': `Bearer ${token.sessionToken}`
             }
         });
 

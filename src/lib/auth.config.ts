@@ -25,7 +25,7 @@ export const authConfig = {
         token.sessionToken = user.sessionToken;
         token.accessToken = user.accessToken;      
       }
-      if (account) {
+      if (account && account.access_token) {
         token.accessToken = account.access_token;        
       }      
       return token;
@@ -44,7 +44,7 @@ export const authConfig = {
         session.user.bio = token.bio;
         session.user.lastLoggedin = token.lastLoggedin;
         session.user.ssoAuthId = token.ssoAuthId;        
-        session.sessionToken = token.sessionToken;        
+        // session.sessionToken = token.sessionToken;        
         session.accessToken = token.accessToken;
       }
       return session;
