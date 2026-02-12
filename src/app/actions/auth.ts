@@ -18,34 +18,34 @@ const RegisterSchema = z.object({
   name: z.string().optional(),
 });
 
-export const login = async (values: z.infer<typeof LoginSchema>) => {
-  const validatedFields = LoginSchema.safeParse(values);
+// export const login = async (values: z.infer<typeof LoginSchema>) => {
+//   const validatedFields = LoginSchema.safeParse(values);
 
-  if (!validatedFields.success) {
-    return { error: "Invalid fields!" };
-  }
+//   if (!validatedFields.success) {
+//     return { error: "Invalid fields!" };
+//   }
 
-  const { identifier, password } = validatedFields.data;
+//   const { identifier, password } = validatedFields.data;
 
-  try {
-    await signIn("credentials", {
-      identifier,
-      password,
-      redirectTo: "/dashboard", // Customize as needed
-    });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case "CredentialsSignin":
-          return { error: "Invalid credentials!" };
-        default:
-          return { error: "Something went wrong!" };
-      }
-    }
+//   try {
+//     await signIn("credentials", {
+//       identifier,
+//       password,
+//       redirectTo: "/dashboard", // Customize as needed
+//     });
+//   } catch (error) {
+//     if (error instanceof AuthError) {
+//       switch (error.type) {
+//         case "CredentialsSignin":
+//           return { error: "Invalid credentials!" };
+//         default:
+//           return { error: "Something went wrong!" };
+//       }
+//     }
 
-    throw error;
-  }
-};
+//     throw error;
+//   }
+// };
 
 export const register = async (values: z.infer<typeof RegisterSchema>) => {
   const validatedFields = RegisterSchema.safeParse(values);

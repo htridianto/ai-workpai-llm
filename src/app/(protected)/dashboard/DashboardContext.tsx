@@ -12,6 +12,7 @@ import { AVAILABLE_MODELS, DEFAULT_SYSTEM_INSTRUCTION } from '../../../constants
 import { ToastType } from '../../../components/Shared/Toast';
 import { signOut, useSession } from 'next-auth/react';
 
+
 const SETTINGS_KEY = 'anything_llm_settings';
 
 interface DashboardContextType {
@@ -20,8 +21,6 @@ interface DashboardContextType {
   setIsSidebarOpen: (open: boolean) => void;
   isContextOpen: boolean;
   setIsContextOpen: (open: boolean) => void;
-  isDarkMode: boolean;
-  toggleTheme: () => void;
   toast: { message: string, type: ToastType, subMessage?: string } | null;
   setToast: (toast: { message: string, type: ToastType, subMessage?: string } | null) => void;
 
@@ -74,7 +73,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isContextOpen, setIsContextOpen] = useState(false);
   const [toast, setToast] = useState<{message: string, type: ToastType, subMessage?: string} | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
 
   // App State
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -93,22 +91,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     systemInstruction: DEFAULT_SYSTEM_INSTRUCTION,
     temperature: 0.7
   });
-
-  // Theme Toggle
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('isDarkMode', (!isDarkMode).toString());
-  };
-
-  useEffect(() => {    
-     if (isDarkMode) {
-         document.documentElement.classList.add('dark');
-     } else {
-         document.documentElement.classList.remove('dark');
-     }
-  }, [isDarkMode]);
-
   // Logout Wrapper
   const handleLogout = () => {
       signOut({ 
@@ -147,7 +129,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    localStorage.getItem('isDarkMode') === 'true' ? setIsDarkMode(true) : setIsDarkMode(false);
+    // localStorage.getItem('isDarkMode') === 'true' ? setIsDarkMode(true) : setIsDarkMode(false);
     refreshWorkspaces();
     const savedSettings = localStorage.getItem(SETTINGS_KEY);
     if (savedSettings) {
@@ -158,6 +140,22 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }, [settings]);
+
+  // Lock body scroll on mobile when sidebars are open
+  useEffect(() => {
+    const isAnySidebarOpen = isSidebarOpen || isContextOpen;
+    const isMobile = window.innerWidth < 1024; // matches lg breakpoint
+
+    if (isAnySidebarOpen && isMobile) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isSidebarOpen, isContextOpen]);
 
   // Derived State (Memoized)
   const currentWorkspace = useMemo(() => workspaces.find(w => w.id === currentWorkspaceId), [workspaces, currentWorkspaceId]);
@@ -391,6 +389,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       console.log(sessionData);
       setUserProfile({
         id: sessionData?.user?.id || '',
+        name: sessionData?.user?.name || 'Unknown',
         userName: sessionData?.user?.userName || 'Unknown',
         email: sessionData?.user?.email || 'Unknown',
         displayName: sessionData?.user?.name || 'Unknown',
@@ -426,7 +425,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const contextValue = useMemo(() => ({
       isSidebarOpen, setIsSidebarOpen,
       isContextOpen, setIsContextOpen,
-      isDarkMode, toggleTheme,
       toast, setToast,
       workspaces, currentWorkspaceId, setCurrentWorkspaceId,
       sessions, currentSessionId, setCurrentSessionId,
@@ -439,7 +437,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       handleToggleContextItemActive, updateThreshold, handleLogout,
       refreshWorkspaces, userProfile, setUserProfile
   }), [
-      isSidebarOpen, isContextOpen, isDarkMode, toast,
+      isSidebarOpen, isContextOpen, toast,
       workspaces, currentWorkspaceId, sessions, currentSessionId,
       isLoadingData, isStreaming, streamingContent, settings,
       currentWorkspace, filteredSessions, currentSession, currentContextItems

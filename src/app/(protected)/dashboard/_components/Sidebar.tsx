@@ -21,6 +21,7 @@ import { ConfirmationModal } from '../../../../components/Shared/ConfirmationMod
 import { InputModal } from '../../../../components/Shared/InputModal';
 import { useRouter } from 'next/navigation';
 import { useDashboard } from '../DashboardContext';
+import { useTheme } from '@/components/ThemeProvider';
 
 export const Sidebar = React.memo(() => {
   const {
@@ -36,9 +37,10 @@ export const Sidebar = React.memo(() => {
       renameSession: onRenameSession,
       handleLogout: onLogout,
       isSidebarOpen: isOpen,
-      isDarkMode,
-      toggleTheme: onToggleTheme
+      setIsSidebarOpen,
   } = useDashboard();
+  
+  const { isDarkMode, toggleTheme: onToggleTheme } = useTheme();
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,9 +49,20 @@ export const Sidebar = React.memo(() => {
   const router = useRouter();
 
   const sidebarVariants = {
-    open: { width: "320px", opacity: 1, x: 0 },
-    closed: { width: "0px", opacity: 0, x: -50 }
+    open: { 
+      width: "320px", 
+      opacity: 1, 
+      x: 0,
+      transition: { type: "spring", stiffness: 300, damping: 30 }
+    },
+    closed: { 
+      width: "0px", 
+      opacity: 0, 
+      x: -20, // Subtle slide
+      transition: { type: "spring", stiffness: 300, damping: 30 }
+    }
   };
+   // For mobile, we might want a different variant, but let's stick to this for now as it handles desktop width too.
 
   // Group Sessions by Date
   const groupedSessions = useMemo(() => {
@@ -95,18 +108,34 @@ export const Sidebar = React.memo(() => {
   const activeWorkspace = workspaces.find(w => w.slug === currentWorkspaceId);
   return (
     <>
-      <AnimatePresence mode='wait'>
+      <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={sidebarVariants}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="h-full flex z-30 overflow-hidden relative shadow-xl"
-          >
-            {/* 1. Workspace Rail (Leftmost) */}
-            <div className="w-[72px] h-full bg-gray-100 dark:bg-charcoal-950 border-r border-gray-200 dark:border-charcoal-800 flex flex-col items-center py-4 gap-3 shrink-0 z-40">
+          <>
+            {/* Mobile Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+            />
+            
+            <motion.div
+              initial="closed"
+              animate="open"
+              exit="closed"
+              variants={sidebarVariants}
+              className="h-full flex z-50 overflow-hidden fixed inset-y-0 left-0 lg:relative shadow-xl lg:shadow-none"
+            >
+              <button 
+                onClick={() => setIsSidebarOpen(false)}
+                className="absolute right-4 top-4 lg:hidden p-2 text-charcoal-400 hover:text-slate-900 dark:hover:text-white z-50"
+              >
+                <X size={20} />
+              </button>
+
+              {/* 1. Workspace Rail (Leftmost) */}
+              <div className="w-[72px] h-full bg-gray-100 dark:bg-charcoal-950 border-r border-gray-200 dark:border-charcoal-800 flex flex-col items-center py-4 gap-3 shrink-0 z-40">
                 {workspaces.map(ws => (
                     <button
                         key={ws.id}
@@ -166,7 +195,7 @@ export const Sidebar = React.memo(() => {
                             <Box size={20} strokeWidth={2.5} />
                         </div>
                         <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">
-                           WorkPai
+                           WorkpAI
                         </h1>
                     </div>
 
@@ -302,6 +331,7 @@ export const Sidebar = React.memo(() => {
                 </div>
             </div>
           </motion.div>
+        </>
         )}
       </AnimatePresence>
 

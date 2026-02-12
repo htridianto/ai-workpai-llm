@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+//@todo remove this endpoint
 export async function POST(request: Request) {
   try {
     const body = await request.json();

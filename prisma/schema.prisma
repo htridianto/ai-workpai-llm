@@ -90,6 +90,7 @@ model VerificationToken {
 model WorkspaceUser {
   userId      String    @map("user_id")
   workspaceId String    @map("workspace_id")
+  role        String    @default("member")
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 

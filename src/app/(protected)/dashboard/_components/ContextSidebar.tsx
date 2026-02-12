@@ -14,6 +14,7 @@ import { useDashboard } from '../DashboardContext';
 export const ContextSidebar: React.FC = () => {
   const {
     isContextOpen: isOpen,
+    setIsContextOpen,
     currentContextItems: contextItems,
     currentWorkspace,
     currentSession,
@@ -28,18 +29,34 @@ export const ContextSidebar: React.FC = () => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 300, opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="h-full bg-gray-50 dark:bg-charcoal-900 border-l border-gray-200 dark:border-charcoal-800 flex flex-col flex-shrink-0 z-20 overflow-hidden transition-colors duration-200"
-        >
-          {/* Header tabs */}
-          <div className="flex items-center border-b border-gray-200 dark:border-charcoal-800">
+        <>
+          {/* Mobile Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsContextOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+          />
+
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 300, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="h-full bg-gray-50 dark:bg-charcoal-900 border-l lg:border-l border-gray-200 dark:border-charcoal-800 flex flex-col flex-shrink-0 z-50 fixed inset-y-0 right-0 lg:relative overflow-hidden transition-colors duration-200 shadow-xl lg:shadow-none"
+          >
+            {/* Header tabs */}
+            <div className="flex items-center border-b border-gray-200 dark:border-charcoal-800">
+              <button 
+                onClick={() => setIsContextOpen(false)}
+                className="lg:hidden p-4 text-charcoal-500 hover:text-slate-900 dark:hover:text-white"
+              >
+                <X size={20} />
+              </button>
              <button 
               onClick={() => setActiveTab('documents')}
-              className={`flex-1 py-4 text-sm font-medium text-left transition-colors border-b-2 ${
+              className={`flex-1 ps-2 py-4 text-sm font-medium text-left transition-colors border-b-2 ${
                 activeTab === 'documents' 
                   ? 'border-accent-500 text-slate-800 dark:text-slate-100' 
                   : 'border-transparent text-charcoal-500 dark:text-charcoal-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -153,6 +170,7 @@ export const ContextSidebar: React.FC = () => {
             )}
           </div>
         </motion.div>
+      </>
       )}
     </AnimatePresence>
   );

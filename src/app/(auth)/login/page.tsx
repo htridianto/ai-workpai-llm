@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { Mail, Lock, ArrowRight, AlertCircle, Sparkles, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { AuthService } from '../../../services/authService';
 import { useSearchParams } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 

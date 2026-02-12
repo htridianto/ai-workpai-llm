@@ -12,8 +12,20 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = () => {
   const [profile, setProfile] = useState<UserProfile | null>();
 
   const handleSaveProfile = () => {
-      if(profile)setUserProfile(profile);
-      showToast({ message: 'Profile updated is under development!', type: 'success' });
+    if (profile && profile?.userName !== 'demo') {
+        setUserProfile(profile);
+        showToast({ 
+            message: 'Profile Updated Successfully!', 
+            type: 'success',
+            subMessage: 'Changes have been saved to your active session.'
+        });
+    } else {
+        showToast({ 
+            message: 'Access Restricted', 
+            type: 'error',
+            subMessage: 'Profile saving is currently only enabled for the demo account.'
+        });
+    }
   };
 
   useEffect(() => {

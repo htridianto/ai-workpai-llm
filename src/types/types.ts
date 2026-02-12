@@ -84,7 +84,8 @@ export type UserRole = 'admin' | 'manager' | 'default';
 
 export interface UserProfile {
   id: string;
-  userName: string;
+  name: string;
+  userName?: string;
   email: string;
   displayName?: string;  
   role?: UserRole;

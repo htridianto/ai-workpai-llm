@@ -1,5 +1,4 @@
 {
-  "/(auth)/login/page": "app/(auth)/login/page.js",
   "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
   "/(protected)/settings/page": "app/(protected)/settings/page.js",
   "/(protected)/workspaces/page": "app/(protected)/workspaces/page.js",

@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Box, CheckCircle2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function AuthLayout({
   children,
@@ -10,7 +11,10 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full bg-gray-50 dark:bg-charcoal-950 flex overflow-hidden font-sans transition-colors duration-200">
+    <div className="min-h-screen w-full bg-gray-50 dark:bg-charcoal-950 flex overflow-hidden font-sans transition-colors duration-200 relative">
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
       {/* Left Panel - Branding / Hero */}
       <div className="hidden lg:flex lg:w-1/2 bg-white dark:bg-gradient-to-br dark:from-charcoal-900 dark:to-charcoal-950 relative overflow-hidden items-center justify-center p-12 border-r border-gray-200 dark:border-charcoal-800">
         <div className="absolute top-0 left-0 w-full h-full opacity-5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] invert dark:invert-0"></div>
@@ -23,10 +27,10 @@ export default function AuthLayout({
              <Box size={32} className="text-accent-500" /> 
           </div>          
 
-          <h1 className="text-4xl font-bold mb-0 leading-tight text-slate-900 dark:text-white">            
-            <span className="ms-2 text-6xl text-transparent bg-clip-text bg-gradient-to-r from-accent-500 to-red-600 dark:from-accent-400 dark:to-red-500">WorkpAI</span>
-            <span className="text-xs text-slate-300 dark:text-slate-500 text-normal leading-tight ms-2">based on anythingLLM</span>
-            <br /> <span className="ms-2"></span>Your Private RAG
+          <h1 className="text-4xl mb-0 leading-tight text-slate-900 dark:text-white">            
+            <span className="ms-2 font-bold text-6xl text-transparent bg-clip-text bg-gradient-to-r from-accent-500 to-red-600 dark:from-accent-400 dark:to-red-500">WorkpAI</span>
+            <span className="text-xs text-slate-300 dark:text-slate-600 text-normal leading-tight ms-2">based on anythingLLM</span>
+            <br /> <span className="ms-2 font-bold"></span>Your Private RAG
           </h1>                    
 
           <p className="text-md text-slate-600 dark:text-charcoal-400 my-8 leading-relaxed">
