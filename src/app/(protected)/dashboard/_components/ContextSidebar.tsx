@@ -7,7 +7,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ContextItem } from '@/shared/types/types';
+import { FileContext } from '@/shared/types/types';
 
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
@@ -15,12 +15,12 @@ export const ContextSidebar: React.FC = () => {
   const {
     isContextOpen: isOpen,
     setIsContextOpen,
-    currentContextItems: contextItems,
+    currentFileContexts: fileContexts,
     currentWorkspace,
     currentSession,
     updateThreshold: onUpdateThreshold,
-    handleRemoveContextItem: onRemoveItem,
-    handleToggleContextItemActive: onToggleActive
+    handleRemoveFileContext: onRemoveItem,
+    handleToggleFileContextActive: onToggleActive
   } = useDashboard();
 
   const similarityThreshold = currentWorkspace?.similarityThreshold || 0.7;
@@ -84,14 +84,14 @@ export const ContextSidebar: React.FC = () => {
                     <h3 className="text-xs font-semibold text-charcoal-500 dark:text-charcoal-400 uppercase tracking-wider mb-3">Active Context</h3>
                     <p className="text-[10px] text-charcoal-400 mb-2">Select files to include in this chat session.</p>
                     
-                    {contextItems.length === 0 ? (
+                    {fileContexts.length === 0 ? (
                       <div className="text-center py-8 text-charcoal-500 text-sm border-2 border-dashed border-charcoal-200 dark:border-charcoal-700 rounded-xl">
                         No documents indexed in this workspace. <br/> Go to "Workspaces" to manage files.
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {contextItems.map(item => {
-                           const isActive = currentSession?.contextItemIds?.includes(item.id);
+                        {fileContexts.map(item => {
+                           const isActive = currentSession?.fileContextIds?.includes(item.id);
                            
                            return (
                            <div key={item.id} className="flex items-center gap-3 p-3 bg-white dark:bg-charcoal-800 rounded-lg border border-gray-200 dark:border-charcoal-700 shadow-sm group">

@@ -18,7 +18,10 @@ export const WorkspaceService = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        if (!response.ok) throw new Error('Failed to create workspace');
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to create workspace');
+        }
         return response.json();
     },
 
@@ -42,6 +45,83 @@ export const WorkspaceService = {
         const response = await fetch(`${BASE_URL}/workspaces/${slug}`, {
             method: 'DELETE'
         });
-        if (!response.ok) throw new Error('Failed to delete workspace');
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to delete workspace');
+        }
+    },
+
+    // Folder Actions
+    createFolder: async (data: { name: string; workspaceId: string; parentFolderId?: string }): Promise<any> => {
+        const response = await fetch(`${BASE_URL}/folders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to create folder');
+        }
+        return response.json();
+    },
+
+    updateFolder: async (id: string, data: any): Promise<any> => {
+        const response = await fetch(`${BASE_URL}/folders/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to update folder');
+        }
+        return response.json();
+    },
+
+    deleteFolder: async (id: string): Promise<void> => {
+        const response = await fetch(`${BASE_URL}/folders/${id}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to delete folder');
+        }
+    },
+
+    // File Context Actions
+    createFileContext: async (data: { workspaceId: string; folderId?: string; type: string; meta?: any; name: string; size?: number; snippet?: string; status?: string }): Promise<any> => {
+        const response = await fetch(`${BASE_URL}/file-contexts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to create file context');
+        }
+        return response.json();
+    },
+
+    updateFileContext: async (id: string, data: any): Promise<any> => {
+        const response = await fetch(`${BASE_URL}/file-contexts/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to update file context');
+        }
+        return response.json();
+    },
+
+    deleteFileContext: async (id: string): Promise<void> => {
+        const response = await fetch(`${BASE_URL}/file-contexts/${id}`, {
+            method: 'DELETE'
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to delete file context');
+        }
     }
 };

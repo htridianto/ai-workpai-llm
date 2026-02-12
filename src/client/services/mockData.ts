@@ -17,10 +17,11 @@ export const DUMMY_WORKSPACES: Workspace[] = [
     folders: [
       { id: 'f-mkt-1', name: 'Campaigns 2024', dateCreated: Date.now() - 500000 },
     ],
-    contextItems: [
-      { id: 'ctx-mkt-1', name: 'Brand_Guidelines_v2.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now(), folderId: 'f-mkt-1' },
-      { id: 'ctx-mkt-2', name: 'https://competitor.com/pricing', type: 'link', status: 'indexed', dateAdded: Date.now() }
-    ]
+    fileContexts: [
+      { id: 'ctx-mkt-1', name: 'Brand_Guidelines_v2.pdf', workspaceId: 'ws-marketing', type: 'pdf', status: 'indexed', dateCreated: Date.now(), folderId: 'f-mkt-1', size: 0 },
+      { id: 'ctx-mkt-2', name: 'https://competitor.com/pricing', workspaceId: 'ws-marketing', type: 'link', status: 'indexed', dateCreated: Date.now(), size: 0 }
+    ],
+    virtualFolders: []
   },
   {
     id: 'ws-engineering',
@@ -33,10 +34,11 @@ export const DUMMY_WORKSPACES: Workspace[] = [
     similarityThreshold: 0.8,
     systemInstruction: 'You are a principal software engineer.',
     folders: [],
-    contextItems: [
-      { id: 'ctx-eng-1', name: 'API_Spec_OAS3.yaml', type: 'txt', status: 'indexed', dateAdded: Date.now() },
-      { id: 'ctx-eng-2', name: 'Migration_Plan_Legacy.pdf', type: 'pdf', status: 'indexing', dateAdded: Date.now() }
-    ]
+    fileContexts: [
+      { id: 'ctx-eng-1', name: 'API_Spec_OAS3.yaml', workspaceId: 'ws-engineering', type: 'txt', status: 'indexed', dateCreated: Date.now(), size: 0 },
+      { id: 'ctx-eng-2', name: 'Migration_Plan_Legacy.pdf', workspaceId: 'ws-engineering', type: 'pdf', status: 'indexing', dateCreated: Date.now(), size: 0 }
+    ],
+    virtualFolders: []
   },
   {
     id: 'ws-legal',
@@ -51,10 +53,11 @@ export const DUMMY_WORKSPACES: Workspace[] = [
     folders: [
       { id: 'f-leg-1', name: 'Contracts', dateCreated: Date.now() - 200000 }
     ],
-    contextItems: [
-      { id: 'ctx-leg-1', name: 'NDA_Template_2025.docx', type: 'pdf', status: 'indexed', dateAdded: Date.now(), folderId: 'f-leg-1' },
-      { id: 'ctx-leg-2', name: 'Employee_Handbook.pdf', type: 'pdf', status: 'indexed', dateAdded: Date.now() }
-    ]
+    fileContexts: [
+      { id: 'ctx-leg-1', name: 'NDA_Template_2025.docx', workspaceId: 'ws-legal', type: 'pdf', status: 'indexed', dateCreated: Date.now(), folderId: 'f-leg-1', size: 0 },
+      { id: 'ctx-leg-2', name: 'Employee_Handbook.pdf', workspaceId: 'ws-legal', type: 'pdf', status: 'indexed', dateCreated: Date.now(), size: 0 }
+    ],
+    virtualFolders: []
   }
 ];
 
@@ -65,7 +68,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
     workspaceId: 'ws-marketing',
     title: 'Q1 Strategy Brainstorm',
     modelId: 'gemini-3-flash-preview',
-    contextItemIds: ['ctx-mkt-1'],
+    fileContextIds: ['ctx-mkt-1'],
     createdAt: Date.now() - 900000,
     messages: [
       {
@@ -88,7 +91,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
     title: 'Competitor Pricing Analysis',
     modelId: 'gemini-3-pro-preview',
     createdAt: Date.now() - 100000000, // Older
-    contextItemIds: [],
+    fileContextIds: [],
     messages: []
   },
   // Engineering Chats
@@ -97,7 +100,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
     workspaceId: 'ws-engineering',
     title: 'API Authentication Error',
     modelId: 'gemini-3-pro-preview',
-    contextItemIds: ['ctx-eng-1'],
+    fileContextIds: ['ctx-eng-1'],
     createdAt: Date.now() - 300000,
     messages: [
       {
@@ -114,7 +117,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
     workspaceId: 'ws-legal',
     title: 'NDA Clause Review',
     modelId: 'gemini-3-flash-preview',
-    contextItemIds: ['ctx-leg-1'],
+    fileContextIds: ['ctx-leg-1'],
     createdAt: Date.now() - 50000,
     messages: []
   }

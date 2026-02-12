@@ -30,7 +30,7 @@ export const Toast: React.FC<ToastProps> = ({ message, type = 'success', subMess
           initial={{ opacity: 0, y: -20, x: 0 }}
           animate={{ opacity: 1, y: 0, x: 0 }}
           exit={{ opacity: 0, y: -20, x: 0 }}
-          className="fixed top-24 right-6 z-50 flex flex-col gap-1 p-4 rounded-xl shadow-2xl border backdrop-blur-xl transition-colors duration-200 bg-white/90 dark:bg-charcoal-900/95 border-gray-200 dark:border-charcoal-700 min-w-[320px] max-w-md"
+          className="fixed top-24 right-6 z-[100] flex flex-col gap-1 p-4 rounded-xl shadow-2xl border backdrop-blur-xl transition-colors duration-200 bg-white/90 dark:bg-charcoal-900/95 border-gray-200 dark:border-charcoal-700 min-w-[320px] max-w-md"
         >
           <div className="flex items-start gap-3">
             <div className={`mt-0.5 shrink-0 ${

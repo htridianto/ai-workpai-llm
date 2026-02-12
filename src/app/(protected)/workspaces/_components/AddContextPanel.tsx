@@ -17,14 +17,16 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { ContextItem, Folder as FolderType } from '@/shared/types/types';
+import { FileContext, Folder as FolderType } from '@/shared/types/types';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
 interface AddContextPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddContext: (items: ContextItem[]) => Promise<void>;
+  onAddContext: () => void; // Changed from (items: ContextItem[]) => Promise<void>
   currentFolderId: string | null;
   folders: FolderType[];
+  selectedWorkspaceId: string;
 }
 
 export const AddContextPanel: React.FC<AddContextPanelProps> = ({ 
@@ -32,8 +34,10 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
   onClose, 
   onAddContext, 
   currentFolderId,
-  folders
+  folders,
+  selectedWorkspaceId
 }) => {
+  const { addFileContexts } = useDashboard();
   const [activeTab, setActiveTab] = useState<'files' | 'link' | 'whatsapp' | 'database'>('files');
   
   // -- Files State --
@@ -62,6 +66,8 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
   const [isWaLoading, setIsWaLoading] = useState(false);
   const [waGroups, setWaGroups] = useState<{id: string, name: string, count: number}[]>([]);
   const [selectedWaGroups, setSelectedWaGroups] = useState<string[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
+
 
   // WhatsApp Simulation Handlers
   const handleGenerateQR = () => {
@@ -104,7 +110,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
   }, []);
 
   const handleConfirm = async () => {
-    const newItems: ContextItem[] = [];
+    const newItems: FileContext[] = [];
 
     if (activeTab === 'files') {
       contextFiles.forEach(file => {
@@ -112,11 +118,13 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
           id: uuidv4(),
           name: file.name,
           type: file.name.endsWith('.pdf') ? 'pdf' : 'txt',
-          status: 'indexing', // Start as indexing
-          dateAdded: Date.now(),
+          status: 'indexing',
+          size: file.size,
+          dateCreated: Date.now(),
 
           folderId: targetFolderId || undefined,
-          progress: 0 // Init progress
+          progress: 0,
+          workspaceId: selectedWorkspaceId
         });
       });
     } else if (activeTab === 'link') {
@@ -126,10 +134,12 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
            name: contextLink,
            type: 'link',
            status: 'indexing',
-           dateAdded: Date.now(),
+           size: 0,
+           dateCreated: Date.now(),
 
            folderId: undefined,
-           progress: 0
+           progress: 0,
+           workspaceId: selectedWorkspaceId
          });
        }
     } else if (activeTab === 'database') {
@@ -139,10 +149,12 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
             name: `${dbConfig.name} (${dbConfig.type})`,
             type: 'database',
             status: 'indexing',
-            dateAdded: Date.now(),
+            size: 0,
+            dateCreated: Date.now(),
 
             folderId: undefined,
-            progress: 0
+            progress: 0,
+            workspaceId: selectedWorkspaceId
          });
        }
     } else if (activeTab === 'whatsapp') {
@@ -154,10 +166,12 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
                     name: `WA ${waPhoneNumber}: ${group.name}`,
                     type: 'whatsapp',
                     status: 'indexing',
-                    dateAdded: Date.now(),
+                    size: 0,
+                    dateCreated: Date.now(),
 
                     folderId: undefined,
-                    progress: 0
+                    progress: 0,
+                    workspaceId: selectedWorkspaceId
                 });
             }
         });
@@ -165,15 +179,21 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
 
     if (newItems.length === 0) return;
 
-    // Async handoff: We just add them to the workspace logic, which handles the simulation
-    onAddContext(newItems);
-    
-    // Cleanup
-    setContextFiles([]);
-    setContextLink('');
-    setDbConfig({ name: '', type: 'postgres', connectionString: '' });
-    setSelectedWaGroups([]);
-    onClose();
+    setIsImporting(true);
+    try {
+        // Async handoff: We just add them to the workspace logic, which handles the simulation
+        await addFileContexts(selectedWorkspaceId, newItems);
+        onAddContext();
+        
+        // Cleanup
+        setContextFiles([]);
+        setContextLink('');
+        setDbConfig({ name: '', type: 'postgres', connectionString: '' });
+        setSelectedWaGroups([]);
+        onClose();
+    } finally {
+        setIsImporting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -182,11 +202,12 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
     <div className="mx-6 mb-4 mt-2 p-6 bg-white dark:bg-charcoal-900 border border-gray-200 dark:border-charcoal-800 rounded-2xl shadow-sm animate-in slide-in-from-top-2 duration-300 min-h-[400px] flex flex-col relative overflow-hidden">
         
         {/* Header */}
+        {/* 
         <div className="flex items-center justify-between mb-4 shrink-0">
             <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Add to Workspace</h3>
             <button onClick={onClose} className="p-1 text-charcoal-400 hover:text-red-500 rounded"><X size={20}/></button>
         </div>
-
+        */}
         {/* Normal Tab Content */}
         <>
             <div className="flex gap-6 border-b border-gray-200 dark:border-charcoal-800 mb-6 overflow-x-auto shrink-0">
@@ -214,6 +235,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
                 >
                     <Database size={16} /> Database
                 </button>
+                <button onClick={onClose} className="p-1 ml-auto text-charcoal-400 hover:text-red-500 rounded"><X size={20}/></button>
             </div>
 
             <div className="flex-1 mb-6">
@@ -230,7 +252,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
                             onChange={(e) => setTargetFolderId(e.target.value)}
                             className="flex-1 bg-transparent border-none text-sm font-medium text-slate-800 dark:text-slate-200 focus:ring-0 cursor-pointer"
                         >
-                            <option value="">Workspace Root</option>
+                            <option value="">Root</option>
                             {folders.filter(f => !f.isReadOnly).map(f => (
                                 <option key={f.id} value={f.id}>{f.name}</option>
                             ))}
@@ -428,10 +450,11 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
                 <button onClick={onClose} className="px-6 py-2.5 text-sm text-charcoal-600 hover:text-slate-900 dark:text-charcoal-400 dark:hover:text-slate-200 font-medium">Cancel</button>
                 <button 
                     onClick={handleConfirm}
-                    disabled={(activeTab === 'files' && contextFiles.length === 0) || (activeTab === 'link' && !contextLink) || (activeTab === 'whatsapp' && selectedWaGroups.length === 0) || (activeTab === 'database' && !dbConfig.name)}
+                    disabled={(activeTab === 'files' && contextFiles.length === 0) || (activeTab === 'link' && !contextLink) || (activeTab === 'whatsapp' && selectedWaGroups.length === 0) || (activeTab === 'database' && !dbConfig.name) || isImporting}
                     className="flex items-center gap-2 px-8 py-2.5 bg-accent-600 hover:bg-accent-500 text-white rounded-xl shadow-lg shadow-accent-900/20 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 >
-                    Import Context <ArrowRight size={16} />
+                    {isImporting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={16} />}
+                    {isImporting ? 'Submitting...' : 'Submit Context'}
                 </button>
             </div>
         </>

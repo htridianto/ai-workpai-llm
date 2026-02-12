@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Store } from '@/server/lib/store';
 import { auth } from '@/server/lib/auth';
-import { deleteWorkspaceService, updateWorkspaceService } from '@/server/models';
+import { deleteWorkspaceService, updateWorkspaceService, getWorkspaceById } from '@/server/models';
 
 export async function PATCH(
     request: NextRequest,
@@ -74,12 +74,13 @@ export async function GET(
   ) {
     const params = await props.params;
     try {
-        const workspace = Store.getWorkspace(params.workspaceId);
+        const workspace = await getWorkspaceById(params.workspaceId);
         if (!workspace) {
             return NextResponse.json({ message: 'Workspace not found' }, { status: 404 });
         }
         return NextResponse.json(workspace);
     } catch (error) {
+        console.error("GET Workspace error:", error);
         return NextResponse.json({ message: 'Failed to fetch workspace' }, { status: 500 });
     }
 }
@@ -96,9 +97,9 @@ export async function DELETE(
     try {
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
-            return NextResponse.json({ message: 'Failed to update workspace: Internal Server Error' }, { status: 500 });
+            return NextResponse.json({ message: 'Failed to delete workspace RAG_API_URL not set' }, { status: 500 });
         }
-        const token = process.env.RAG_API_KEY || "56PZKDF-F2ZMR8P-HQJZBRQ-A403QRE";
+        const token = process.env.RAG_API_KEY;
         const response = await fetch(`${ragApiUrl}/api/v1/workspace/${params.workspaceId}`, {
             method: 'DELETE',
             headers: {
@@ -110,7 +111,7 @@ export async function DELETE(
         if (!response.ok) {
             const message = await response.json();
             console.error("External API error (DELETE):", response.status, message?.error);
-            return NextResponse.json({ message: message?.error || 'Failed to delete workspace' }, { status: response.status });
+            return NextResponse.json({ message: message?.error || 'Failed to delete workspace rag' }, { status: response.status });
         }
 
         // Delete workspace from database
@@ -118,6 +119,7 @@ export async function DELETE(
         
         return NextResponse.json({ message: 'Workspace deleted successfully' });
     } catch (error) {
+        console.error("DELETE Workspace error:", error);
         return NextResponse.json({ message: 'Failed to delete workspace' }, { status: 500 });
     }
 }

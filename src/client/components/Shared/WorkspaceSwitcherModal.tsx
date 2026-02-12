@@ -79,7 +79,7 @@ export const WorkspaceSwitcherModal: React.FC<WorkspaceSwitcherModalProps> = ({
                            {workspace.title}
                         </h4>
                         <p className="text-xs text-charcoal-400">
-                           {workspace.contextItems?.length || 0} documents • {new Date(workspace.createdAt).toLocaleDateString()}
+                           {workspace.fileContexts?.length || 0} documents • {new Date(workspace.createdAt).toLocaleDateString()}
                         </p>
                      </div>
                      {workspace.id === currentWorkspaceId && (

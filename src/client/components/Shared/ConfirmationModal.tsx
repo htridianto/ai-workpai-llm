@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Loader2 } from 'lucide-react';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -12,6 +12,7 @@ interface ConfirmationModalProps {
   validationString?: string; // If provided, user must type this to enable confirm
   onConfirm: () => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -23,7 +24,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isDanger = false,
   validationString,
   onConfirm,
-  onCancel
+  onCancel,
+  isLoading = false
 }) => {
   const [inputValue, setInputValue] = useState('');
 
@@ -63,6 +65,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               <X size={20} />
             </button>
 
+            {isLoading && (
+              <div className="absolute inset-0 z-10 bg-charcoal-900/50 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
+                  <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
+              </div>
+            )}
+
+
             <div className="flex flex-col items-center text-center">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${
                 isDanger ? 'bg-danger-500/10 text-danger-500' : 'bg-accent-500/10 text-accent-500'
@@ -98,13 +107,14 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 </button>
                 <button
                   onClick={onConfirm}
-                  disabled={isConfirmDisabled}
-                  className={`flex-1 py-2.5 px-4 rounded-xl text-white shadow-lg transition-all text-sm font-medium ${
+                  disabled={isConfirmDisabled || isLoading}
+                  className={`flex-1 py-2.5 px-4 rounded-xl text-white shadow-lg transition-all text-sm font-medium flex items-center justify-center gap-2 ${
                     isDanger 
                       ? 'bg-danger-600 hover:bg-danger-500 shadow-danger-900/20 disabled:bg-charcoal-700 disabled:text-charcoal-500 disabled:shadow-none' 
                       : 'bg-accent-600 hover:bg-accent-500 shadow-accent-900/20 disabled:bg-charcoal-700 disabled:text-charcoal-500 disabled:shadow-none'
                   }`}
                 >
+                  {isLoading && <Loader2 size={16} className="animate-spin" />}
                   {confirmLabel}
                 </button>
               </div>

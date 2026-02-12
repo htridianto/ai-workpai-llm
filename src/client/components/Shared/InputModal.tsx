@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Edit2 } from 'lucide-react';
+import { X, Edit2, Loader2 } from 'lucide-react';
 
 interface InputModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface InputModalProps {
   cancelLabel?: string;
   onConfirm: (value: string) => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 export const InputModal: React.FC<InputModalProps> = ({
@@ -19,7 +20,8 @@ export const InputModal: React.FC<InputModalProps> = ({
   confirmLabel = "Save",
   cancelLabel = "Cancel",
   onConfirm,
-  onCancel
+  onCancel,
+  isLoading = false
 }) => {
   const [value, setValue] = useState(initialValue);
 
@@ -52,6 +54,13 @@ export const InputModal: React.FC<InputModalProps> = ({
               <X size={20} />
             </button>
 
+            {isLoading && (
+              <div className="absolute inset-0 z-10 bg-charcoal-900/50 backdrop-blur-[1px] flex items-center justify-center rounded-2xl">
+                <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
+              </div>
+            )}
+
+
             <div className="flex flex-col items-center text-center">
               <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4 bg-charcoal-800 text-slate-300">
                 <Edit2 size={24} />
@@ -78,9 +87,10 @@ export const InputModal: React.FC<InputModalProps> = ({
                 </button>
                 <button
                   onClick={() => onConfirm(value)}
-                  disabled={!value.trim()}
-                  className="flex-1 py-2.5 px-4 rounded-xl text-white shadow-lg bg-accent-600 hover:bg-accent-500 shadow-accent-900/20 disabled:bg-charcoal-700 disabled:text-charcoal-500 disabled:shadow-none transition-all text-sm font-medium"
+                  disabled={!value.trim() || isLoading}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-white shadow-lg bg-accent-600 hover:bg-accent-500 shadow-accent-900/20 disabled:bg-charcoal-700 disabled:text-charcoal-500 disabled:shadow-none transition-all text-sm font-medium flex items-center justify-center gap-2"
                 >
+                  {isLoading && <Loader2 size={16} className="animate-spin" />}
                   {confirmLabel}
                 </button>
               </div>

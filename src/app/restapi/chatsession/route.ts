@@ -25,7 +25,7 @@ export async function POST(req: Request) {
             id: body.id || uuidv4(),
             createdAt: Date.now(),
             messages: body.messages || [],
-            contextItemIds: body.contextItemIds || []
+            fileContextIds: body.fileContextIds || []
         };
 
         const created = Store.addSession(newSession);

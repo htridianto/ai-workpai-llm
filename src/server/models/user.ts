@@ -44,7 +44,12 @@ export const updateUser = async (id: string, data: Prisma.UserUpdateInput) => {
   })
 }
 
-export const deleteUser = async (id: string) => {
+export const deleteUser = async (id: string, permanent: boolean = false) => {
+  if (permanent) {
+    return await prisma.user.delete({
+      where: { id }
+    })
+  }
   return await prisma.user.update({
     where: { id },
     data: {

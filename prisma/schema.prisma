@@ -15,8 +15,7 @@ model Workspace {
   deletedAt       DateTime?          @map("deleted_at")
   users           WorkspaceUser[]
   folders         Folder[]
-  files           File[]
-  documentContexts DocumentContext[]
+  fileContexts    FileContext[]
 
   @@map("workspaces")
 }
@@ -104,6 +103,8 @@ model Folder {
   parentFolderId  String?            @map("parent_folder_id")
   workspaceId     String             @map("workspace_id")
   isSystem        Int                @default(0) @map("is_system") // Boolean (0 = false, 1 = true)
+  isStarred       Int                @default(0) @map("is_starred")
+  isShared        Int                @default(0) @map("is_shared")
   createdAt       DateTime           @default(now()) @map("created_at")
   deletedAt       DateTime?          @map("deleted_at")
   
@@ -111,16 +112,22 @@ model Folder {
   subFolders      Folder[]           @relation("FolderToFolder")
   workspace       Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   
-  files           File[]
-  documentContexts DocumentContext[]
+  fileContexts    FileContext[]
 
   @@index([workspaceId])
   @@map("folders")
 }
 
-model File {
+model FileContext {
   id              String             @id @default(cuid())
   name            String
+  type            String?            // e.g. 'pdf', 'link', 'whatsapp', etc.
+  status          String             @default("indexed") // indexed, indexing, error
+  size            Int                @default(0)
+  snippet         String?            // Short preview text
+  isStarred       Int                @default(0) @map("is_starred")
+  isShared        Int                @default(0) @map("is_shared")
+  ownerId         String?            @map("owner_id")
   folderId        String?            @map("folder_id")
   workspaceId     String             @map("workspace_id")
   meta            String?            // Disimpan sebagai JSON string
@@ -129,26 +136,8 @@ model File {
   
   folder          Folder?            @relation(fields: [folderId], references: [id], onDelete: SetNull)
   workspace       Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  documentContexts DocumentContext[]
-
-  @@index([folderId])
-  @@map("files")
-}
-
-model DocumentContext {
-  id          String    @id @default(cuid())
-  fileId      String?   @map("file_id")
-  type        String?   // CHECK(type IN ('file', 'link', 'whatsapp')) - Handled in logic or enum if supported
-  workspaceId String    @map("workspace_id")
-  folderId    String?   @map("folder_id")
-  meta        String?   // Disimpan sebagai JSON string
-  createdAt   DateTime  @default(now()) @map("created_at")
-  deletedAt   DateTime? @map("deleted_at")
-
-  file        File?     @relation(fields: [fileId], references: [id], onDelete: SetNull)
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  folder      Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
-  @@map("document_contexts")
+  @@index([folderId])
+  @@map("file_contexts")
 }

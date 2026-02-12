@@ -137,6 +137,42 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/restapi/file-contexts/[contextId]/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/file-contexts/[contextId]">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/file-contexts/[contextId]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/file-contexts/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/file-contexts">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/file-contexts/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/folders/[folderId]/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/folders/[folderId]">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/folders/[folderId]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/folders/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/folders">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/folders/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/restapi/login/demo/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/login/demo">> = Specific

@@ -7,7 +7,7 @@ import { streamChatResponse, ChatService } from '@/client/services/chatService';
 import { WorkspaceService } from '@/client/services/workspaceService';
 import { MockApi } from '@/client/services/mockApiService';
 // import { AuthService } from '@/client/services/authService';
-import { Message, ChatSession, Role, Attachment, AppSettings, ContextItem, ExportFormat, GeneratedFile, Workspace, UserProfile } from '@/shared/types/types';
+import { Message, ChatSession, Role, Attachment, AppSettings, FileContext, ExportFormat, GeneratedFile, Workspace, UserProfile } from '@/shared/types/types';
 import { AVAILABLE_MODELS, DEFAULT_SYSTEM_INSTRUCTION } from '@/shared/constants';
 import { ToastType } from '@/client/components/Shared/Toast';
 import { signOut, useSession } from 'next-auth/react';
@@ -45,7 +45,7 @@ interface DashboardContextType {
   currentWorkspace: Workspace | undefined;
   filteredSessions: ChatSession[];
   currentSession: ChatSession | undefined;
-  currentContextItems: ContextItem[];
+  currentFileContexts: FileContext[];
 
   // Handlers
   handleSelectWorkspace: (id: string) => void;
@@ -54,11 +54,12 @@ interface DashboardContextType {
   renameSession: (id: string, newTitle: string) => Promise<void>;
   handleSendMessage: (text: string, attachments: Attachment[]) => Promise<void>;
   handleGenerateDocument: (messageId: string, format: ExportFormat) => Promise<void>;
-  handleRemoveContextItem: (id: string) => Promise<void>;
-  handleToggleContextItemActive: (id: string) => Promise<void>;
+  handleRemoveFileContext: (id: string) => Promise<void>;
+  handleToggleFileContextActive: (id: string) => Promise<void>;
   updateThreshold: (val: number) => void;
   handleLogout: () => void;  
   refreshWorkspaces: () => Promise<void>;
+  addFileContexts: (wsId: string, items: FileContext[]) => Promise<void>;
 
   userProfile: UserProfile | null;
   setUserProfile: (profile: UserProfile | null) => void;
@@ -161,7 +162,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const currentWorkspace = useMemo(() => workspaces.find(w => w.id === currentWorkspaceId), [workspaces, currentWorkspaceId]);
   const filteredSessions = useMemo(() => sessions.filter(s => s.workspaceId === currentWorkspaceId), [sessions, currentWorkspaceId]);
   const currentSession = useMemo(() => sessions.find(s => s.id === currentSessionId), [sessions, currentSessionId]);
-  const currentContextItems = useMemo(() => currentWorkspace?.contextItems || [], [currentWorkspace]);
+  const currentFileContexts = useMemo(() => currentWorkspace?.fileContexts || [], [currentWorkspace]);
 
   const updateSessionState = (updatedSession: ChatSession) => {
     setSessions(prev => {
@@ -195,13 +196,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       messages: [],
       modelId: settings.defaultModelId,
       createdAt: Date.now(),
-      contextItemIds: [], 
+      fileContextIds: [], 
     };
     
     // We need to find the workspace to get items. 
     const ws = workspaces.find(w => w.id === currentWorkspaceId);
     if (ws) {
-        newSession.contextItemIds = ws.contextItems.map(i => i.id);
+        newSession.fileContextIds = ws.fileContexts.map(i => i.id);
     }
 
     setSessions(prev => [newSession, ...prev]);
@@ -234,7 +235,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     if (!sessionToUse) {
        const newId = uuidv4();
        const ws = workspaces.find(w => w.id === currentWorkspaceId);
-       const initialContextIds = ws ? ws.contextItems.map(i => i.id) : [];
+       const initialContextIds = ws ? ws.fileContexts.map(i => i.id) : [];
 
        const newSession: ChatSession = {
         id: newId,
@@ -243,7 +244,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         messages: [],
         modelId: settings.defaultModelId,
         createdAt: Date.now(),
-        contextItemIds: initialContextIds
+        fileContextIds: initialContextIds
        };
        sessionToUse = newSession;
        isNewSession = true;
@@ -274,8 +275,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     else await ChatService.updateSession(updatedSession);
 
     try {
-      const activeContext = (currentWorkspace?.contextItems || []).filter(item => 
-          updatedSession.contextItemIds.includes(item.id)
+      const activeContext = (currentWorkspace?.fileContexts || []).filter(item => 
+          updatedSession.fileContextIds.includes(item.id)
       );
       
       const wsSystemInstruction = currentWorkspace?.systemInstruction || settings.systemInstruction;
@@ -348,36 +349,41 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       });
   };
 
-  const handleRemoveContextItem = async (id: string) => {
+  const handleRemoveFileContext = async (id: string) => {
     if (!currentWorkspace) return;
-    const updatedContextItems = currentWorkspace.contextItems.filter(i => i.id !== id);
-    const updatedWs = { ...currentWorkspace, contextItems: updatedContextItems };
-    updateWorkspaceState(updatedWs);
-    // await WorkspaceService.updateWorkspace(updatedWs.id, updatedWs);
+    try {
+        await WorkspaceService.deleteFileContext(id);
+        await refreshWorkspaces();
+    } catch (error: any) {
+        setToast({ message: "Failed to remove file context", type: "error", subMessage: error.message });
+    }
   };
 
-  const handleToggleContextItemActive = async (itemId: string) => {
+  const handleToggleFileContextActive = async (itemId: string) => {
     if (!currentSession) return;
     
-    const isCurrentlyActive = currentSession.contextItemIds?.includes(itemId);
+    const isCurrentlyActive = currentSession.fileContextIds?.includes(itemId);
     let newContextIds: string[];
 
     if (isCurrentlyActive) {
-        newContextIds = currentSession.contextItemIds.filter(id => id !== itemId);
+        newContextIds = currentSession.fileContextIds.filter(id => id !== itemId);
     } else {
-        newContextIds = [...(currentSession.contextItemIds || []), itemId];
+        newContextIds = [...(currentSession.fileContextIds || []), itemId];
     }
 
-    const updatedSession = { ...currentSession, contextItemIds: newContextIds };
+    const updatedSession = { ...currentSession, fileContextIds: newContextIds };
     updateSessionState(updatedSession);
     await ChatService.updateSession(updatedSession);
   };
 
-  const updateThreshold = (val: number) => {
+  const updateThreshold = async (val: number) => {
     if(currentWorkspace) {
-        const updated = { ...currentWorkspace, similarityThreshold: val };
-        updateWorkspaceState(updated);
-        MockApi.updateWorkspace(updated);
+        try {
+            await WorkspaceService.updateWorkspace(currentWorkspace.slug, { similarityThreshold: val } as any);
+            await refreshWorkspaces();
+        } catch (error: any) {
+            setToast({ message: "Failed to update threshold", type: "error", subMessage: error.message });
+        }
     }
   };
 
@@ -403,26 +409,75 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }      
   }, [sessionData]);
 
-  // let userProfile: UserProfile | null = null;  
-  // const getUserProfile = async (setProfile: (profile: UserProfile | null) => void) => {
-  //   if(!userProfile) {
-  //     const {data: session} = await useSession();
+  const addFileContexts = async (wsId: string, newItems: FileContext[]) => {
+    const ws = workspaces.find(w => w.id === wsId);
+    if (!ws) return;
 
-  //     if (session) {
-  //       console.log(session);
-  //       userProfile = {
-  //         id: session?.user?.id || '',
-  //         userName: session?.user?.userName || 'Unknown',
-  //         email: session?.user?.email || 'Unknown',
-  //         displayName: session?.user?.name || 'Unknown',
-  //         bio: (session?.user as any)?.bio || '',
-  //         avatar: (session?.user as any)?.image,
-  //         lastLoggedIn: (session?.user as any)?.lastLoggedIn || new Date().toLocaleString(),
-  //       };
-  //     }
-  //   }
-  //   setProfile(userProfile);
-  // };
+    const updatedWs = {
+      ...ws,
+      fileContexts: [...(ws.fileContexts || []), ...newItems]
+    };
+
+    // Optimistic update
+    setWorkspaces(prev => prev.map(w => w.id === wsId ? updatedWs : w));
+    
+    // Persist
+    try {
+        await Promise.all(newItems.map(item => 
+            WorkspaceService.createFileContext({
+                workspaceId: ws.slug,
+                folderId: item.folderId,
+                name: item.name,
+                type: item.type,
+                size: item.size,
+                snippet: item.snippet,
+                status: 'indexing',
+                meta: {
+                    progress: 0,
+                    ...item.meta // Keep original meta if any
+                }
+            })
+        ));
+        
+        await refreshWorkspaces();
+        setToast({ message: `${newItems.length} items queued for indexing`, type: "info" });
+    } catch (error: any) {
+        setToast({ message: "Failed to add file contexts", type: "error", subMessage: error.message });
+        return;
+    }
+
+    // Simulation
+    newItems.forEach(item => {
+      let currentStep = 0;
+      const totalSteps = 20;
+      
+      const tick = () => {
+        currentStep++;
+        const progress = Math.min(Math.round((currentStep / totalSteps) * 100), 100);
+        
+        setWorkspaces(prev => prev.map(w => {
+          if (w.id === wsId) {
+            return {
+              ...w,
+              fileContexts: w.fileContexts.map(i => {
+                if (i.id === item.id) {
+                  if (progress === 100) return { ...i, progress: 100, status: 'indexed' };
+                  return { ...i, progress };
+                }
+                return i;
+              })
+            };
+          }
+          return w;
+        }));
+
+        if (currentStep < totalSteps) {
+          setTimeout(tick, Math.random() * 200 + 100);
+        }
+      };
+      tick();
+    });
+  };
 
   const contextValue = useMemo(() => ({
       isSidebarOpen, setIsSidebarOpen,
@@ -433,16 +488,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       isLoadingData,
       isStreaming, streamingContent,
       settings, setSettings,
-      currentWorkspace, filteredSessions, currentSession, currentContextItems,
+      currentWorkspace, filteredSessions, currentSession, currentFileContexts,
       handleSelectWorkspace, createNewSession, deleteSession, renameSession,
-      handleSendMessage, handleGenerateDocument, handleRemoveContextItem,
-      handleToggleContextItemActive, updateThreshold, handleLogout,
-      refreshWorkspaces, userProfile, setUserProfile
+      handleSendMessage, handleGenerateDocument, handleRemoveFileContext,
+      handleToggleFileContextActive, updateThreshold, handleLogout,
+      refreshWorkspaces, userProfile, setUserProfile,
+      addFileContexts
   }), [
       isSidebarOpen, isContextOpen, toast,
       workspaces, currentWorkspaceId, sessions, currentSessionId,
       isLoadingData, isStreaming, streamingContent, settings,
-      currentWorkspace, filteredSessions, currentSession, currentContextItems
+      currentWorkspace, filteredSessions, currentSession, currentFileContexts
   ]);
 
   return (

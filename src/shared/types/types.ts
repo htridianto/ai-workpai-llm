@@ -19,17 +19,6 @@ export interface Message {
   isError?: boolean;
 }
 
-export interface Folder {
-  id: string;
-  name: string;
-  parentId?: string;
-  dateCreated: number;
-  isStarred?: boolean;
-  isTrashed?: boolean;
-  isShared?: boolean;
-  isReadOnly?: boolean;
-}
-
 export interface Workspace {
   id: string;
   slug: string;
@@ -39,10 +28,44 @@ export interface Workspace {
   color?: string; // UI decoration
   createdAt: number;
   similarityThreshold: number;
-  contextItems: ContextItem[];
+  fileContexts: FileContext[];
   folders: Folder[];
+  virtualFolders: Folder[];
   systemInstruction?: string;  
 }
+
+export interface Folder {
+  id: string;
+  name: string;
+  workspaceId: string;
+  parentId?: string;
+  dateCreated: number;
+  isStarred?: boolean;
+  isTrashed?: boolean;
+  isShared?: boolean;
+  isReadOnly?: boolean;
+  isVirtual?: boolean;
+  virtualType?: string;
+}
+
+export interface FileContext {
+  id: string;
+  name: string;
+  workspaceId: string;
+  folderId?: string;
+  type: string; // 'pdf' | 'txt' | 'link' | 'database' | 'whatsapp'
+  status: string; // 'indexed' | 'indexing' | 'error'
+  size: number;
+  snippet?: string;
+  isStarred?: boolean;
+  isShared?: boolean;
+  isTrashed?: boolean;
+  ownerId?: string;
+  dateCreated: number;
+  progress?: number; // 0-100
+  meta?: any;
+}
+
 
 export interface ChatSession {
   id: string;
@@ -51,18 +74,9 @@ export interface ChatSession {
   messages: Message[];
   modelId: string;
   createdAt: number;
-  contextItemIds: string[]; // IDs of active context items for this session
+  fileContextIds: string[]; // IDs of active file contexts for this session
 }
 
-export interface ContextItem {
-  id: string;
-  name: string;
-  type: 'pdf' | 'txt' | 'link' | 'database' | 'whatsapp';
-  status: 'indexed' | 'indexing' | 'error';
-  dateAdded: number;
-  folderId?: string; 
-  progress?: number; // 0-100
-}
 
 export interface ModelConfig {
   id: string;
@@ -110,6 +124,18 @@ export interface LLMConfiguration {
 // --- Generated Content Types ---
 
 export type ExportFormat = 'pdf' | 'docx' | 'slides' | 'sheets' | 'image' | 'audio' | 'video';
+
+
+export interface GeneratedFolder {
+  id: string;
+  name: string;
+  parentId?: string;
+  dateCreated: number;
+  isStarred?: boolean;
+  isTrashed?: boolean;
+  isShared?: boolean;
+  isReadOnly?: boolean;
+}
 
 export interface GeneratedFile {
   id: string;

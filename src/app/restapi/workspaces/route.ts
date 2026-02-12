@@ -50,34 +50,34 @@ export async function GET(request: Request) {
         }
         const response = await fetch(`${ragApiUrl}/api/workspaces`, {
             headers: {
+                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token.sessionToken}`
             }
         });
-        console.log('restapi:workspaces:GET:response', JSON.stringify(response, null, 2));
+        
         if (!response.ok) {
             const message = await response.json();
             console.error("External API error:", response.status, message?.error);
             return NextResponse.json({ message: message?.error ||'Failed to fetch external workspaces' }, { status: response.status });
         }
-
         const data = await response.json();
+        // console.log('restapi:workspaces:GET:response', data);
         const workspaces = await Promise.all((data.workspaces || []).map(async (ws: any) => {
             let dbWorkspace: any = await getWorkspaceById(ws.slug);
-            console.log('restapi:workspaces:GET:dbWorkspace', JSON.stringify(dbWorkspace, null, 2));
+            // console.log('restapi:workspaces:GET:dbWorkspace', JSON.stringify(dbWorkspace, null, 2));
             if(!dbWorkspace){
-                return null;
-                /*
-                const newDbWorkspace = {
-                    id: ws.slug,
-                    name: ws.name,
-                    description: ws.name,
-                    styleColor: DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
-                    createdAt: new Date().toISOString(),
-                    deletedAt: null
-                }
-                const createdWorkspace = await createWorkspaceService(newDbWorkspace);
-                dbWorkspace = createdWorkspace;
-                */
+                return false;                
+                // const newDbWorkspace = {
+                //     id: ws.slug,
+                //     name: ws.name.replace(`${token.userName}:`, ''),
+                //     description: 'Secure AI workspace for document retrieval and RAG.',
+                //     styleColor: DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
+                //     createdAt: ws.createdAt ||  new Date().toISOString(),
+                //     deletedAt: null,
+                //     userId: [token.id as string]
+                // }
+                // const createdWorkspace = await createWorkspaceService(newDbWorkspace);
+                // dbWorkspace = {...createdWorkspace};
             }
             return {
                 id: String(ws.id),
@@ -87,8 +87,9 @@ export async function GET(request: Request) {
                 color: dbWorkspace.styleColor,
                 symbol: dbWorkspace.symbol || dbWorkspace.name.substring(0, 1).toUpperCase(), // Default if missing
                 createdAt: new Date(dbWorkspace.createdAt).getTime(), // Convert ISO string to timestamp            
-                contextItems: [], // External API doesn't seem to return items here? Or maybe we fetch detail later.
-                folders: [],
+                fileContexts: dbWorkspace.fileContexts || [],
+                folders: dbWorkspace.folders || [],
+                virtualFolders: dbWorkspace.virtualFolders || [],
 
                 //it should be in external model
                 chatMode: ws.chatMode,
@@ -167,8 +168,9 @@ export async function POST(req: Request) {
             description: ws.description || 'Secure AI workspace for document retrieval and RAG.',
             symbol: ws.symbol || ws.name.substring(0, 1).toUpperCase(),
             color: ws.color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
-            contextItems: [],
+            fileContexts: [],
             folders: [],
+            virtualFolders: [], // Will be populated on fetch
             systemInstruction: ws.openAiPrompt || null,
             openAiTemp: ws.openAiTemp,
             lastUpdatedAt: ws.lastUpdatedAt
@@ -205,6 +207,18 @@ export async function POST(req: Request) {
                 })
             });
         }
+
+        // do create folder for workspace (POST /v1/document/create-folder)
+        await fetch(`${ragApiUrl}/api/v1/document/create-folder`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                name: newWorkspace.slug
+            })
+        });
 
         // do create workspace in database
         await createWorkspaceService({

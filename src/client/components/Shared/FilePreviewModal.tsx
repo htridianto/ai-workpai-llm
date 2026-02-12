@@ -2,10 +2,10 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileText, Database, Link as LinkIcon, Calendar, MessageCircle, Table, Image, ExternalLink } from 'lucide-react';
-import { ContextItem } from '@/shared/types/types';
+import { FileContext } from '@/shared/types/types';
 
 interface FilePreviewModalProps {
-  file: ContextItem | null;
+  file: FileContext | null;
   onClose: () => void;
 }
 
@@ -234,7 +234,7 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
                                     <Calendar size={14} /> Created
                                 </span>
-                                <span className="font-mono text-slate-800 dark:text-slate-200">{new Date(file.dateAdded).toLocaleDateString()}</span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200">{new Date(file.dateCreated).toLocaleDateString()}</span>
                             </div>
                         </div>
                     </div>

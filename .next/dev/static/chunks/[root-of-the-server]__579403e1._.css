@@ -623,6 +623,10 @@
     position: relative;
   }
 
+  .static {
+    position: static;
+  }
+
   .sticky {
     position: sticky;
   }
@@ -767,6 +771,10 @@
     z-index: 50;
   }
 
+  .z-\[100\] {
+    z-index: 100;
+  }
+
   .col-span-1 {
     grid-column: span 1 / span 1;
   }
@@ -809,6 +817,10 @@
 
   .ms-2 {
     margin-inline-start: calc(var(--spacing) * 2);
+  }
+
+  .ms-\[-10px\] {
+    margin-inline-start: -10px;
   }
 
   .-mt-1 {
@@ -952,10 +964,6 @@
 
   .inline-flex {
     display: inline-flex;
-  }
-
-  .table {
-    display: table;
   }
 
   .aspect-\[4\/3\] {
@@ -1889,6 +1897,16 @@
     background-color: var(--color-charcoal-900);
   }
 
+  .bg-charcoal-900\/50 {
+    background-color: #2d313a80;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-charcoal-900\/50 {
+      background-color: color-mix(in oklab, var(--color-charcoal-900) 50%, transparent);
+    }
+  }
+
   .bg-charcoal-900\/80 {
     background-color: #2d313acc;
   }
@@ -1999,10 +2017,6 @@
 
   .bg-indigo-100 {
     background-color: var(--color-indigo-100);
-  }
-
-  .bg-indigo-500 {
-    background-color: var(--color-indigo-500);
   }
 
   .bg-orange-50 {
@@ -2813,6 +2827,12 @@
 
   .filter {
     filter: var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, );
+  }
+
+  .backdrop-blur-\[1px\] {
+    --tw-backdrop-blur: blur(1px);
+    -webkit-backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
+    backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
   }
 
   .backdrop-blur-md {
