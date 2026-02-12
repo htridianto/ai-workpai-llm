@@ -19,21 +19,21 @@ import {
   Box, 
   Edit2 
 } from 'lucide-react';
-import { Workspace, ContextItem, Folder as FolderType } from '../../../types/types';
-import { MockApi } from '../../../services/mockApiService';
-import { WorkspaceService } from '../../../services/workspaceService';
-import { InputModal } from '../../../components/Shared/InputModal';
-import { ConfirmationModal } from '../../../components/Shared/ConfirmationModal';
-import { FilePreviewModal } from '../../../components/Shared/FilePreviewModal';
-import { WorkspaceModal } from '../../../components/Shared/WorkspaceModal';
+import { Workspace, ContextItem, Folder as FolderType } from '@/shared/types/types';
+import { MockApi } from '@/client/services/mockApiService';
+import { WorkspaceService } from '@/client/services/workspaceService';
+import { InputModal } from '@/client/components/Shared/InputModal';
+import { ConfirmationModal } from '@/client/components/Shared/ConfirmationModal';
+import { FilePreviewModal } from '@/client/components/Shared/FilePreviewModal';
+import { WorkspaceModal } from '@/client/components/Shared/WorkspaceModal';
 import { FolderTree } from './_components/FolderTree';
-import { Toast, ToastType } from '../../../components/Shared/Toast';
+import { Toast, ToastType } from '@/client/components/Shared/Toast';
 
 // New Sub-Components
 import { AddContextPanel } from './_components/AddContextPanel';
 import { WorkspaceList } from './_components/WorkspaceList';
 import { FileManager } from './_components/FileManager';
-import { useDashboard } from '../dashboard/DashboardContext';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
 // Define Virtual Folders
 const VIRTUAL_FOLDERS = [
@@ -108,7 +108,6 @@ export default function WorkspacesPage() {
   };
 
   const selectedWorkspace = workspaces.find(s => s.id === selectedWorkspaceId);
-
   // --- Workspace Actions ---
 
   const handleCreateWorkspace = async () => {
@@ -147,16 +146,17 @@ export default function WorkspacesPage() {
 
   const handleUpdateWorkspace = async (title: string, description: string) => {
     if (itemToEditId) {
-      const ws = workspaces.find(s => s.id === itemToEditId);
-      if(ws) {
-          const updatedWs = { ...ws, title, description };
-          await WorkspaceService.updateWorkspace(updatedWs.slug, updatedWs);
-          setWorkspaces(prev => prev.map(s => s.id === itemToEditId ? updatedWs : s));
-          refreshWorkspaces();
-      }
-      setIsEditWorkspaceModalOpen(false);
-      setItemToEditId(null);
-      setToast({ message: "Workspace Updated", type: "success" });
+        const ws = workspaces.find(s => s.id === itemToEditId);
+        if(ws) {
+            const updatedWs = await WorkspaceService.updateWorkspace(            
+                ws.slug, { title, description }
+            );
+            setWorkspaces(prev => prev.map(s => s.id === itemToEditId ? {...s, ...updatedWs} : s));
+            refreshWorkspaces();
+        }
+        setIsEditWorkspaceModalOpen(false);
+        setItemToEditId(null);
+        setToast({ message: "Workspace Updated", type: "success" });
     }
   };    
 
@@ -201,7 +201,7 @@ export default function WorkspacesPage() {
         title: 'Marketing & Brand',
         description: 'Campaign assets, brand guidelines, and Q1 strategy docs.',
         user_id: userId
-    }, {
+    }/*, {
         title: 'Engineering',
         description: 'API documentation, architecture decision records (ADRs), and sprint logs.',
         user_id: userId
@@ -209,7 +209,7 @@ export default function WorkspacesPage() {
         title: 'Legal & HR',
         description: 'Contract templates, employee handbook, and compliance docs.',
         user_id: userId
-    }];        
+    }*/];        
     setIsLoading(true);
     await Promise.all(newWorkspaceData.map(async (workspace) => {
         await WorkspaceService.createWorkspace(workspace);

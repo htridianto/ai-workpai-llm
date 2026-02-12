@@ -7,9 +7,9 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ContextItem } from '../../../../types/types';
+import { ContextItem } from '@/shared/types/types';
 
-import { useDashboard } from '../DashboardContext';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
 export const ContextSidebar: React.FC = () => {
   const {

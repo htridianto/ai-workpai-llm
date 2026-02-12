@@ -1,6 +1,6 @@
 import React from 'react';
 import { Folder, MoreVertical, Trash2, FolderOpen } from 'lucide-react';
-import { Folder as FolderType } from '../../../../types/types';
+import { Folder as FolderType } from '@/shared/types/types';
 
 interface FolderRowProps {
   folder: FolderType;

@@ -4,7 +4,7 @@ import React from 'react';
 import { Sidebar } from './_components/Sidebar';
 import { ContextSidebar } from './_components/ContextSidebar';
 import { Header } from './_components/Header';
-import { useDashboard } from './DashboardContext';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const {

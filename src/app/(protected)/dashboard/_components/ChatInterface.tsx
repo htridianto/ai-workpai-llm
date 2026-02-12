@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Message, Role, ExportFormat } from '../../../../types/types';
+import { Message, Role, ExportFormat } from '@/shared/types/types';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { 
   User, 

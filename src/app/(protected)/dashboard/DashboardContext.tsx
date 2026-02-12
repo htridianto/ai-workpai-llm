@@ -3,13 +3,13 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation';
-import { streamChatResponse, ChatService } from '../../../services/chatService';
-import { WorkspaceService } from '../../../services/workspaceService';
-import { MockApi } from '../../../services/mockApiService';
-// import { AuthService } from '../../../services/authService';
-import { Message, ChatSession, Role, Attachment, AppSettings, ContextItem, ExportFormat, GeneratedFile, Workspace, UserProfile } from '../../../types/types';
-import { AVAILABLE_MODELS, DEFAULT_SYSTEM_INSTRUCTION } from '../../../constants';
-import { ToastType } from '../../../components/Shared/Toast';
+import { streamChatResponse, ChatService } from '@/client/services/chatService';
+import { WorkspaceService } from '@/client/services/workspaceService';
+import { MockApi } from '@/client/services/mockApiService';
+// import { AuthService } from '@/client/services/authService';
+import { Message, ChatSession, Role, Attachment, AppSettings, ContextItem, ExportFormat, GeneratedFile, Workspace, UserProfile } from '@/shared/types/types';
+import { AVAILABLE_MODELS, DEFAULT_SYSTEM_INSTRUCTION } from '@/shared/constants';
+import { ToastType } from '@/client/components/Shared/Toast';
 import { signOut, useSession } from 'next-auth/react';
 
 
@@ -396,7 +396,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         role: (sessionData?.user as any)?.role || 'Unknown',
         bio: (sessionData?.user as any)?.bio || '',
         image: (sessionData?.user as any)?.image,
-        lastLoggedIn: (sessionData?.user as any)?.lastLoggedIn || new Date().toLocaleString(),
+        ssoAuthProvider: (sessionData?.user as any)?.ssoAuthProvider || 'Unknown',
+        createdAt: (sessionData?.user as any)?.createdAt || new Date().toLocaleString(),
+        lastLoggedin: (sessionData?.user as any)?.lastLoggedin || new Date().toLocaleString(),
       });
     }      
   }, [sessionData]);

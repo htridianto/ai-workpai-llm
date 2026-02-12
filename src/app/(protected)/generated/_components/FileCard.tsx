@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MoreVertical, FileText, Presentation, FileSpreadsheet, Image as ImageIcon, Music, Video, File, Star, Users } from 'lucide-react';
-import { GeneratedFile, ExportFormat } from '../../../../types/types';
+import { GeneratedFile, ExportFormat } from '@/shared/types/types';
 
 interface FileCardProps {
   file: GeneratedFile;

@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { ChatInterface } from '../_components/ChatInterface';
 import { InputArea } from '../_components/InputArea';
-import { useDashboard } from '../DashboardContext';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
 export default function WorkspaceDashboardPage() {
   const params = useParams();

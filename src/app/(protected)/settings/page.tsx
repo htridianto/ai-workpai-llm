@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-// import { useSession } from "next-auth/react";
 import { 
   ArrowLeft, 
   User, 
@@ -10,10 +9,8 @@ import {
   CreditCard, 
   Cpu
 } from 'lucide-react';
-import { UserProfile, LLMConfiguration } from '../../../types/types';
-import { DUMMY_USERS } from '../../../services/mockData';
+import { LLMConfiguration } from '@/shared/types/types';
 import { ProfileSettings } from './_components/ProfileSettings';
-import { useDashboard } from '../dashboard/DashboardContext';
 import { TeamSettings } from './_components/TeamSettings';
 import { BillingSettings } from './_components/BillingSettings';
 import { LLMSettings } from './_components/LLMSettings';
@@ -22,11 +19,7 @@ type SettingsTab = 'profile' | 'team' | 'billing' | 'llm';
 
 export default function SettingsPage() {  
   const router = useRouter();
-  const { setToast } = useDashboard();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
-
-  // --- Team State ---
-  const [users, setUsers] = useState<UserProfile[]>(DUMMY_USERS);
 
   // --- LLM State ---
   const [llmConfig, setLlmConfig] = useState<LLMConfiguration>({
@@ -39,24 +32,7 @@ export default function SettingsPage() {
   // --- Billing State ---
   const [currentPlan, setCurrentPlan] = useState<'free' | 'pro'>('free');
 
-  useEffect(() => {
-    // const storedAuth = localStorage.getItem('workpai_llm_auth');
-    // if (storedAuth) {
-    //   try {
-    //     const user = JSON.parse(storedAuth);
-    //     if (user && user.name && user.email) {
-    //         setProfile({ name: user.name, email: user.email, bio: user.bio || '' });
-    //     }
-    //   } catch (e) {
-    //     console.error("Failed to parse auth data", e);
-    //   }
-    // }
-  }, []);
-
-  const handleDeleteUser = (id: string) => setUsers(prev => prev.filter(u => u.id !== id));
   const handleSaveLLM = () => alert(`LLM Configuration for ${llmConfig.provider} saved!`);
-  const handleInviteUser = () => alert("Invite feature simulated");
-
 
   const renderSidebarItem = (tab: SettingsTab, icon: React.ReactNode, label: string) => (
     <button
@@ -77,7 +53,7 @@ export default function SettingsPage() {
       
       {/* Header */}
       <header className="bg-white dark:bg-charcoal-900 border-b border-gray-200 dark:border-charcoal-800 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => router.push('/')}
@@ -107,17 +83,9 @@ export default function SettingsPage() {
           <div className="flex-1 min-w-0">
             <div className="bg-white dark:bg-charcoal-900 rounded-2xl shadow-sm border border-gray-200 dark:border-charcoal-800 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
               
-              {activeTab === 'profile' && (
-                <ProfileSettings />
-              )}
+              {activeTab === 'profile' && <ProfileSettings />}
 
-              {activeTab === 'team' && (
-                <TeamSettings 
-                  users={users} 
-                  onDeleteUser={handleDeleteUser} 
-                  onInviteUser={handleInviteUser} 
-                />
-              )}
+              {activeTab === 'team' && <TeamSettings />}
 
               {activeTab === 'billing' && (
                 <BillingSettings 

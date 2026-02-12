@@ -13,19 +13,19 @@ import {
   ChevronRight,
   Menu
 } from 'lucide-react';
-import { GeneratedFile, Folder } from '../../../types/types';
-import { MockApi } from '../../../services/mockApiService';
-import { DUMMY_USERS } from '../../../services/mockData';
+import { GeneratedFile, Folder } from '@/shared/types/types';
+import { MockApi } from '@/client/services/mockApiService';
+import { DUMMY_USERS } from '@/client/services/mockData';
 import { FileCard } from './_components/FileCard';
 import { FileRow } from './_components/FileRow';
 import { FolderCard } from './_components/FolderCard';
 import { FolderRow } from './_components/FolderRow';
 import { GeneratedSidebar, GeneratedCategory } from './_components/GeneratedSidebar';
-import { ConfirmationModal } from '../../../components/Shared/ConfirmationModal';
+import { ConfirmationModal } from '@/client/components/Shared/ConfirmationModal';
 import { GeneratedFilePreviewModal } from './_components/GeneratedFilePreviewModal';
 import { ShareModal } from './_components/ShareModal';
-import { InputModal } from '../../../components/Shared/InputModal';
-import { Toast, ToastType } from '../../../components/Shared/Toast';
+import { InputModal } from '@/client/components/Shared/InputModal';
+import { Toast, ToastType } from '@/client/components/Shared/Toast';
 
 const CURRENT_USER_ID = 'u-admin'; // Mocking logged in user for filter logic
 

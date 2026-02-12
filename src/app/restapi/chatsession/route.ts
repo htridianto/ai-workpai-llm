@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Store } from '../store';
+import { Store } from '@/server/lib/store';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function GET() {

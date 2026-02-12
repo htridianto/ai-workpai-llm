@@ -16,12 +16,12 @@ import {
   Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChatSession, Workspace } from '../../../../types/types';
-import { ConfirmationModal } from '../../../../components/Shared/ConfirmationModal';
-import { InputModal } from '../../../../components/Shared/InputModal';
+import { ChatSession, Workspace } from '@/shared/types/types';
+import { ConfirmationModal } from '@/client/components/Shared/ConfirmationModal';
+import { InputModal } from '@/client/components/Shared/InputModal';
 import { useRouter } from 'next/navigation';
-import { useDashboard } from '../DashboardContext';
-import { useTheme } from '@/components/ThemeProvider';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
+import { useTheme } from '@/client/components/ThemeProvider';
 
 export const Sidebar = React.memo(() => {
   const {

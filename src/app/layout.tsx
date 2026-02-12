@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../index.css";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeProvider } from "@/client/components/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "AI Agent Workspace",
 };
 
-import { NextAuthProvider } from "@/components/NextAuthProvider";
+import { NextAuthProvider } from "@/client/components/NextAuthProvider";
 
 export default function RootLayout({
   children,

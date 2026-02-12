@@ -1,20 +1,48 @@
 import { NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
-import { getToken } from "next-auth/jwt";
-import { auth } from '@/lib/auth';
+import { auth } from '@/server/lib/auth';
+import { getToken } from 'next-auth/jwt';
+import { addUserToWorkspaceService, createWorkspaceService, getUserWorkspaces, getWorkspaceById } from '@/server/models';
 
 const DEFAULT_COLORS = ['accent-500', 'green-500', 'red-500', 'purple-500', 'indigo-500', 'blue-500'];
 
 export async function GET(request: Request) {
-    const session = await auth();
-    console.log('----workspaces:GET:session', session)
-    const token = await getToken({ req: request as any, secret: process.env.AUTH_SECRET });
-    console.log('----workspaces:GET:token', token)
-
+    const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
+    // console.log('restapi:workspaces:GET:token', token)
     if (!token) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
     try {
+        /*
+        const dbWorkspaces = await getUserWorkspaces(token.userId as string);        
+        const workspaces = dbWorkspaces.map((ws: any) => ({
+            id: ws.id,
+            slug: ws.id,
+            title: ws.name,            
+            description: ws.description,
+            color: ws.styleColor,
+            symbol: ws.symbol || ws.name.substring(0, 1).toUpperCase(), // Default if missing
+            createdAt: new Date(ws.createdAt).getTime(), // Convert ISO string to timestamp            
+            contextItems: [], // External API doesn't seem to return items here? Or maybe we fetch detail later.
+            folders: [],
+
+            //it should be in external model
+            chatMode: ws.chatMode,
+            chatProvider: ws.chatProvider,
+            openModel: ws.openAiModel,            
+            openAiHistory: ws.openAiHistory,
+            similarityThreshold: ws.similarityThreshold,
+            openAiPrompt: ws.openAiPrompt,
+            systemInstruction: ws.openAiPrompt,
+            openAiTemp: ws.openAiTemp,
+            queryRefusalResponse: ws.queryRefusalResponse,
+            vectorSearchMode: ws.vectorSearchMode,
+            topN: ws.topN,
+            lastUpdatedAt: ws.lastUpdatedAt
+        }));
+        return NextResponse.json(workspaces);
+        */
+
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
             console.warn("RAG_API_URL not set, falling back to mock store");
@@ -25,9 +53,7 @@ export async function GET(request: Request) {
                 'Authorization': `Bearer ${token.sessionToken}`
             }
         });
-
-        console.log('workspaces', JSON.stringify(response, null, 2));
-
+        console.log('restapi:workspaces:GET:response', JSON.stringify(response, null, 2));
         if (!response.ok) {
             const message = await response.json();
             console.error("External API error:", response.status, message?.error);
@@ -35,26 +61,51 @@ export async function GET(request: Request) {
         }
 
         const data = await response.json();
-        const workspaces = (data.workspaces || []).map((ws: any) => ({
-            id: String(ws.id), // Ensure string ID
-            title: ws.name,
-            slug: ws.slug,
-            createdAt: new Date(ws.createdAt).getTime(), // Convert ISO string to timestamp
-            similarityThreshold: ws.similarityThreshold || 0.25,
-            description: ws.description || 'Secure AI workspace for document retrieval and RAG.', // Not in sample but in interface
-            symbol: ws.symbol || ws.name.substring(0, 1).toUpperCase(), // Default if missing
-            color: ws.color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)], // Default if missing
-            contextItems: [], // External API doesn't seem to return items here? Or maybe we fetch detail later.
-            folders: [],
-            systemInstruction: ws.openAiPrompt || null, // Map prompt to system instruction?
-            // Custom fields map to our internal unused ones or new ones?
-            // We map what we can.
-            openAiTemp: ws.openAiTemp,
-            lastUpdatedAt: ws.lastUpdatedAt
+        const workspaces = await Promise.all((data.workspaces || []).map(async (ws: any) => {
+            let dbWorkspace: any = await getWorkspaceById(ws.slug);
+            console.log('restapi:workspaces:GET:dbWorkspace', JSON.stringify(dbWorkspace, null, 2));
+            if(!dbWorkspace){
+                return null;
+                /*
+                const newDbWorkspace = {
+                    id: ws.slug,
+                    name: ws.name,
+                    description: ws.name,
+                    styleColor: DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
+                    createdAt: new Date().toISOString(),
+                    deletedAt: null
+                }
+                const createdWorkspace = await createWorkspaceService(newDbWorkspace);
+                dbWorkspace = createdWorkspace;
+                */
+            }
+            return {
+                id: String(ws.id),
+                slug: dbWorkspace.id || ws.slug,
+                title: dbWorkspace.name || ws.name,            
+                description: dbWorkspace.description || ws.name,
+                color: dbWorkspace.styleColor,
+                symbol: dbWorkspace.symbol || dbWorkspace.name.substring(0, 1).toUpperCase(), // Default if missing
+                createdAt: new Date(dbWorkspace.createdAt).getTime(), // Convert ISO string to timestamp            
+                contextItems: [], // External API doesn't seem to return items here? Or maybe we fetch detail later.
+                folders: [],
+
+                //it should be in external model
+                chatMode: ws.chatMode,
+                chatProvider: ws.chatProvider,
+                openModel: ws.openAiModel,            
+                openAiHistory: ws.openAiHistory,
+                similarityThreshold: ws.similarityThreshold,
+                openAiPrompt: ws.openAiPrompt,
+                systemInstruction: ws.openAiPrompt,
+                openAiTemp: ws.openAiTemp,
+                queryRefusalResponse: ws.queryRefusalResponse,
+                vectorSearchMode: ws.vectorSearchMode,
+                topN: ws.topN,
+                lastUpdatedAt: ws.lastUpdatedAt
+            }
         }));
-
-        return NextResponse.json(workspaces);
-
+        return NextResponse.json(workspaces);        
     } catch (error) {
         console.error("GET Workspaces error:", error);
         return NextResponse.json({ message: 'Failed to fetch workspaces' }, { status: 500 });
@@ -62,24 +113,21 @@ export async function GET(request: Request) {
 }
 
 export async function POST(req: Request) {
+    const session = await auth();
+    if (!session) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
     try {
         const body = await req.json();
-
         // Basic validation
         if (!body.title) {
             return NextResponse.json({ message: 'Title is required' }, { status: 400 });
         }
-
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
             return NextResponse.json({ message: 'Failed to create workspace: Internal Server Error' }, { status: 500 });
         }
-
-        // Get token from cookie manually since we are in an API route
-        // const tokenCookie = req.headers.get('cookie')?.split(';').find(c => c.trim().startsWith((process.env.NEXT_PUBLIC_COOKIE_TOKEN_NAME || 'auth_token') + '='));
-        // const token = tokenCookie ? tokenCookie.split('=')[1] : null;
         const token = process.env.RAG_API_KEY || "56PZKDF-F2ZMR8P-HQJZBRQ-A403QRE";
-
         const slug = `ws-${nanoid(12)}`;
         const payload = {
             name: slug, 
@@ -133,14 +181,17 @@ export async function POST(req: Request) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({name: body.title})
+            body: JSON.stringify({name: `${session.user.userName}:${body.title}`})
         });
-        if (responseUpdate.ok) {
-           const data = await responseUpdate.json(); 
-           newWorkspace.title = data.workspace.name;
-        }
+        if (!responseUpdate.ok) {
+            const message = await responseUpdate.json();
+            console.error("External API error (POST):", responseUpdate.status, message?.error);
+            return NextResponse.json({ message: message?.error || 'Failed to update workspace' }, { status: responseUpdate.status });
+        }        
+        const dataUpdate = await responseUpdate.json(); 
+        newWorkspace.title = body.title || dataUpdate.workspace.name;
 
-        if(body.user_id){
+        if(session.user.ssoAuthId){
             // do assign users to workspace (POST /v1/admin/workspaces/{slug}/manage-users)
             await fetch(`${ragApiUrl}/api/v1/admin/workspaces/${ws.slug}/manage-users`, {
                 method: 'POST',
@@ -149,11 +200,21 @@ export async function POST(req: Request) {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    userIds: [body.user_id],
+                    userIds: [session.user.ssoAuthId],
                     reset: true
                 })
             });
         }
+
+        // do create workspace in database
+        await createWorkspaceService({
+            id: newWorkspace.slug,
+            name: newWorkspace.title,
+            description: newWorkspace.description,
+            styleColor: newWorkspace.color,
+            userId: [session.user.id]
+        });
+        // await addUserToWorkspaceService(newWorkspace.slug, session.user.id);
         
 
         return NextResponse.json(newWorkspace, { status: 201 });

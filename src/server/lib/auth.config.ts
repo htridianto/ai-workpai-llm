@@ -1,0 +1,53 @@
+import type { NextAuthConfig } from "next-auth";
+
+export const authConfig = {
+  providers: [], 
+  trustHost: true,
+  debug: process.env.NODE_ENV === 'development',
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+  callbacks: {
+    async jwt({ token, user, account }: any) {
+      // console.log("callback:jwt:Token:", token);      
+      // console.log("callback:jwt:user:", user);      
+      // console.log("callback:jwt:account:", account);    
+      // 'user' is only available on the first sign-in      
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;   
+        token.userName = user.userName;
+        token.name = user.name;
+        token.bio = user.bio;   
+        token.lastLoggedin = user.lastLoggedin;   
+        token.ssoAuthId = user.ssoAuthId;
+        token.ssoAuthProvider = user.ssoAuthProvider;
+        token.sessionToken = user.sessionToken;
+        token.accessToken = user.accessToken;      
+      }
+      if (account && account.access_token) {
+        token.accessToken = account.access_token;        
+      }      
+      return token;
+    },
+    async session({ session, token, user, account }: any) {      
+      // console.log("callback:session:Token:", token);      
+      // console.log("callback:session:session:", session);          
+      // Transfer data from the token to the session object  
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;      
+        session.user.userName = token.userName;
+        session.user.name = token.name;
+        session.user.bio = token.bio;
+        session.user.lastLoggedin = token.lastLoggedin;
+        session.user.ssoAuthId = token.ssoAuthId;      
+        session.user.ssoAuthProvider = token.ssoAuthProvider;  
+        // session.sessionToken = token.sessionToken;        
+        session.accessToken = token.accessToken;
+      }
+      return session;
+    }    
+  },
+} satisfies NextAuthConfig;

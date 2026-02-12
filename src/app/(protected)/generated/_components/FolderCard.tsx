@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Folder, MoreVertical, Trash2, FolderOpen } from 'lucide-react';
-import { Folder as FolderType } from '../../../../types/types';
+import { Folder as FolderType } from '@/shared/types/types';
 
 interface FolderCardProps {
   folder: FolderType;

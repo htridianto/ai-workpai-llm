@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDashboard } from './DashboardContext';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 import { Box, Link } from 'lucide-react';
 
 export default function DashboardPage() {

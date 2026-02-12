@@ -63,6 +63,7 @@ CREATE TABLE "verification_tokens" (
 CREATE TABLE "workspace_users" (
     "user_id" TEXT NOT NULL,
     "workspace_id" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'member',
 
     PRIMARY KEY ("user_id", "workspace_id"),
     CONSTRAINT "workspace_users_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE,

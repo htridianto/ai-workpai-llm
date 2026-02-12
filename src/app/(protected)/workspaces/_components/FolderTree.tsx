@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Folder, FolderOpen, Home } from 'lucide-react';
-import { Folder as FolderType } from '../../../../types/types';
+import { Folder as FolderType } from '@/shared/types/types';
 
 interface FolderTreeProps {
   folders: FolderType[];

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
-import { useDashboard } from '../DashboardContext';
-import { NotificationCenter } from '../../../../components/Shared/NotificationCenter';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
+import { NotificationCenter } from '@/client/components/Shared/NotificationCenter';
 
 export const Header: React.FC = () => {
     const {

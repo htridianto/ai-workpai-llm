@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
-import { UserProfile } from '@/types/types';
-import { useDashboard } from '../../dashboard/DashboardContext';
+import { UserProfile } from '@/shared/types/types';
+import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 import Image from 'next/image';
 
 interface ProfileSettingsProps {      
@@ -62,7 +62,12 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = () => {
         <div>
           <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">{profile?.userName}</span>
           <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">Role: {profile?.role}</span>
-          <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">{profile?.lastLoggedIn}</span>
+          <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">
+            Auth Provider: {profile?.ssoAuthProvider}
+          </span>          
+          <span className="block text-sm font-medium text-charcoal-500 dark:text-charcoal-400 mb-2">
+            Last Logged In: {profile?.lastLoggedin ? new Date(profile.lastLoggedin).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : 'Never logged in'}
+          </span>          
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Server, Key, Box, Shield, Save, Zap, Cpu } from 'lucide-react';
-import { LLMConfiguration, LLMProvider } from '../../../../types/types';
+import { LLMConfiguration, LLMProvider } from '@/shared/types/types';
 
 interface LLMSettingsProps {
   config: LLMConfiguration;

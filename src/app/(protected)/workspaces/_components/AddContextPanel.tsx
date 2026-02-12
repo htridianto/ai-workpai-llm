@@ -17,7 +17,7 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { ContextItem, Folder as FolderType } from '../../../../types/types';
+import { ContextItem, Folder as FolderType } from '@/shared/types/types';
 
 interface AddContextPanelProps {
   isOpen: boolean;
