@@ -30,7 +30,6 @@ export default function WorkspacesPage() {
   // Sidebar Toggles
   const [isWorkspaceSidebarOpen, setIsWorkspaceSidebarOpen] = useState(true);
   const [isFolderTreeOpen, setIsFolderTreeOpen] = useState(false);
-
   const selectedWorkspace = workspaces.find(s => s.id === selectedWorkspaceId);
 
   return (
@@ -120,7 +119,7 @@ export default function WorkspacesPage() {
                       <Box size={40} className="text-accent-500 opacity-50" />
                   </div>
                   <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">No Workspace Selected</h2>
-                  <p className="max-w-xs text-center">Select a workspace from the sidebar or create a new one to manage your files.</p>
+                  <p className="max-w-lg text-center">Select a workspace from the sidebar or create a new one to manage your files.</p>
               </div>
           )}
       </div>

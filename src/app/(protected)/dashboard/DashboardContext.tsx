@@ -28,6 +28,7 @@ interface DashboardContextType {
   workspaces: Workspace[];
   currentWorkspaceId: string | null;
   setCurrentWorkspaceId: (id: string | null) => void;
+  setWorkspaces: React.Dispatch<React.SetStateAction<Workspace[]>>;
   sessions: ChatSession[];
   currentSessionId: string | null;
   setCurrentSessionId: (id: string | null) => void;
@@ -59,7 +60,6 @@ interface DashboardContextType {
   updateThreshold: (val: number) => void;
   handleLogout: () => void;  
   refreshWorkspaces: () => Promise<void>;
-  addFileContexts: (wsId: string, items: FileContext[]) => Promise<void>;
 
   userProfile: UserProfile | null;
   setUserProfile: (profile: UserProfile | null) => void;
@@ -409,75 +409,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }      
   }, [sessionData]);
 
-  const addFileContexts = async (wsId: string, newItems: FileContext[]) => {
-    const ws = workspaces.find(w => w.id === wsId);
-    if (!ws) return;
 
-    const updatedWs = {
-      ...ws,
-      fileContexts: [...(ws.fileContexts || []), ...newItems]
-    };
-
-    // Optimistic update
-    setWorkspaces(prev => prev.map(w => w.id === wsId ? updatedWs : w));
-    
-    // Persist
-    try {
-        await Promise.all(newItems.map(item => 
-            WorkspaceService.createFileContext({
-                workspaceId: ws.slug,
-                folderId: item.folderId,
-                name: item.name,
-                type: item.type,
-                size: item.size,
-                snippet: item.snippet,
-                status: 'indexing',
-                meta: {
-                    progress: 0,
-                    ...item.meta // Keep original meta if any
-                }
-            })
-        ));
-        
-        await refreshWorkspaces();
-        setToast({ message: `${newItems.length} items queued for indexing`, type: "info" });
-    } catch (error: any) {
-        setToast({ message: "Failed to add file contexts", type: "error", subMessage: error.message });
-        return;
-    }
-
-    // Simulation
-    newItems.forEach(item => {
-      let currentStep = 0;
-      const totalSteps = 20;
-      
-      const tick = () => {
-        currentStep++;
-        const progress = Math.min(Math.round((currentStep / totalSteps) * 100), 100);
-        
-        setWorkspaces(prev => prev.map(w => {
-          if (w.id === wsId) {
-            return {
-              ...w,
-              fileContexts: w.fileContexts.map(i => {
-                if (i.id === item.id) {
-                  if (progress === 100) return { ...i, progress: 100, status: 'indexed' };
-                  return { ...i, progress };
-                }
-                return i;
-              })
-            };
-          }
-          return w;
-        }));
-
-        if (currentStep < totalSteps) {
-          setTimeout(tick, Math.random() * 200 + 100);
-        }
-      };
-      tick();
-    });
-  };
 
   const contextValue = useMemo(() => ({
       isSidebarOpen, setIsSidebarOpen,
@@ -493,7 +425,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       handleSendMessage, handleGenerateDocument, handleRemoveFileContext,
       handleToggleFileContextActive, updateThreshold, handleLogout,
       refreshWorkspaces, userProfile, setUserProfile,
-      addFileContexts
+      setWorkspaces
   }), [
       isSidebarOpen, isContextOpen, toast,
       workspaces, currentWorkspaceId, sessions, currentSessionId,

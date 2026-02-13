@@ -15,7 +15,8 @@ import {
   RefreshCw,
   FolderPlus,
   Edit2,
-  X
+  X,
+  MoveHorizontal
 } from 'lucide-react';
 import { Folder as FolderType, FileContext, Workspace } from '@/shared/types/types';
 import { WorkspaceService } from '@/client/services/workspaceService';
@@ -25,6 +26,7 @@ import { ConfirmationModal } from '@/client/components/Shared/ConfirmationModal'
 import { FilePreviewModal } from '@/client/components/Shared/FilePreviewModal';
 import { FolderTree } from './FolderTree';
 import { AddContextPanel } from './AddContextPanel';
+import { MoveToFolderModal } from './MoveToFolderModal';
 
 interface FileManagerProps {
   selectedWorkspace: Workspace;
@@ -43,10 +45,15 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const { refreshWorkspaces, setToast } = useDashboard();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isAddContextOpen, setIsAddContextOpen] = useState(false);
+  const [lastFolderTreeOpen, setLastFolderTreeOpen] = useState(true);
   
   // Modals state
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
   const [isRenameFolderModalOpen, setIsRenameFolderModalOpen] = useState(false);
+  const [isRenameFileModalOpen, setIsRenameFileModalOpen] = useState(false);
+  const [isMoveFileModalOpen, setIsMoveFileModalOpen] = useState(false);
+  const [fileToRename, setFileToRename] = useState<FileContext | null>(null);
+  const [fileToMove, setFileToMove] = useState<FileContext | null>(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ 
       id: string; 
       type: 'file' | 'folder'; 
@@ -56,11 +63,28 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const [fileToPreview, setFileToPreview] = useState<FileContext | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+
   // Sync currentFolderId when workspace changes
   useEffect(() => {
     setCurrentFolderId(null);
     setIsAddContextOpen(false);
+
+    setIsFolderTreeOpen(lastFolderTreeOpen); 
   }, [selectedWorkspace.id]);
+
+  useEffect(() => {
+    if(!isAddContextOpen){
+        setLastFolderTreeOpen(isFolderTreeOpen);
+    }
+  }, [isFolderTreeOpen]);
+
+  useEffect(() => {
+    if(isAddContextOpen){
+        setIsFolderTreeOpen(false); 
+    }else if(lastFolderTreeOpen){
+        setIsFolderTreeOpen(true); 
+    }
+  }, [isAddContextOpen]);
 
   // --- Folder Actions ---
   const handleCreateFolder = async (folderName: string) => {
@@ -103,9 +127,6 @@ export const FileManager: React.FC<FileManagerProps> = ({
         if (deleteConfirmation.type === 'file') {
             await WorkspaceService.deleteFileContext(deleteConfirmation.id);
         } else {
-            // Note: Server-side deleteFolder should handle children if needed, 
-            // but for simplicity in this PR, let's assume it handles it or we only delete the folder itself.
-            // Our Schema has SetNull for parentFolderId on delete, but we might want to cascade or handle it.
             await WorkspaceService.deleteFolder(deleteConfirmation.id);
             if (currentFolderId === deleteConfirmation.id) setCurrentFolderId(null);
         }
@@ -115,6 +136,38 @@ export const FileManager: React.FC<FileManagerProps> = ({
         setToast({ message: `${deleteConfirmation.type === 'file' ? 'File' : 'Folder'} Deleted`, type: "success" });
     } catch (error: any) {
         setToast({ message: `Failed to delete ${deleteConfirmation.type}`, type: "error", subMessage: error.message });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleRenameFile = async (newName: string) => {
+    if (!fileToRename) return;
+    setIsLoading(true);
+    try {
+        await WorkspaceService.updateFileContext(fileToRename.id, { name: newName });
+        await refreshWorkspaces();
+        setIsRenameFileModalOpen(false);
+        setFileToRename(null);
+        setToast({ message: "File Renamed", type: "success" });
+    } catch (error: any) {
+        setToast({ message: "Failed to rename file", type: "error", subMessage: error.message });
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  const handleMoveFile = async (targetFolderId: string | null) => {
+    if (!fileToMove) return;
+    setIsLoading(true);
+    try {
+        await WorkspaceService.updateFileContext(fileToMove.id, { folderId: targetFolderId });
+        await refreshWorkspaces();
+        setIsMoveFileModalOpen(false);
+        setFileToMove(null);
+        setToast({ message: "File Moved", type: "success" });
+    } catch (error: any) {
+        setToast({ message: "Failed to move file", type: "error", subMessage: error.message });
     } finally {
         setIsLoading(false);
     }
@@ -132,7 +185,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       name: num,
       workspaceId: selectedWorkspace.id,
       dateCreated: 0, 
-      parentId: '.whatsapp_groups',
+      parentId: '.whatsapp',
       isReadOnly: true,
       isVirtual: true
   }));
@@ -152,7 +205,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       const userFolders = (selectedWorkspace?.folders || []).filter(f => !f.parentId);
       currentFolders = [...(selectedWorkspace?.virtualFolders || []), ...userFolders];
       currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => !f.folderId && !['link', 'whatsapp', 'database'].includes(f.type));
-  } else if (currentFolderId === '.whatsapp_groups') {
+  } else if (currentFolderId === '.whatsapp') {
       currentFolders = waVirtualFolders.map(f => ({ ...f, dateCreated: Date.now() }));
       currentFiles = [];
   } else if (isWaNumberFolder(currentFolderId)) {
@@ -174,7 +227,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
   if (tempId && isWaNumberFolder(tempId)) {
       const num = tempId.replace('wa_virtual_', '');
       breadcrumbs.unshift({ id: tempId, name: num, dateCreated: 0, isReadOnly: true } as FolderType);
-      tempId = '.whatsapp_groups';
+      tempId = '.whatsapp';
   }
   const currentVirtual = selectedWorkspace?.virtualFolders?.find(v => v.id === tempId);
   if (currentVirtual) {
@@ -238,7 +291,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                         </>
                       )}
                   </div>
-                  <p className="text-sm text-charcoal-500 truncate mt-1">
+                  <p className="text-sm text-charcoal-500 mt-1 --truncate --line-clamp-3">
                       {isAddContextOpen ? 'Select and import data to your workspace' : (currentFolderId ? (isWaNumberFolder(currentFolderId || '') ? 'Connected Groups' : 'Folder Contents') : (selectedWorkspace.description || 'Manage your documents'))}
                   </p>
               </div>
@@ -253,7 +306,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                       </button>
                   )}
                   <button 
-                      onClick={() => setIsAddContextOpen(!isAddContextOpen)}
+                      onClick={() => {setIsAddContextOpen(!isAddContextOpen);}}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-md transition-all text-sm font-medium ${isAddContextOpen ? 'bg-charcoal-200 dark:bg-charcoal-700 text-slate-800 dark:text-slate-100' : 'bg-accent-600 hover:bg-accent-500 text-white shadow-accent-900/20'}`}
                   >
                       {isAddContextOpen ? <X size={18} /> : <UploadCloud size={18} />}
@@ -301,11 +354,11 @@ export const FileManager: React.FC<FileManagerProps> = ({
                                                 <div className={`p-3 rounded-lg ${isPrivate ? 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-500' : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-500'} ${viewMode === 'list' ? '' : 'mb-2 mx-auto'}`}>
                                                     {isPrivate ? <Lock size={viewMode === 'grid' ? 32 : 24} className="opacity-80" /> : <Folder size={viewMode === 'grid' ? 32 : 24} fill="currentColor" className="opacity-80" />}
                                                 </div>
-                                                <div className="min-w-0 flex-1 w-full">
+                                                <div className={`min-w-0 flex-1 w-full`}>
                                                     <span className={`font-medium text-sm truncate w-full block ${isPrivate ? 'text-orange-600 dark:text-orange-400 font-mono tracking-tight' : 'text-slate-700 dark:text-slate-200'}`}>{folder.name}</span>
-                                                    <div className={`flex items-center gap-2 mt-1.5 text-[10px] text-charcoal-400 ${viewMode === 'grid' ? 'justify-center' : ''}`}>
+                                                    <div className={`flex items-center gap-2 text-[10px] text-charcoal-400 ${viewMode === 'grid' ? 'justify-center mt-1.5' : 'justify-end mt-[-25px]'}`}>
                                                         <span className="flex items-center gap-1 bg-gray-100 dark:bg-charcoal-700 px-1.5 py-0.5 rounded-md"><Layers size={10} /> {fileCount}</span>
-                                                        {!folder.isReadOnly && <span className="hidden sm:flex items-center gap-1"><Calendar size={10} /> {new Date(folder.dateCreated).toLocaleDateString()}</span>}
+                                                        {!folder.isReadOnly && <span className="hidden sm:flex items-center gap-1"><Calendar size={10} /> {new Date(folder.dateCreated).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>}
                                                     </div>
                                                 </div>
                                                 {!folder.isReadOnly && (
@@ -333,6 +386,8 @@ export const FileManager: React.FC<FileManagerProps> = ({
                                                 <div key={file.id} className="group relative bg-white dark:bg-charcoal-800 border border-gray-200 dark:border-charcoal-700 rounded-xl hover:shadow-lg hover:border-accent-500/50 transition-all cursor-pointer flex flex-col aspect-[4/5] overflow-hidden">
                                                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                                         {!isIndexing && <button onClick={(e) => { e.stopPropagation(); setFileToPreview(file); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><Eye size={14} /></button>}
+                                                        <button onClick={(e) => { e.stopPropagation(); setFileToRename(file); setIsRenameFileModalOpen(true); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><Edit2 size={14} /></button>
+                                                        <button onClick={(e) => { e.stopPropagation(); setFileToMove(file); setIsMoveFileModalOpen(true); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><MoveHorizontal size={14} /></button>
                                                         <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmation({ id: file.id, type: 'file', name: file.name }); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-red-600 rounded-full shadow-md"><Trash2 size={14} /></button>
                                                     </div>
                                                     <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 dark:bg-charcoal-800/50 p-6 relative" onClick={() => !isIndexing && setFileToPreview(file)}>
@@ -380,8 +435,10 @@ export const FileManager: React.FC<FileManagerProps> = ({
                                                     </div>
                                                     <div className="col-span-2 text-xs text-charcoal-500 uppercase">{file.type}</div>
                                                     <div className="col-span-3 text-xs text-charcoal-500">{isIndexing ? <span className="text-accent-600 dark:text-accent-400 animate-pulse">Indexing... {progress}%</span> : new Date(file.dateCreated).toLocaleDateString()}</div>
-                                                    <div className="col-span-1 flex justify-end gap-2">
+                                                    <div className="col-span-1 flex justify-end gap-1">
                                                         {!isIndexing && <button onClick={() => setFileToPreview(file)} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Eye size={16} /></button>}
+                                                        <button onClick={(e) => { e.stopPropagation(); setFileToRename(file); setIsRenameFileModalOpen(true); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 size={16} /></button>
+                                                        <button onClick={(e) => { e.stopPropagation(); setFileToMove(file); setIsMoveFileModalOpen(true); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoveHorizontal size={16} /></button>
                                                         <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmation({ id: file.id, type: 'file', name: file.name }); }} className="p-1.5 text-charcoal-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
                                                     </div>
                                                 </div>
@@ -414,6 +471,24 @@ export const FileManager: React.FC<FileManagerProps> = ({
           confirmLabel="Rename"
           onConfirm={handleRenameFolder}
           onCancel={() => setIsRenameFolderModalOpen(false)}
+          isLoading={isLoading}
+      />
+      <InputModal
+          isOpen={isRenameFileModalOpen}
+          title="Rename File"
+          initialValue={fileToRename?.name || ''}
+          confirmLabel="Rename"
+          onConfirm={handleRenameFile}
+          onCancel={() => { setIsRenameFileModalOpen(false); setFileToRename(null); }}
+          isLoading={isLoading}
+      />
+      <MoveToFolderModal 
+          isOpen={isMoveFileModalOpen}
+          onClose={() => { setIsMoveFileModalOpen(false); setFileToMove(null); }}
+          onConfirm={handleMoveFile}
+          folders={selectedWorkspace?.folders || []}
+          itemName={fileToMove?.name || ''}
+          initialFolderId={fileToMove?.folderId || null}
           isLoading={isLoading}
       />
       <ConfirmationModal

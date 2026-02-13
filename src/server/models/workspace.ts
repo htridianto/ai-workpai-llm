@@ -13,8 +13,8 @@ export const getAllWorkspaces = async () => {
 // --- Constants ---
 
 export const VIRTUAL_FOLDERS = [
-  { id: '.website_links', name: '.website_links', type: 'link' },
-  { id: '.whatsapp_groups', name: '.whatsapp_groups', type: 'whatsapp' },
+  { id: '.links', name: '.links', type: 'link' },
+  { id: '.whatsapp', name: '.whatsapp', type: 'whatsapp' },
   { id: '.databases', name: '.databases', type: 'database' }
 ];
 
@@ -137,18 +137,16 @@ export const createWorkspaceService = async (data: { id?: string; name: string; 
       })
     }
     
-    // Create default system folder "Root"
-    /*
+    // Create default system folder "Root"    
     await tx.folder.create({
       data: {
-        name: 'Root',
+        name: 'My Contexts',
         workspaceId: workspace.id,
         isSystem: 1,
         parentFolderId: null // Top level
       }
     })
-    */
-
+    
     return workspace
   })
 }

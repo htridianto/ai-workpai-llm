@@ -114,6 +114,18 @@ export async function DELETE(
             return NextResponse.json({ message: message?.error || 'Failed to delete workspace rag' }, { status: response.status });
         }
 
+        // do delete folder for workspace (POST /v1/document/remove-folder)
+        await fetch(`${ragApiUrl}/api/v1/document/remove-folder`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                name: params.workspaceId
+            })
+        });
+
         // Delete workspace from database
         await deleteWorkspaceService(params.workspaceId, true);
         

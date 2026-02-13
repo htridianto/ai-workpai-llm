@@ -35,7 +35,7 @@ export async function DELETE(
     const { contextId } = await params;
 
     try {
-        await deleteFileContext(contextId);
+        await deleteFileContext(contextId, true);
         return NextResponse.json({ message: 'File context deleted successfully' });
     } catch (error) {
         console.error("DELETE FileContext error:", error);

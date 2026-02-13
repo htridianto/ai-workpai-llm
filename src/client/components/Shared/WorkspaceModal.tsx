@@ -70,6 +70,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
                       type="text"
                       value={workspaceTitle}
                       onChange={(e) => setWorkspaceTitle(e.target.value)}
+                      maxLength={100}
                       className="w-full px-3 py-2 bg-charcoal-950 border border-charcoal-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition-all placeholder-charcoal-600"
                       placeholder="e.g. Marketing Q1"
                       autoFocus
@@ -81,6 +82,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       rows={3}
+                      maxLength={225}
                       className="w-full px-3 py-2 bg-charcoal-950 border border-charcoal-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition-all placeholder-charcoal-600 resize-none"
                       placeholder="Briefly describe the purpose of this workspace..."
                     />

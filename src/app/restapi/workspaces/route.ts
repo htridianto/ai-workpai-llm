@@ -165,7 +165,7 @@ export async function POST(req: Request) {
             slug: ws.slug,
             createdAt: new Date(ws.createdAt).getTime(),
             similarityThreshold: ws.similarityThreshold || 0.25,
-            description: ws.description || 'Secure AI workspace for document retrieval and RAG.',
+            description: ws.description || body.description || 'Secure AI workspace for document retrieval and RAG.',
             symbol: ws.symbol || ws.name.substring(0, 1).toUpperCase(),
             color: ws.color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
             fileContexts: [],

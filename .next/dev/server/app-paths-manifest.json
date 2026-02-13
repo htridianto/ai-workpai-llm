@@ -1,11 +1,16 @@
 {
   "/(protected)/dashboard/[workspaceId]/page": "app/(protected)/dashboard/[workspaceId]/page.js",
   "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
+  "/(protected)/generated/page": "app/(protected)/generated/page.js",
+  "/(protected)/settings/page": "app/(protected)/settings/page.js",
   "/(protected)/workspaces/page": "app/(protected)/workspaces/page.js",
   "/restapi/auth/[...nextauth]/route": "app/restapi/auth/[...nextauth]/route.js",
   "/restapi/chatsession/route": "app/restapi/chatsession/route.js",
   "/restapi/file-contexts/[contextId]/route": "app/restapi/file-contexts/[contextId]/route.js",
   "/restapi/file-contexts/route": "app/restapi/file-contexts/route.js",
+  "/restapi/folders/[folderId]/route": "app/restapi/folders/[folderId]/route.js",
   "/restapi/folders/route": "app/restapi/folders/route.js",
+  "/restapi/users/route": "app/restapi/users/route.js",
+  "/restapi/workspaces/[workspaceId]/route": "app/restapi/workspaces/[workspaceId]/route.js",
   "/restapi/workspaces/route": "app/restapi/workspaces/route.js"
 }

@@ -114,8 +114,16 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
     const userId = user?.id;    
 
     const demoWorkspaces = [{
-        title: 'Marketing & Brand',
-        description: 'Campaign assets, brand guidelines, and Q1 strategy docs.',
+        title: 'Global Markets & Policy Risk',
+        description: 'Integrasi dokumen strategi bisnis dan arsip kebijakan publik untuk analisis RAG real-time.',
+        userId: userId ? [userId] : []
+    }, {
+        title: 'Political Marketing Engine',
+        description: 'Data demografi pemilih (Marketing) dengan janji kampanye dan isu daerah (Politik).',
+        userId: userId ? [userId] : []
+    }, {
+        title: 'Market Analysis 2024',
+        description: 'Penyimpanan laporan riset pasar, data kompetitor, dan tren industri terbaru. Memungkinkan LLM melakukan sintesis data untuk strategi penetapan harga atau peluncuran produk baru.',
         userId: userId ? [userId] : []
     }];
     
@@ -180,7 +188,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
                                       </div>
                                   </div>
                                   {ws.description && (
-                                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400 line-clamp-2 pl-11 mb-2">
+                                      <p className="text-xs text-charcoal-500 dark:text-charcoal-400 line-clamp-3 pl-11 mb-2">
                                           {ws.description}
                                       </p>
                                   )}
