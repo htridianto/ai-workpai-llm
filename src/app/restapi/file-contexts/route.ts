@@ -15,10 +15,18 @@ export async function POST(req: Request) {
         if (!workspaceId) {
             return NextResponse.json({ message: 'Workspace ID is required' }, { status: 400 });
         }
-
+        
+        let newFolderId = folderId || null;
+        if(type == 'whatsapp'){
+            newFolderId = '.whatsapp';
+        }else if(type == 'database'){
+            newFolderId = '.databases';
+        }else if(type == 'link'){
+            newFolderId = '.links';
+        }
         const context = await createFileContext({
             workspaceId,
-            folderId: folderId || null,
+            folderId: newFolderId,
             type: type || 'txt',
             meta: meta || null,
             name: name || 'Untitled',

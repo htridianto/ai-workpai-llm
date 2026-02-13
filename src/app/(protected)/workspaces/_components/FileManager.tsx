@@ -174,27 +174,28 @@ export const FileManager: React.FC<FileManagerProps> = ({
   };
 
   // --- Filtering & Virtual Folders Logic ---
-  const waFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.type === 'whatsapp');
-  const uniqueWaNumbers = Array.from(new Set(waFiles.map(f => {
-      const match = f.name.match(/^WA\s(.*?):/);
-      return match ? match[1] : null;
-  }))).filter(n => n !== null) as string[];
+//   const waFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.type === 'whatsapp');
+//   const uniqueWaNumbers = Array.from(new Set(waFiles.map(f => {
+//       const match = f.name.match(/^WA\s(.*?):/);
+//       return match ? match[1] : null;
+//   }))).filter(n => n !== null) as string[];
 
-  const waVirtualFolders: FolderType[] = uniqueWaNumbers.map(num => ({
-      id: `wa_virtual_${num}`,
-      name: num,
-      workspaceId: selectedWorkspace.id,
-      dateCreated: 0, 
-      parentId: '.whatsapp',
-      isReadOnly: true,
-      isVirtual: true
-  }));
+//   const waVirtualFolders: FolderType[] = uniqueWaNumbers.map(num => ({
+//       id: `wa_virtual_${num}`,
+//       name: num,
+//       workspaceId: selectedWorkspace.id,
+//       dateCreated: 0, 
+//       parentId: '.whatsapp',
+//       isReadOnly: true,
+//       isVirtual: true
+//   }));
 
-  const allFoldersForTree = [
-      ...(selectedWorkspace?.virtualFolders || []), 
-      ...waVirtualFolders,
-      ...(selectedWorkspace?.folders || [])
-  ];
+//   const allFoldersForTree = [
+//       ...(selectedWorkspace?.virtualFolders || []), 
+//       ...waVirtualFolders,
+//       ...(selectedWorkspace?.folders || [])
+//   ];
+    const allFoldersForTree = [...(selectedWorkspace?.folders || [])];
 
   let currentFolders: FolderType[] = [];
   let currentFiles: FileContext[] = [];
@@ -202,10 +203,11 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const isWaNumberFolder = (id: string) => id.startsWith('wa_virtual_');
 
   if (currentFolderId === null) {
-      const userFolders = (selectedWorkspace?.folders || []).filter(f => !f.parentId);
-      currentFolders = [...(selectedWorkspace?.virtualFolders || []), ...userFolders];
+    //   const userFolders = (selectedWorkspace?.folders || []).filter(f => !f.parentId);
+    //   currentFolders = [...(selectedWorkspace?.virtualFolders || []), ...userFolders];
+      currentFolders = (selectedWorkspace?.folders || []).filter(f => !f.parentId);
       currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => !f.folderId && !['link', 'whatsapp', 'database'].includes(f.type));
-  } else if (currentFolderId === '.whatsapp') {
+  } /*else if (currentFolderId === '.whatsapp') {
       currentFolders = waVirtualFolders.map(f => ({ ...f, dateCreated: Date.now() }));
       currentFiles = [];
   } else if (isWaNumberFolder(currentFolderId)) {
@@ -216,7 +218,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       const vType = selectedWorkspace.virtualFolders.find(v => v.id === currentFolderId)?.virtualType;
       currentFolders = [];
       currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.type === vType);
-  } else {
+  } */else {
       currentFolders = (selectedWorkspace?.folders || []).filter(f => f.parentId === currentFolderId);
       currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.folderId === currentFolderId);
   }
@@ -224,16 +226,16 @@ export const FileManager: React.FC<FileManagerProps> = ({
   // Breadcrumbs Logic
   const breadcrumbs: FolderType[] = [];
   let tempId = currentFolderId;
-  if (tempId && isWaNumberFolder(tempId)) {
-      const num = tempId.replace('wa_virtual_', '');
-      breadcrumbs.unshift({ id: tempId, name: num, dateCreated: 0, isReadOnly: true } as FolderType);
-      tempId = '.whatsapp';
-  }
-  const currentVirtual = selectedWorkspace?.virtualFolders?.find(v => v.id === tempId);
-  if (currentVirtual) {
-      breadcrumbs.unshift(currentVirtual);
-      tempId = null;
-  }
+//   if (tempId && isWaNumberFolder(tempId)) {
+//       const num = tempId.replace('wa_virtual_', '');
+//       breadcrumbs.unshift({ id: tempId, name: num, dateCreated: 0, isReadOnly: true } as FolderType);
+//       tempId = '.whatsapp';
+//   }
+//   const currentVirtual = selectedWorkspace?.virtualFolders?.find(v => v.id === tempId);
+//   if (currentVirtual) {
+//       breadcrumbs.unshift(currentVirtual);
+//       tempId = null;
+//   }
   while (tempId && selectedWorkspace?.folders) {
       const folder = selectedWorkspace.folders.find(f => f.id === tempId);
       if(folder) {
@@ -241,7 +243,8 @@ export const FileManager: React.FC<FileManagerProps> = ({
           tempId = folder.parentId || null;
       } else break;
   }
-  const canRenameCurrent = currentFolderId && !selectedWorkspace?.virtualFolders?.find(v => v.id === currentFolderId) && !isWaNumberFolder(currentFolderId);
+  const currentFolder = allFoldersForTree?.find(v => v.id === currentFolderId);
+  const canRenameCurrent = currentFolderId && !currentFolder?.isReadOnly;
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -296,7 +299,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                   </p>
               </div>
               <div className="flex gap-3">
-                  {(canRenameCurrent || !currentFolderId) && !isAddContextOpen && (
+                  {(currentFolder && currentFolder.isShared) && !isAddContextOpen && (
                       <button 
                           onClick={() => setIsNewFolderModalOpen(true)}
                           className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-charcoal-800 border border-gray-300 dark:border-charcoal-600 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-gray-50 dark:hover:bg-charcoal-700 transition-colors text-sm font-medium"

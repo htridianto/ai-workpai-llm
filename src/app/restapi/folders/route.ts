@@ -23,6 +23,7 @@ export async function POST(req: Request) {
         const folder = await createFolder({
             name,
             workspaceId,
+            isShared: 1,
             parentFolderId: parentFolderId || null,
         });
 

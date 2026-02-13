@@ -89,7 +89,7 @@ export const FilesTab: React.FC<FilesTabProps> = ({
             onChange={(e) => setTargetFolderId(e.target.value)}
             className="flex-1 bg-transparent border-none text-sm font-medium text-slate-800 dark:text-slate-200 focus:ring-0 cursor-pointer"
           >
-            <option value="">Root</option>
+            {/* <option value="">Root</option> */}
             {folders.filter(f => !f.name.startsWith('.')).map(f => (
               <option key={f.id} value={f.id}>{f.name}</option>
             ))}

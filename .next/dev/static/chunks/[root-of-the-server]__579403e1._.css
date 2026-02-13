@@ -827,10 +827,6 @@
     margin-inline-start: -10px;
   }
 
-  .ms-auto {
-    margin-inline-start: auto;
-  }
-
   .-mt-1 {
     margin-top: calc(var(--spacing) * -1);
   }
@@ -865,14 +861,6 @@
 
   .mt-8 {
     margin-top: calc(var(--spacing) * 8);
-  }
-
-  .mt-\[-5px\] {
-    margin-top: -5px;
-  }
-
-  .mt-\[-15px\] {
-    margin-top: -15px;
   }
 
   .mt-\[-25px\] {

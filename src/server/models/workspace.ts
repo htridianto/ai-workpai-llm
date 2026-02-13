@@ -12,12 +12,17 @@ export const getAllWorkspaces = async () => {
 
 // --- Constants ---
 
-export const VIRTUAL_FOLDERS = [
-  { id: '.links', name: '.links', type: 'link' },
-  { id: '.whatsapp', name: '.whatsapp', type: 'whatsapp' },
-  { id: '.databases', name: '.databases', type: 'database' }
-];
-
+// export const VIRTUAL_FOLDERS = [
+//   { id: '.links', name: '.links', type: 'link' },
+//   { id: '.whatsapp', name: '.whatsapp', type: 'whatsapp' },
+//   { id: '.databases', name: '.databases', type: 'database' }
+// ];
+const systemFolders = [
+  { id: '.links', name: '.links' },
+  { id: '.whatsapp', name: '.whatsapp' },
+  { id: '.databases', name: '.databases' },
+  { id: null, name: 'My Contexts', isShared: true }
+]
 // --- Mapping Helpers ---
 
 export const mapFolder = (f: any): Folder => ({
@@ -72,21 +77,20 @@ export const getWorkspaceById = async (id: string) => {
 
   return {
     ...ws,
-    id: ws.id,
     slug: ws.id,
     title: ws.name,
     createdAt: ws.createdAt.getTime(),
     folders: ws.folders.map(mapFolder),
-    virtualFolders: VIRTUAL_FOLDERS.map(vf => ({
-      id: vf.id,
-      name: vf.name,
-      workspaceId: ws.id,
-      dateCreated: ws.createdAt.getTime(), // or some static date
-      isVirtual: true,
-      virtualType: vf.type,
-      isReadOnly: true
-    })),
     fileContexts: ws.fileContexts.map(mapFileContext)
+    // virtualFolders: VIRTUAL_FOLDERS.map(vf => ({
+    //   id: vf.id,
+    //   name: vf.name,
+    //   workspaceId: ws.id,
+    //   dateCreated: ws.createdAt.getTime(), // or some static date
+    //   isVirtual: true,
+    //   virtualType: vf.type,
+    //   isReadOnly: true
+    // })),    
   }
 }
 
@@ -138,14 +142,18 @@ export const createWorkspaceService = async (data: { id?: string; name: string; 
     }
     
     // Create default system folder "Root"    
-    await tx.folder.create({
-      data: {
-        name: 'My Contexts',
-        workspaceId: workspace.id,
-        isSystem: 1,
-        parentFolderId: null // Top level
-      }
-    })
+    await Promise.all(systemFolders.map(folder => {
+      return tx.folder.create({
+        data: {
+          id: folder.id || undefined,
+          name: folder.name,
+          workspaceId: workspace.id,
+          isSystem: 1,
+          isShared: folder.isShared ? 1 : 0,
+          parentFolderId: null // Top level
+        }
+      })
+    }))
     
     return workspace
   })

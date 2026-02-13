@@ -89,7 +89,6 @@ export async function GET(request: Request) {
                 createdAt: new Date(dbWorkspace.createdAt).getTime(), // Convert ISO string to timestamp            
                 fileContexts: dbWorkspace.fileContexts || [],
                 folders: dbWorkspace.folders || [],
-                virtualFolders: dbWorkspace.virtualFolders || [],
 
                 //it should be in external model
                 chatMode: ws.chatMode,
@@ -104,9 +103,9 @@ export async function GET(request: Request) {
                 vectorSearchMode: ws.vectorSearchMode,
                 topN: ws.topN,
                 lastUpdatedAt: ws.lastUpdatedAt
-            }
+            };
         }));
-        return NextResponse.json(workspaces);        
+        return NextResponse.json(workspaces.filter((ws: any) => ws !== false));         
     } catch (error) {
         console.error("GET Workspaces error:", error);
         return NextResponse.json({ message: 'Failed to fetch workspaces' }, { status: 500 });

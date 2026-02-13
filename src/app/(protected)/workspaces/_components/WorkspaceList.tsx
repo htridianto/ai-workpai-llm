@@ -114,6 +114,10 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
     const userId = user?.id;    
 
     const demoWorkspaces = [{
+        title: 'Market Analysis 2024',
+        description: 'Penyimpanan laporan riset pasar, data kompetitor, dan tren industri terbaru. Memungkinkan LLM melakukan sintesis data untuk strategi penetapan harga atau peluncuran produk baru.',
+        userId: userId ? [userId] : []
+    },/*{
         title: 'Global Markets & Policy Risk',
         description: 'Integrasi dokumen strategi bisnis dan arsip kebijakan publik untuk analisis RAG real-time.',
         userId: userId ? [userId] : []
@@ -121,11 +125,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
         title: 'Political Marketing Engine',
         description: 'Data demografi pemilih (Marketing) dengan janji kampanye dan isu daerah (Politik).',
         userId: userId ? [userId] : []
-    }, {
-        title: 'Market Analysis 2024',
-        description: 'Penyimpanan laporan riset pasar, data kompetitor, dan tren industri terbaru. Memungkinkan LLM melakukan sintesis data untuk strategi penetapan harga atau peluncuran produk baru.',
-        userId: userId ? [userId] : []
-    }];
+    }*/];
     
     try {
         await Promise.all(demoWorkspaces.map(ws => WorkspaceService.createWorkspace(ws)));

@@ -78,12 +78,12 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     return (
       <div key={node.id}>
         <div 
-          className={`flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors text-sm mb-0.5 ${
+          className={`flex items-center gap-1.5 py-1.5 px-1 rounded-lg cursor-pointer transition-colors text-sm mb-0.5 ${
             isSelected 
               ? 'bg-accent-100 dark:bg-accent-900/20 text-accent-700 dark:text-accent-400 font-medium' 
               : 'text-slate-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-charcoal-800'
-          }`}
-          style={{ paddingLeft: `${depth * 16 + 8}px` }}
+          }`}          
+          style={{ paddingLeft: `${depth * 16}px` }}
           onClick={() => onSelectFolder(node.id)}
         >
           <button 
@@ -114,6 +114,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
 
   return (
     <div className={`py-2 ${className}`}>
+      {/*
       <div 
         className={`flex items-center gap-2 py-1.5 px-2 mb-1 rounded-lg cursor-pointer transition-colors text-sm ${
             currentFolderId === null
@@ -127,6 +128,7 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
          </div>
          <span>Root</span>
       </div>
+      */}
       
       <div className="space-y-0.5">
          {tree.length > 0 ? (
