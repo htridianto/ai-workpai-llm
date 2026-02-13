@@ -11,13 +11,40 @@ model Workspace {
   name            String
   description     String?
   styleColor      String?            @map("style_color")
+  organizationId  String?            @map("organization_id")
   createdAt       DateTime           @default(now()) @map("created_at")
   deletedAt       DateTime?          @map("deleted_at")
+  
+  organization    Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   users           WorkspaceUser[]
   folders         Folder[]
   fileContexts    FileContext[]
 
   @@map("workspaces")
+}
+
+model Organization {
+  id              String             @id @default(cuid())
+  name            String
+  description     String?
+  createdAt       DateTime           @default(now()) @map("created_at")
+  deletedAt       DateTime?          @map("deleted_at")
+  users           OrganizationUser[]
+  workspaces      Workspace[]
+
+  @@map("organizations")
+}
+
+model OrganizationUser {
+  userId         String       @map("user_id")
+  organizationId String       @map("organization_id")
+  role           String       @default("member") // owner, admin, member
+  
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, organizationId])
+  @@map("organization_users")
 }
 
 model User {
@@ -33,12 +60,14 @@ model User {
   ssoAuthId       String?            @map("sso_auth_id")
   credential      String?            // Password hash
   bio             String?
-  role            String             @default("default")
+  role            String             @default("owner") // superuser, owner, member
   createdAt       DateTime           @default(now()) @map("created_at")
   lastLoggedin    DateTime?          @map("last_loggedin")
   sessionToken    String?           @map("session_token")
   deletedAt       DateTime?          @map("deleted_at")
+  
   workspaces      WorkspaceUser[]
+  organizations   OrganizationUser[]
   
   // NextAuth relations
   accounts        Account[]
@@ -89,7 +118,6 @@ model VerificationToken {
 model WorkspaceUser {
   userId      String    @map("user_id")
   workspaceId String    @map("workspace_id")
-  role        String    @default("member")
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
@@ -141,3 +169,4 @@ model FileContext {
   @@index([folderId])
   @@map("file_contexts")
 }
+

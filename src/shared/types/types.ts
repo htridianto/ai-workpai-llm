@@ -26,6 +26,7 @@ export interface Workspace {
   description?: string;
   symbol?: string; // Emoji or abbreviation
   color?: string; // UI decoration
+  organizationId?: string;
   createdAt: number;
   similarityThreshold: number;
   fileContexts: FileContext[];
@@ -33,6 +34,22 @@ export interface Workspace {
   virtualFolders: Folder[];
   systemInstruction?: string;  
 }
+
+export interface Organization {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: number;
+}
+
+export interface OrganizationUser {
+  organizationId: string;
+  userId: string;
+  role: UserRole;
+}
+
+export type UserRole = 'superuser' | 'admin' | 'manager' | 'member' | 'default';
+
 
 export interface Folder {
   id: string;
@@ -93,9 +110,6 @@ export interface AppSettings {
 }
 
 // --- Settings & Admin Types ---
-
-export type UserRole = 'admin' | 'manager' | 'default';
-
 export interface UserProfile {
   id: string;
   name: string;
@@ -110,6 +124,7 @@ export interface UserProfile {
   lastLoggedin?: string | Date | null; 
   createdAt?: string | Date;
   ssoAuthProvider?: string | null;
+  organizations?: OrganizationUser[];
 }
 
 export type LLMProvider = 'openai' | 'gemini' | 'ollama' | 'anthropic';

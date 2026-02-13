@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserById, updateUser, deleteUser } from '@/server/models/user';
 import { auth } from '@/server/lib/auth';
+import { deleteOrganization } from '@/server/models';
 
 /**
  * GET /restapi/users/[id]
@@ -91,6 +92,8 @@ export async function DELETE(
     }
 
     await deleteUser(id);
+    // delete organization
+    await deleteOrganization(id);
     return NextResponse.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('[USER_DELETE]', error);

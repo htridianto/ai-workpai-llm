@@ -118,13 +118,14 @@ export const getUserWorkspaces = async (userId: string, search?: string) => {
   })
 }
 
-export const createWorkspaceService = async (data: { id?: string; name: string; description?: string; styleColor?: string, userId?: string[]}) => {
+export const createWorkspaceService = async (data: { id?: string; name: string; description?: string; styleColor?: string; organizationId?: string; userId?: string[]}) => {
   return await prisma.$transaction(async (tx) => {
     const createData: Prisma.WorkspaceCreateInput = {
       id: data.id,
       name: data.name,
       description: data.description,
       styleColor: data.styleColor,
+      organization: data.organizationId ? { connect: { id: data.organizationId } } : undefined
     }
 
     const workspace = await tx.workspace.create({
@@ -135,11 +136,11 @@ export const createWorkspaceService = async (data: { id?: string; name: string; 
       await tx.workspaceUser.createMany({
         data: data.userId.map((userId) => ({
           workspaceId: workspace.id,
-          userId: userId,
-          role: 'default'
+          userId: userId
         }))
       })
     }
+
     
     // Create default system folder "Root"    
     await Promise.all(systemFolders.map(folder => {
@@ -190,15 +191,14 @@ export const getWorkspaceContent = async (workspaceId: string, folderId?: string
   }
 }
 
-export const addUserToWorkspaceService = async (workspaceId: string, userId: string, role: string = 'default') => {
+export const addUserToWorkspaceService = async (workspaceId: string, userId: string) => {
   // Check if already exists to avoid unique constraint error if handled loosely, 
   // but Prisma throw if duplicate on @@id.
   // We can use upsert or just create.
   return await prisma.workspaceUser.create({
     data: {
       workspaceId,
-      userId,
-      role
+      userId
     }
   })
 }

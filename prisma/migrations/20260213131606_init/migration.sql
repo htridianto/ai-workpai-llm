@@ -4,8 +4,30 @@ CREATE TABLE "workspaces" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "style_color" TEXT,
+    "organization_id" TEXT,
+    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deleted_at" DATETIME,
+    CONSTRAINT "workspaces_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organizations" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "organizations" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" DATETIME
+);
+
+-- CreateTable
+CREATE TABLE "organization_users" (
+    "user_id" TEXT NOT NULL,
+    "organization_id" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'member',
+
+    PRIMARY KEY ("user_id", "organization_id"),
+    CONSTRAINT "organization_users_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "organization_users_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organizations" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -20,7 +42,7 @@ CREATE TABLE "users" (
     "sso_auth_id" TEXT,
     "credential" TEXT,
     "bio" TEXT,
-    "role" TEXT NOT NULL DEFAULT 'default',
+    "role" TEXT NOT NULL DEFAULT 'owner',
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "last_loggedin" DATETIME,
     "session_token" TEXT,
@@ -64,7 +86,6 @@ CREATE TABLE "verification_tokens" (
 CREATE TABLE "workspace_users" (
     "user_id" TEXT NOT NULL,
     "workspace_id" TEXT NOT NULL,
-    "role" TEXT NOT NULL DEFAULT 'member',
 
     PRIMARY KEY ("user_id", "workspace_id"),
     CONSTRAINT "workspace_users_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
@@ -132,3 +153,4 @@ CREATE INDEX "file_contexts_workspace_id_idx" ON "file_contexts"("workspace_id")
 
 -- CreateIndex
 CREATE INDEX "file_contexts_folder_id_idx" ON "file_contexts"("folder_id");
+

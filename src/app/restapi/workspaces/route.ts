@@ -87,6 +87,7 @@ export async function GET(request: Request) {
                 color: dbWorkspace.styleColor,
                 symbol: dbWorkspace.symbol || dbWorkspace.name.substring(0, 1).toUpperCase(), // Default if missing
                 createdAt: new Date(dbWorkspace.createdAt).getTime(), // Convert ISO string to timestamp            
+                organizationId: dbWorkspace.organizationId,
                 fileContexts: dbWorkspace.fileContexts || [],
                 folders: dbWorkspace.folders || [],
 
@@ -169,7 +170,6 @@ export async function POST(req: Request) {
             color: ws.color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
             fileContexts: [],
             folders: [],
-            virtualFolders: [], // Will be populated on fetch
             systemInstruction: ws.openAiPrompt || null,
             openAiTemp: ws.openAiTemp,
             lastUpdatedAt: ws.lastUpdatedAt
@@ -224,6 +224,7 @@ export async function POST(req: Request) {
             id: newWorkspace.slug,
             name: newWorkspace.title,
             description: newWorkspace.description,
+            organizationId: session.user.id, // assume user id is default organization id
             styleColor: newWorkspace.color,
             userId: [session.user.id]
         });

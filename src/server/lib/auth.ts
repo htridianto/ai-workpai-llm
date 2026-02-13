@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 import { authConfig } from "./auth.config";
 import { SignJWT, jwtVerify } from "jose";
 import { nanoid } from "nanoid";
+import { createUser } from "../models";
 
 const secret = new TextEncoder().encode(
   process.env.AUTH_SECRET || "rahasia-super-aman-minimal-32-karakter"
@@ -70,7 +71,7 @@ const authAnythingLLM = async(identifier: string, password: string): Promise<any
         id: authData.user?.id || 'u-external', // Use ID from response or fallback
         name: authData.user?.display_name || authData.user?.username, // Use name from response or fallback
         email: authData.user?.email || identifier,
-        role: authData.user?.role || 'default', // Default role
+        role: authData.user?.role || 'admin', // Default role
         bio: authData.user?.bio || '',
       }      
     };
@@ -91,7 +92,7 @@ const createOrAuthAnythingLLM = async(identifier: string, password: string, bio?
           message: 'Server configuration error.', status: 500
       };
     }
-    const payload = { username: identifier, password, role: 'default', bio: bio || `joined via google-auth` };
+    const payload = { username: identifier, password, role: 'admin', bio: bio || `joined via google-auth` };
     const createResponse = await fetch(`${ragApiUrl}/api/v1/admin/users/new`, {
         method: 'POST',
         headers: {
@@ -101,7 +102,7 @@ const createOrAuthAnythingLLM = async(identifier: string, password: string, bio?
         body: JSON.stringify(payload)
     });
     const createData = await createResponse.json();
-    console.error("createData:", createData );
+    // console.error("createData:", createData );
       
     const authExternal = await authAnythingLLM(identifier, password);
     if (authExternal.success) {
@@ -145,7 +146,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           image: profile.picture,          
           ssoAuthProvider: "google",
           ssoAuthId: profile.sub,
-          emailVerified: 1,
+          // emailVerified: 1,          
+          // role: 'admin',
           lastLoggedin: new Date().toISOString()  
         };
       },
@@ -178,12 +180,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const accessToken = await signAccessToken({
           id: authExternal.user?.id,
           username: authExternal.user?.name,
-          role: authExternal.user?.role || 'default'
+          role: user?.role || 'admin'
         });
 
         if (!user) {
           // do create user
           const hash = await bcrypt.hash(credentials.password as string, 10);
+          const newUser = await createUser({
+            userName: credentials.identifier as string,
+            email: generateDummyEmail(credentials.identifier as string),
+            name: credentials.identifier as string,
+            credential: hash,
+            emailVerified: 0,
+            ssoAuthProvider: "anythingllm",
+            ssoAuthId: `${authExternal.user?.id}`,
+            role: 'admin',
+            bio: authExternal.user?.bio || null,
+            lastLoggedin: new Date(),
+            sessionToken: authExternal.token
+          });
+          /*
           const newUser = await (prisma as any).user.create({
             data: {
               // id: nanoid(10)+'--'+authExternal.user?.id as string,
@@ -194,13 +210,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               emailVerified: 0,
               ssoAuthProvider: "anythingllm",
               ssoAuthId: `${authExternal.user?.id}`,
-              role: authExternal.user?.role || 'default',
+              role: 'owner',
               bio: authExternal.user?.bio || null,
               lastLoggedin: new Date(),
               sessionToken: authExternal.token
             }
           });
           // console.log("New User:", newUser);
+          */
           return {...newUser, accessToken: accessToken}; //sessionToken: authExternal.token
         }else {
           // do update user
@@ -209,36 +226,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             data: {
               lastLoggedin: new Date(),
               sessionToken: authExternal.token,
-              role: authExternal.user?.role || 'default',
+              // role: authExternal.user?.role || 'default',
               // bio: authExternal.user?.bio || null,
               deletedAt: null 
             }
           });
           return {...updatedUser, accessToken: accessToken};
-        }
-        // else if (!authExternal.success && user) {     
-        //   if (!user.credential) {
-        //     throw new (class extends CredentialsSignin { code = "user_not_found" })();
-        //   }
-
-        //   const isPasswordValid = await bcrypt.compare(
-        //     credentials.password as string,
-        //     user.credential
-        //   );
-
-        //   if (!isPasswordValid) {
-        //     throw new (class extends CredentialsSignin { code = "invalid_password" })();
-        //   }
-
-        //   // GENERATE TOKEN DI SINI
-        //   const customToken = await signAccessToken({
-        //     sub: user.id,
-        //     email: user.email,
-        //     role: user.role, // Jika Anda punya field role
-        //   });
-          
-        //   return {...user, accessToken: customToken};
-        // }        
+        }        
       }
     })    
   ],
@@ -247,15 +241,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       console.log("events::signIn::user:", user, isNewUser);
       if(isNewUser) {
           const data = {
-            bio: user.bio || `i'm focuses on analyzing citizen feedback, generate sentiment reports and identify service.\n${(account?.provider === 'google') ? 'joined via google-auth' : 'joined via credentials'}`,
+            bio: user.bio || `i'm focuses on analyzing citizen feedback, generate sentiment reports and identify service.\n${(account?.provider === 'google') ? 'joined via google-auth' : 'joined via credentials'}`,                        
           } as any;
           if(account?.provider === 'google'){
             data.credential = await bcrypt.hash('raganythingllm' as string, 10);
+            data.emailVerified = 1;
+            data.role = 'admin';
           }
           await (prisma as any).user.update({
             where: { id: user.id },
             data
-          });          
+          });
+          
+          //@todo: create default organization for new user, with organization id is new user id, check if organization with id is new user id already exists first
+          const existingOrganization = await (prisma as any).organization.findUnique({
+            where: {
+              id: user.id
+            }
+          })
+          if (!existingOrganization) {
+            await (prisma as any).organization.create({
+              data: {
+                id: user.id,
+                name: user.name + ' Team',
+                description: 'Default organization for ' + user.name + ' team',
+              }
+            })
+          }
       }
     }
   },  
@@ -271,17 +283,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (authExternal.success) {
             // (account as any ).access_token = authExternal.token;
             user.sessionToken = authExternal.token;
-            user.ssoAuthId = `${authExternal.user?.id}`;
-            // const hash = await bcrypt.hash('raganythingllm' as string, 10);
-            // const data = {
-            //   lastLoggedin: new Date(),
-            //   ssoAuthId: `${authExternal.user?.id}`,
-            //   credential: hash
-            // } as any;
-            // await (prisma as any).user.update({
-            //   where: { id: authExternal.user?.id || profile?.id },
-            //   data
-            // });          
+            user.ssoAuthId = `${authExternal.user?.id}`;       
           }            
           // console.debug("callbacks::signIn::user:", user);
           // console.debug("callbacks::signIn::account:", account);                 

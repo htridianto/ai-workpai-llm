@@ -44,13 +44,13 @@ export const TeamSettings: React.FC = () => {
       setFormData({
         name: user.name || '',
         email: user.email || '',
-        role: user.role || 'default',
+        role: user.role || 'member',
         userName: user.userName || '',
         bio: user.bio || ''
       });
     } else {
       setEditingUser(null);
-      setFormData({ name: '', email: '', role: 'default', userName: '', bio: '' });
+      setFormData({ name: '', email: '', role: 'member', userName: '', bio: '' });
     }
     setIsModalOpen(true);
   };
@@ -91,6 +91,10 @@ export const TeamSettings: React.FC = () => {
       showToast({ message: error.message || 'Failed to delete user', type: 'error' });
     }
   };
+
+  const canDelete = () => {
+    return userProfile?.role === 'superuser';
+  };  
 
   return (
     <div className="space-y-6">
@@ -164,13 +168,15 @@ export const TeamSettings: React.FC = () => {
                       {user.lastLoggedin ? new Date(user.lastLoggedin).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : 'Never'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      {(user.id === userProfile?.id || canDelete()) && (
                       <button 
                         onClick={() => handleOpenModal(user)}
                         className="p-1.5 text-charcoal-400 hover:text-accent-500 hover:bg-accent-50 dark:hover:bg-accent-900/10 rounded-lg transition-all"
                       >
                         <Edit2 size={16} />
                       </button>
-                      {user.id !== userProfile?.id && (
+                      )}
+                      {user.id !== userProfile?.id && canDelete() && (
                         <button 
                           onClick={() => setUserToDelete(user)}
                           className="p-1.5 text-charcoal-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
@@ -237,26 +243,25 @@ export const TeamSettings: React.FC = () => {
                   className="w-full px-4 py-2.5 bg-gray-50 dark:bg-charcoal-950 border border-gray-200 dark:border-charcoal-700 rounded-xl focus:ring-2 focus:ring-accent-500 outline-none transition-all"
                 />
               </div>
-
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-charcoal-500 uppercase flex items-center gap-1.5 ml-1">
+                    UserName
+                </label>
+                <input
+                  type="text"
+                  placeholder="jdoe"
+                  value={formData.userName}
+                  onChange={e => setFormData({ ...formData, userName: e.target.value })}
+                  readOnly={!!editingUser}
+                  className={`w-full px-4 py-2.5 border border-gray-200 dark:border-charcoal-700 rounded-xl outline-none transition-all ${
+                    editingUser 
+                      ? 'bg-gray-100 dark:bg-charcoal-800 text-charcoal-400 cursor-not-allowed' 
+                      : 'bg-gray-50 dark:bg-charcoal-950 focus:ring-2 focus:ring-accent-500'
+                  }`}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-charcoal-500 uppercase flex items-center gap-1.5 ml-1">
-                     UserName
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="jdoe"
-                    value={formData.userName}
-                    onChange={e => setFormData({ ...formData, userName: e.target.value })}
-                    readOnly={!!editingUser}
-                    className={`w-full px-4 py-2.5 border border-gray-200 dark:border-charcoal-700 rounded-xl outline-none transition-all ${
-                      editingUser 
-                        ? 'bg-gray-100 dark:bg-charcoal-800 text-charcoal-400 cursor-not-allowed' 
-                        : 'bg-gray-50 dark:bg-charcoal-950 focus:ring-2 focus:ring-accent-500'
-                    }`}
-                  />
-                </div>
-                <div className="space-y-1">
+                {/* <div className="space-y-1">
                   <label className="text-xs font-bold text-charcoal-500 uppercase flex items-center gap-1.5 ml-1">
                     <Shield size={12} /> Role
                   </label>
@@ -269,7 +274,7 @@ export const TeamSettings: React.FC = () => {
                     <option value="admin">Admin</option>
                     <option value="manager">Manager</option>
                   </select>
-                </div>
+                </div> */}
               </div>
 
               <div className="space-y-1">

@@ -15,7 +15,7 @@ export const DUMMY_WORKSPACES: Workspace[] = [
     similarityThreshold: 0.7,
     systemInstruction: 'You are a senior marketing strategist.',
     folders: [
-      { id: 'f-mkt-1', name: 'Campaigns 2024', dateCreated: Date.now() - 500000 },
+      { id: 'f-mkt-1', name: 'Campaigns 2024', workspaceId: 'ws-marketing', dateCreated: Date.now() - 500000 },
     ],
     fileContexts: [
       { id: 'ctx-mkt-1', name: 'Brand_Guidelines_v2.pdf', workspaceId: 'ws-marketing', type: 'pdf', status: 'indexed', dateCreated: Date.now(), folderId: 'f-mkt-1', size: 0 },
@@ -51,7 +51,7 @@ export const DUMMY_WORKSPACES: Workspace[] = [
     similarityThreshold: 0.85,
     systemInstruction: 'You are a legal assistant. Be precise and cite sources.',
     folders: [
-      { id: 'f-leg-1', name: 'Contracts', dateCreated: Date.now() - 200000 }
+      { id: 'f-leg-1', name: 'Contracts', workspaceId: 'ws-legal', dateCreated: Date.now() - 200000 }
     ],
     fileContexts: [
       { id: 'ctx-leg-1', name: 'NDA_Template_2025.docx', workspaceId: 'ws-legal', type: 'pdf', status: 'indexed', dateCreated: Date.now(), folderId: 'f-leg-1', size: 0 },
@@ -130,10 +130,10 @@ export const DUMMY_USERS: UserProfile[] = [
 ];
 
 export const DUMMY_GENERATED_FOLDERS: Folder[] = [
-    { id: 'gf-1', name: 'Q1 Reports', dateCreated: Date.now() - 2000000, isStarred: true },
-    { id: 'gf-2', name: 'Media Assets', dateCreated: Date.now() - 1000000 },
-    { id: 'gf-3', name: 'Drafts', dateCreated: Date.now() - 500000, parentId: 'gf-1' }, 
-    { id: 'gf-4', name: 'Old Archives', dateCreated: Date.now() - 9000000, isTrashed: true },
+    { id: 'gf-1', name: 'Q1 Reports', workspaceId: 'generated', dateCreated: Date.now() - 2000000, isStarred: true },
+    { id: 'gf-2', name: 'Media Assets', workspaceId: 'generated', dateCreated: Date.now() - 1000000 },
+    { id: 'gf-3', name: 'Drafts', workspaceId: 'generated', dateCreated: Date.now() - 500000, parentId: 'gf-1' }, 
+    { id: 'gf-4', name: 'Old Archives', workspaceId: 'generated', dateCreated: Date.now() - 9000000, isTrashed: true },
 ];
 
 export const DUMMY_GENERATED_FILES: GeneratedFile[] = [

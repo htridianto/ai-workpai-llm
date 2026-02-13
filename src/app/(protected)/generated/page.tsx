@@ -172,6 +172,7 @@ export default function GeneratedContentPage() {
       const newFolder: Folder = {
           id: uuidv4(),
           name,
+          workspaceId: 'generated',
           dateCreated: Date.now(),
           parentId: currentFolderId || undefined
       };

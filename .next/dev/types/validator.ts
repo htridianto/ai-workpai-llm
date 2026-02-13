@@ -191,6 +191,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/restapi/organizations/[orgId]/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/organizations/[orgId]">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/organizations/[orgId]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/organizations/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/organizations">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/organizations/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/restapi/users/[id]/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/users/[id]">> = Specific
