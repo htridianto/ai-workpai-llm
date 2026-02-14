@@ -7,7 +7,7 @@ import {
   X, 
   MessageCircle,
 } from 'lucide-react';
-import { FileContext, Folder as FolderType } from '@/shared/types/types';
+import { FileContext, Folder as FolderType, Workspace } from '@/shared/types/types';
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 import { WorkspaceService } from '@/client/services/workspaceService';
 import { FilesTab } from './AddContextTabs/FilesTab';
@@ -21,7 +21,8 @@ interface AddContextPanelProps {
   onAddContext: () => void;
   currentFolderId: string | null;
   folders: FolderType[];
-  selectedWorkspaceId: string;
+  // selectedWorkspaceId: string;
+  selectedWorkspace: Workspace;
 }
 
 export const AddContextPanel: React.FC<AddContextPanelProps> = ({ 
@@ -30,13 +31,13 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
   onAddContext, 
   currentFolderId,
   folders,
-  selectedWorkspaceId
+  selectedWorkspace
 }) => {
   const { setWorkspaces, workspaces, refreshWorkspaces, setToast } = useDashboard();
   const [activeTab, setActiveTab] = useState<'files' | 'link' | 'whatsapp' | 'database'>('files');
   
   const addFileContexts = async (wsId: string, newItems: FileContext[]) => {
-    const ws = workspaces.find(w => w.id === wsId);
+    const ws = selectedWorkspace;//workspaces.find(w => w.id === wsId);
     if (!ws) return;
 
     const updatedWs = {
@@ -45,7 +46,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
     };
 
     // Optimistic update
-    setWorkspaces(prev => prev.map(w => w.id === wsId ? updatedWs : w));
+    setWorkspaces(prev => prev.map(w => w.id === ws.id ? updatedWs : w));
     
     // Persist
     try {
@@ -57,14 +58,13 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
                 type: item.type,
                 size: item.size,
                 snippet: item.snippet,
-                status: 'indexing',
+                status: item.status || 'indexing',
                 meta: {
-                    progress: 0,
+                    progress: item.meta?.progress || 0,
                     ...item.meta // Keep original meta if any
                 }
             })
-        ));
-        
+        ));        
         await refreshWorkspaces();
         setToast({ message: `${newItems.length} items queued for indexing`, type: "info" });
     } catch (error: any) {
@@ -73,16 +73,15 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
     }
 
     // Simulation
+    /*
     newItems.forEach(item => {
       let currentStep = 0;
-      const totalSteps = 20;
-      
+      const totalSteps = 20;      
       const tick = () => {
         currentStep++;
-        const progress = Math.min(Math.round((currentStep / totalSteps) * 100), 100);
-        
+        const progress = Math.min(Math.round((currentStep / totalSteps) * 100), 100);        
         setWorkspaces(prev => prev.map(w => {
-          if (w.id === wsId) {
+          if (w.id === ws.id) {
             return {
               ...w,
               fileContexts: w.fileContexts.map(i => {
@@ -103,6 +102,8 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
       };
       tick();
     });
+    */
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -142,7 +143,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
         <div className="flex-1">
           {activeTab === 'files' && (
             <FilesTab 
-              workspaceId={selectedWorkspaceId}
+              workspace={selectedWorkspace}
               onClose={onClose}
               onSuccess={onAddContext}
               folders={folders}
@@ -153,7 +154,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
 
           {activeTab === 'link' && (
             <LinkTab 
-              workspaceId={selectedWorkspaceId}
+              workspaceId={selectedWorkspace.id}
               onClose={onClose}
               onSuccess={onAddContext}
               addFileContexts={addFileContexts}
@@ -162,7 +163,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
 
           {activeTab === 'database' && (
             <DatabaseTab 
-              workspaceId={selectedWorkspaceId}
+              workspaceId={selectedWorkspace.id}
               onClose={onClose}
               onSuccess={onAddContext}
               addFileContexts={addFileContexts}
@@ -171,7 +172,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
 
           {activeTab === 'whatsapp' && (
             <WhatsappTab 
-              workspaceId={selectedWorkspaceId}
+              workspace={selectedWorkspace}
               onClose={onClose}
               onSuccess={onAddContext}
               addFileContexts={addFileContexts}

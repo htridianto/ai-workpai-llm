@@ -23,6 +23,7 @@ export async function GET(request: Request) {
             color: ws.styleColor,
             symbol: ws.symbol || ws.name.substring(0, 1).toUpperCase(), // Default if missing
             createdAt: new Date(ws.createdAt).getTime(), // Convert ISO string to timestamp            
+            organizationId: ws.organizationId,
             contextItems: [], // External API doesn't seem to return items here? Or maybe we fetch detail later.
             folders: [],
 
@@ -61,23 +62,10 @@ export async function GET(request: Request) {
             return NextResponse.json({ message: message?.error ||'Failed to fetch external workspaces' }, { status: response.status });
         }
         const data = await response.json();
-        // console.log('restapi:workspaces:GET:response', data);
         const workspaces = await Promise.all((data.workspaces || []).map(async (ws: any) => {
             let dbWorkspace: any = await getWorkspaceById(ws.slug);
-            // console.log('restapi:workspaces:GET:dbWorkspace', JSON.stringify(dbWorkspace, null, 2));
             if(!dbWorkspace){
-                return false;                
-                // const newDbWorkspace = {
-                //     id: ws.slug,
-                //     name: ws.name.replace(`${token.userName}:`, ''),
-                //     description: 'Secure AI workspace for document retrieval and RAG.',
-                //     styleColor: DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
-                //     createdAt: ws.createdAt ||  new Date().toISOString(),
-                //     deletedAt: null,
-                //     userId: [token.id as string]
-                // }
-                // const createdWorkspace = await createWorkspaceService(newDbWorkspace);
-                // dbWorkspace = {...createdWorkspace};
+                return false;
             }
             return {
                 id: String(ws.id),
@@ -228,11 +216,8 @@ export async function POST(req: Request) {
             styleColor: newWorkspace.color,
             userId: [session.user.id]
         });
-        // await addUserToWorkspaceService(newWorkspace.slug, session.user.id);
         
-
         return NextResponse.json(newWorkspace, { status: 201 });
-
     } catch (error) {
         console.error("POST Workspace error:", error);
         return NextResponse.json({ message: 'Failed to create workspace' }, { status: 500 });

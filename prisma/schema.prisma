@@ -68,6 +68,7 @@ model User {
   
   workspaces      WorkspaceUser[]
   organizations   OrganizationUser[]
+  sharedGeneratedFiles GeneratedFileShare[]
   
   // NextAuth relations
   accounts        Account[]
@@ -168,5 +169,57 @@ model FileContext {
   @@index([workspaceId])
   @@index([folderId])
   @@map("file_contexts")
+}
+
+model GeneratedFolder {
+  id              String             @id @default(cuid())
+  name            String
+  parentFolderId  String?            @map("parent_folder_id")
+  ownerId         String             @map("owner_id")
+  isStarred       Int                @default(0) @map("is_starred")
+  isShared        Int                @default(0) @map("is_shared")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  deletedAt       DateTime?          @map("deleted_at")
+  
+  parentFolder    GeneratedFolder?   @relation("GenFolderToGenFolder", fields: [parentFolderId], references: [id], onDelete: SetNull)
+  subFolders      GeneratedFolder[]  @relation("GenFolderToGenFolder")
+  files           GeneratedFile[]
+
+  @@index([ownerId])
+  @@map("generated_folders")
+}
+
+model GeneratedFile {
+  id              String             @id @default(cuid())
+  name            String
+  type            String?            // e.g. 'pdf', 'docx', etc.
+  size            Int                @default(0)
+  snippet         String?            
+  isStarred       Int                @default(0) @map("is_starred")
+  isShared        Int                @default(0) @map("is_shared")
+  ownerId         String             @map("owner_id")
+  folderId        String?            @map("folder_id")
+  meta            String?            // JSON string for minio path, etc.
+  createdAt       DateTime           @default(now()) @map("created_at")
+  deletedAt       DateTime?          @map("deleted_at")
+  
+  folder          GeneratedFolder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  shares          GeneratedFileShare[]
+
+  @@index([ownerId])
+  @@index([folderId])
+  @@map("generated_files")
+}
+
+model GeneratedFileShare {
+  fileId    String   @map("file_id")
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  file      GeneratedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([fileId, userId])
+  @@map("generated_file_shares")
 }
 

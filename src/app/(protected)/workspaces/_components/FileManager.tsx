@@ -16,7 +16,8 @@ import {
   FolderPlus,
   Edit2,
   X,
-  MoveHorizontal
+  MoveHorizontal,
+  ChevronLeft
 } from 'lucide-react';
 import { Folder as FolderType, FileContext, Workspace } from '@/shared/types/types';
 import { WorkspaceService } from '@/client/services/workspaceService';
@@ -45,7 +46,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
   const { refreshWorkspaces, setToast } = useDashboard();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [isAddContextOpen, setIsAddContextOpen] = useState(false);
-  const [lastFolderTreeOpen, setLastFolderTreeOpen] = useState(true);
+  const [lastFolderTreeOpen, setLastFolderTreeOpen] = useState<boolean | null>(null);
   
   // Modals state
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
@@ -67,17 +68,22 @@ export const FileManager: React.FC<FileManagerProps> = ({
   // Sync currentFolderId when workspace changes
   useEffect(() => {
     setCurrentFolderId(null);
-    setIsAddContextOpen(false);
-
-    setIsFolderTreeOpen(lastFolderTreeOpen); 
+    setIsAddContextOpen(false);  
+    setIsFolderTreeOpen(lastFolderTreeOpen || true);   
   }, [selectedWorkspace.id]);
 
   useEffect(() => {
     if(!isAddContextOpen){
-        setLastFolderTreeOpen(isFolderTreeOpen);
+      setLastFolderTreeOpen(isFolderTreeOpen);
     }
   }, [isFolderTreeOpen]);
 
+//   useEffect(() => {    
+//     if(currentFolderId){
+//       setIsFolderTreeOpen(lastFolderTreeOpen || true); 
+//     }
+//   }, [currentFolderId]);
+  
   useEffect(() => {
     if(isAddContextOpen){
         setIsFolderTreeOpen(false); 
@@ -173,52 +179,17 @@ export const FileManager: React.FC<FileManagerProps> = ({
     }
   };
 
-  // --- Filtering & Virtual Folders Logic ---
-//   const waFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.type === 'whatsapp');
-//   const uniqueWaNumbers = Array.from(new Set(waFiles.map(f => {
-//       const match = f.name.match(/^WA\s(.*?):/);
-//       return match ? match[1] : null;
-//   }))).filter(n => n !== null) as string[];
-
-//   const waVirtualFolders: FolderType[] = uniqueWaNumbers.map(num => ({
-//       id: `wa_virtual_${num}`,
-//       name: num,
-//       workspaceId: selectedWorkspace.id,
-//       dateCreated: 0, 
-//       parentId: '.whatsapp',
-//       isReadOnly: true,
-//       isVirtual: true
-//   }));
-
-//   const allFoldersForTree = [
-//       ...(selectedWorkspace?.virtualFolders || []), 
-//       ...waVirtualFolders,
-//       ...(selectedWorkspace?.folders || [])
-//   ];
     const allFoldersForTree = [...(selectedWorkspace?.folders || [])];
 
   let currentFolders: FolderType[] = [];
   let currentFiles: FileContext[] = [];
 
-  const isWaNumberFolder = (id: string) => id.startsWith('wa_virtual_');
+  const isWaNumberFolder = (id: string) => id.startsWith('.wa_number_');
 
   if (currentFolderId === null) {
-    //   const userFolders = (selectedWorkspace?.folders || []).filter(f => !f.parentId);
-    //   currentFolders = [...(selectedWorkspace?.virtualFolders || []), ...userFolders];
       currentFolders = (selectedWorkspace?.folders || []).filter(f => !f.parentId);
       currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => !f.folderId && !['link', 'whatsapp', 'database'].includes(f.type));
-  } /*else if (currentFolderId === '.whatsapp') {
-      currentFolders = waVirtualFolders.map(f => ({ ...f, dateCreated: Date.now() }));
-      currentFiles = [];
-  } else if (isWaNumberFolder(currentFolderId)) {
-      const number = currentFolderId.replace('wa_virtual_', '');
-      currentFolders = [];
-      currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.type === 'whatsapp' && f.name.includes(number));
-  } else if (selectedWorkspace?.virtualFolders?.find(v => v.id === currentFolderId)) {
-      const vType = selectedWorkspace.virtualFolders.find(v => v.id === currentFolderId)?.virtualType;
-      currentFolders = [];
-      currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.type === vType);
-  } */else {
+  } else {
       currentFolders = (selectedWorkspace?.folders || []).filter(f => f.parentId === currentFolderId);
       currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.folderId === currentFolderId);
   }
@@ -226,17 +197,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
   // Breadcrumbs Logic
   const breadcrumbs: FolderType[] = [];
   let tempId = currentFolderId;
-//   if (tempId && isWaNumberFolder(tempId)) {
-//       const num = tempId.replace('wa_virtual_', '');
-//       breadcrumbs.unshift({ id: tempId, name: num, dateCreated: 0, isReadOnly: true } as FolderType);
-//       tempId = '.whatsapp';
-//   }
-//   const currentVirtual = selectedWorkspace?.virtualFolders?.find(v => v.id === tempId);
-//   if (currentVirtual) {
-//       breadcrumbs.unshift(currentVirtual);
-//       tempId = null;
-//   }
-  while (tempId && selectedWorkspace?.folders) {
+  while (currentFolderId && selectedWorkspace?.folders) {
       const folder = selectedWorkspace.folders.find(f => f.id === tempId);
       if(folder) {
           breadcrumbs.unshift(folder);
@@ -255,6 +216,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
       `}>
           <div className="min-w-[256px]">
               <FolderTree 
+                  workspace={selectedWorkspace}
                   folders={allFoldersForTree}
                   currentFolderId={currentFolderId}
                   onSelectFolder={setCurrentFolderId}
@@ -294,8 +256,17 @@ export const FileManager: React.FC<FileManagerProps> = ({
                         </>
                       )}
                   </div>
-                  <p className="text-sm text-charcoal-500 mt-1 --truncate --line-clamp-3">
-                      {isAddContextOpen ? 'Select and import data to your workspace' : (currentFolderId ? (isWaNumberFolder(currentFolderId || '') ? 'Connected Groups' : 'Folder Contents') : (selectedWorkspace.description || 'Manage your documents'))}
+                  <p className="flex items-center gap-1 text-sm text-charcoal-500 mt-1 --truncate --line-clamp-3">
+                    {(!isAddContextOpen && currentFolderId) && (
+                    <button 
+                        onClick={() => setCurrentFolderId(currentFolder?.parentId || null)}
+                        className="rounded-md p-1 hover:bg-gray-100 dark:hover:bg-charcoal-800 text-charcoal-400 hover:text-slate-900 dark:hover:text-slate-200"
+                        title="Collapse Sidebar"
+                    >
+                        <ChevronLeft size={18} />
+                    </button>
+                    )}
+                    {isAddContextOpen ? 'Select and import data to your workspace' : (currentFolderId ? (isWaNumberFolder(currentFolderId || '') ? 'Connected Groups' : 'Folder Contents') : (selectedWorkspace.description || 'Manage your documents'))}
                   </p>
               </div>
               <div className="flex gap-3">
@@ -327,7 +298,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                     onAddContext={refreshWorkspaces}
                     currentFolderId={currentFolderId}
                     folders={selectedWorkspace?.folders || []}
-                    selectedWorkspaceId={selectedWorkspace.id}
+                    selectedWorkspace={selectedWorkspace}
                 />
             ) : (
                 <>
@@ -343,12 +314,14 @@ export const FileManager: React.FC<FileManagerProps> = ({
                       <>
                         {currentFolders.length > 0 && (
                             <div className="mb-6">
-                                <h3 className="text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-3">Folders</h3>
+                                <h3 className="text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-3">{currentFolder?.name === '.whatsapp' ? 'WhatsApp Numbers' : 'Folders'}</h3>
                                 <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5' : 'grid-cols-1'}`}>
                                     {currentFolders.map(folder => {
                                         const isPrivate = folder.isReadOnly;
+                                        const childrenCount = (selectedWorkspace?.folders || []).filter(f => f.parentId === folder.id).length;
                                         const fileCount = (selectedWorkspace.fileContexts || []).filter(f => f.folderId === folder.id).length;
                                         return (
+                                            (folder.isShared || (!folder.isShared && (fileCount > 0 || childrenCount > 0))) && (
                                             <div 
                                                 key={folder.id}
                                                 onClick={() => setCurrentFolderId(folder.id)}
@@ -371,6 +344,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                                                     ><Trash2 size={14} /></button>
                                                 )}
                                             </div>
+                                            )
                                         );
                                     })}
                                 </div>
@@ -379,7 +353,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
 
                         {currentFiles.length > 0 && (
                             <div>
-                                <h3 className="text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-3">Files</h3>
+                                <h3 className="text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-3">{currentFolder?.id.startsWith('.wa_number_') ? 'WhatsApp Groups' : 'Files'}</h3>
                                 {viewMode === 'grid' ? (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                         {currentFiles.map(file => {
@@ -388,9 +362,9 @@ export const FileManager: React.FC<FileManagerProps> = ({
                                             return (
                                                 <div key={file.id} className="group relative bg-white dark:bg-charcoal-800 border border-gray-200 dark:border-charcoal-700 rounded-xl hover:shadow-lg hover:border-accent-500/50 transition-all cursor-pointer flex flex-col aspect-[4/5] overflow-hidden">
                                                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                                        {!isIndexing && <button onClick={(e) => { e.stopPropagation(); setFileToPreview(file); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><Eye size={14} /></button>}
-                                                        <button onClick={(e) => { e.stopPropagation(); setFileToRename(file); setIsRenameFileModalOpen(true); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><Edit2 size={14} /></button>
-                                                        <button onClick={(e) => { e.stopPropagation(); setFileToMove(file); setIsMoveFileModalOpen(true); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><MoveHorizontal size={14} /></button>
+                                                        {!isIndexing && <button onClick={(e) => { e.stopPropagation(); setFileToPreview(file); }} className="mr-auto p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><Eye size={14} /></button>}
+                                                        {file.type !== 'whatsapp' && <button onClick={(e) => { e.stopPropagation(); setFileToRename(file); setIsRenameFileModalOpen(true); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><Edit2 size={14} /></button>}
+                                                        {file.type === 'file' && <button onClick={(e) => { e.stopPropagation(); setFileToMove(file); setIsMoveFileModalOpen(true); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><MoveHorizontal size={14} /></button>}
                                                         <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmation({ id: file.id, type: 'file', name: file.name }); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-red-600 rounded-full shadow-md"><Trash2 size={14} /></button>
                                                     </div>
                                                     <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 dark:bg-charcoal-800/50 p-6 relative" onClick={() => !isIndexing && setFileToPreview(file)}>
@@ -401,8 +375,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                                                              </div>
                                                         ) : (
                                                             <>
-                                                                {file.type === 'pdf' && <FileText size={48} className="text-red-500 drop-shadow-sm" />}
-                                                                {file.type === 'txt' && <FileText size={48} className="text-slate-400 drop-shadow-sm" />}
+                                                                {file.type === 'file' && <FileText size={48} className="text-slate-400 drop-shadow-sm" />}
                                                                 {file.type === 'link' && <LinkIcon size={48} className="text-blue-500 drop-shadow-sm" />}
                                                                 {file.type === 'database' && <Database size={48} className="text-emerald-500 drop-shadow-sm" />}
                                                                 {file.type === 'whatsapp' && <MessageCircle size={48} className="text-green-500 drop-shadow-sm" />}
@@ -429,10 +402,11 @@ export const FileManager: React.FC<FileManagerProps> = ({
                                                     <div className="col-span-6 flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => !isIndexing && setFileToPreview(file)}>
                                                         <div className="shrink-0 p-1.5 bg-gray-100 dark:bg-charcoal-700 rounded relative overflow-hidden">
                                                             {isIndexing ? <Loader2 size={16} className="text-accent-500 animate-spin" /> : 
-                                                            file.type === 'pdf' ? <FileText size={16} className="text-red-500" /> : 
+                                                            file.type === 'file' ? <FileText size={16} className="text-slate-400" /> : 
                                                             file.type === 'link' ? <LinkIcon size={16} className="text-blue-500" /> : 
                                                             file.type === 'database' ? <Database size={16} className="text-emerald-500" /> :
-                                                            file.type === 'whatsapp' ? <MessageCircle size={16} className="text-green-500" /> : <FileText size={16} className="text-slate-400" />}
+                                                            file.type === 'whatsapp' ? <MessageCircle size={16} className="text-green-500" /> : 
+                                                            <FileText size={16} className="text-slate-400" />}
                                                         </div>
                                                         <div className="flex flex-col min-w-0"><span className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate hover:text-accent-500">{file.name}</span>{isIndexing && <div className="w-24 h-1 bg-gray-200 dark:bg-charcoal-900 rounded-full mt-1 overflow-hidden"><div className="h-full bg-accent-500" style={{ width: `${progress}%` }} /></div>}</div>
                                                     </div>
@@ -440,8 +414,8 @@ export const FileManager: React.FC<FileManagerProps> = ({
                                                     <div className="col-span-3 text-xs text-charcoal-500">{isIndexing ? <span className="text-accent-600 dark:text-accent-400 animate-pulse">Indexing... {progress}%</span> : new Date(file.dateCreated).toLocaleDateString()}</div>
                                                     <div className="col-span-1 flex justify-end gap-1">
                                                         {!isIndexing && <button onClick={() => setFileToPreview(file)} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Eye size={16} /></button>}
-                                                        <button onClick={(e) => { e.stopPropagation(); setFileToRename(file); setIsRenameFileModalOpen(true); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 size={16} /></button>
-                                                        <button onClick={(e) => { e.stopPropagation(); setFileToMove(file); setIsMoveFileModalOpen(true); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoveHorizontal size={16} /></button>
+                                                        {file.type !== 'whatsapp' && <button onClick={(e) => { e.stopPropagation(); setFileToRename(file); setIsRenameFileModalOpen(true); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 size={16} /></button>}
+                                                        {file.type == 'file' && <button onClick={(e) => { e.stopPropagation(); setFileToMove(file); setIsMoveFileModalOpen(true); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoveHorizontal size={16} /></button>}
                                                         <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmation({ id: file.id, type: 'file', name: file.name }); }} className="p-1.5 text-charcoal-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
                                                     </div>
                                                 </div>

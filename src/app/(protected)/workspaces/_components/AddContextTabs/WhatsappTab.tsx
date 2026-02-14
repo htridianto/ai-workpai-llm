@@ -11,18 +11,18 @@ import {
   X
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { FileContext } from '@/shared/types/types';
+import { FileContext, Workspace } from '@/shared/types/types';
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
 interface WhatsappTabProps {
-  workspaceId: string;
+  workspace: Workspace;
   onClose: () => void;
   onSuccess: () => void;
   addFileContexts: (wsId: string, items: FileContext[]) => Promise<void>;
 }
 
 export const WhatsappTab: React.FC<WhatsappTabProps> = ({ 
-  workspaceId, 
+  workspace, 
   onClose, 
   onSuccess,
   addFileContexts
@@ -72,15 +72,18 @@ export const WhatsappTab: React.FC<WhatsappTabProps> = ({
       const group = waGroups.find(g => g.id === groupId);
       if(group) {
         newItems.push({
-          id: uuidv4(),
-          name: `WA ${waPhoneNumber}: ${group.name}`,
+          id: 'auto',
+          name: `${group.name}`,
           type: 'whatsapp',
-          status: 'indexing',
+          status: 'indexed',
           size: 0,
           dateCreated: Date.now(),
-          folderId: undefined,
           progress: 0,
-          workspaceId: workspaceId
+          workspaceId: workspace.slug,
+          meta: {
+            waNumber: waPhoneNumber,
+            progress: 100
+          }
         });
       }
     });
@@ -89,7 +92,7 @@ export const WhatsappTab: React.FC<WhatsappTabProps> = ({
 
     setIsImporting(true);
     try {
-        await addFileContexts(workspaceId, newItems);
+        await addFileContexts(workspace.id, newItems);
         onSuccess();
     } finally {
         setIsImporting(false);
@@ -207,7 +210,7 @@ export const WhatsappTab: React.FC<WhatsappTabProps> = ({
           className="flex items-center gap-2 px-8 py-2.5 bg-accent-600 hover:bg-accent-500 text-white rounded-xl shadow-lg shadow-accent-900/20 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {isImporting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={16} />}
-          {isImporting ? 'Submitting...' : 'Submit Context'}
+          {isImporting ? 'Submitting...' : 'Submit'}
         </button>
       </div>
     </div>

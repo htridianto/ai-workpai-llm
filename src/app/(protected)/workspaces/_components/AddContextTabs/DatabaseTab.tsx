@@ -29,15 +29,15 @@ export const DatabaseTab: React.FC<DatabaseTabProps> = ({
     if (!dbConfig.name || !dbConfig.connectionString) return;
 
     const newItems: FileContext[] = [{
-      id: uuidv4(),
+      id: 'auto',
       name: `${dbConfig.name} (${dbConfig.type})`,
       type: 'database',
-      status: 'indexing',
+      status: 'indexed',
       size: 0,
       dateCreated: Date.now(),
-      folderId: undefined,
-      progress: 0,
-      workspaceId: workspaceId
+      progress: 100,
+      workspaceId: workspaceId,
+      meta: {...dbConfig}
     }];
 
     setIsImporting(true);
@@ -102,7 +102,7 @@ export const DatabaseTab: React.FC<DatabaseTabProps> = ({
           className="flex items-center gap-2 px-8 py-2.5 bg-accent-600 hover:bg-accent-500 text-white rounded-xl shadow-lg shadow-accent-900/20 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {isImporting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={16} />}
-          {isImporting ? 'Submitting...' : 'Submit Context'}
+          {isImporting ? 'Submitting...' : 'Submit'}
         </button>
       </div>
     </div>

@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Folder, FolderOpen, Home } from 'lucide-react';
-import { Folder as FolderType } from '@/shared/types/types';
+import { Folder as FolderType, Workspace } from '@/shared/types/types';
 
 interface FolderTreeProps {
+  workspace?: Workspace;
   folders: FolderType[];
   currentFolderId: string | null;
   onSelectFolder: (id: string | null) => void;
@@ -15,6 +16,7 @@ interface TreeNode extends FolderType {
 }
 
 export const FolderTree: React.FC<FolderTreeProps> = ({ 
+  workspace,
   folders, 
   currentFolderId, 
   onSelectFolder,
@@ -61,7 +63,11 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
       if (item.parentId && map.has(item.parentId)) {
         map.get(item.parentId)!.children.push(node);
       } else {
-        roots.push(node); // Parent missing or undefined -> root
+        const childrenCount = (workspace?.folders || []).filter(f => f.parentId === item.id).length;
+        const fileCount = (workspace?.fileContexts || []).filter(f => f.folderId === item.id).length;
+        if(item.isShared || fileCount > 0 || childrenCount > 0){
+          roots.push(node); // Parent missing or undefined -> root
+        }
       }
     });
 

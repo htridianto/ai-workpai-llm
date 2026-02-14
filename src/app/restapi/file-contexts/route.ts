@@ -17,13 +17,16 @@ export async function POST(req: Request) {
         }
         
         let newFolderId = folderId || null;
-        if(type == 'whatsapp'){
-            newFolderId = '.whatsapp';
-        }else if(type == 'database'){
-            newFolderId = '.databases';
-        }else if(type == 'link'){
-            newFolderId = '.links';
+        if(!folderId){
+            if(type == 'whatsapp'){
+                newFolderId = `.whatsapp-${workspaceId}`;
+            }else if(type == 'database'){
+                newFolderId = `.databases-${workspaceId}`;
+            }else if(type == 'link'){
+                newFolderId = `.links-${workspaceId}`;
+            }
         }
+
         const context = await createFileContext({
             workspaceId,
             folderId: newFolderId,

@@ -76,7 +76,7 @@ export const LinkTab: React.FC<LinkTabProps> = ({
           className="flex items-center gap-2 px-8 py-2.5 bg-accent-600 hover:bg-accent-500 text-white rounded-xl shadow-lg shadow-accent-900/20 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {isImporting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={16} />}
-          {isImporting ? 'Submitting...' : 'Submit Context'}
+          {isImporting ? 'Submitting...' : 'Submit'}
         </button>
       </div>
     </div>

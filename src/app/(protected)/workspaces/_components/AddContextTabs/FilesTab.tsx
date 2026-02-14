@@ -9,11 +9,11 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { FileContext, Folder as FolderType } from '@/shared/types/types';
+import { FileContext, Folder as FolderType, Workspace } from '@/shared/types/types';
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
 interface FilesTabProps {
-  workspaceId: string;
+  workspace: Workspace;
   onClose: () => void;
   onSuccess: () => void;
   folders: FolderType[];
@@ -22,7 +22,7 @@ interface FilesTabProps {
 }
 
 export const FilesTab: React.FC<FilesTabProps> = ({ 
-  workspaceId, 
+  workspace, 
   onClose, 
   onSuccess, 
   folders,
@@ -33,11 +33,12 @@ export const FilesTab: React.FC<FilesTabProps> = ({
   const [targetFolderId, setTargetFolderId] = useState<string>('');
   const [isImporting, setIsImporting] = useState(false);
 
+  const folderOptions = folders.filter(f => f.isShared);
   useEffect(() => {
     if (currentFolderId && currentFolderId.startsWith('.')) {
-        setTargetFolderId('');
+        setTargetFolderId(folderOptions[0].id);
     } else {
-        setTargetFolderId(currentFolderId || '');
+        setTargetFolderId(currentFolderId || folderOptions[0].id);
     }
   }, [currentFolderId]);
 
@@ -52,15 +53,15 @@ export const FilesTab: React.FC<FilesTabProps> = ({
     const newItems: FileContext[] = [];
     contextFiles.forEach(file => {
       newItems.push({
-        id: uuidv4(),
+        id: 'auto',
         name: file.name,
-        type: file.name.endsWith('.pdf') ? 'pdf' : 'txt',
-        status: 'indexing',
+        type: 'file', //file.name.endsWith('.pdf') ? 'pdf' : 'txt',
+        status: 'indexed',
         size: file.size,
         dateCreated: Date.now(),
         folderId: targetFolderId || undefined,
-        progress: 0,
-        workspaceId: workspaceId
+        progress: 100,
+        workspaceId: workspace.slug
       });
     });
 
@@ -68,7 +69,7 @@ export const FilesTab: React.FC<FilesTabProps> = ({
 
     setIsImporting(true);
     try {
-        await addFileContexts(workspaceId, newItems);
+        await addFileContexts(workspace.id, newItems);
         onSuccess();
     } finally {
         setIsImporting(false);
@@ -90,7 +91,7 @@ export const FilesTab: React.FC<FilesTabProps> = ({
             className="flex-1 bg-transparent border-none text-sm font-medium text-slate-800 dark:text-slate-200 focus:ring-0 cursor-pointer"
           >
             {/* <option value="">Root</option> */}
-            {folders.filter(f => !f.name.startsWith('.')).map(f => (
+            {folderOptions.map(f => (
               <option key={f.id} value={f.id}>{f.name}</option>
             ))}
           </select>
@@ -142,7 +143,7 @@ export const FilesTab: React.FC<FilesTabProps> = ({
           className="flex items-center gap-2 px-8 py-2.5 bg-accent-600 hover:bg-accent-500 text-white rounded-xl shadow-lg shadow-accent-900/20 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {isImporting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={16} />}
-          {isImporting ? 'Submitting...' : 'Submit Context'}
+          {isImporting ? 'Submitting...' : 'Submit'}
         </button>
       </div>
     </div>

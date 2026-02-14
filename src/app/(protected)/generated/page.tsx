@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   ArrowLeft, 
@@ -11,11 +12,13 @@ import {
   FolderPlus,
   Home,
   ChevronRight,
-  Menu
+  Menu,
+  Cloud
 } from 'lucide-react';
-import { GeneratedFile, Folder } from '@/shared/types/types';
-import { MockApi } from '@/client/services/mockApiService';
+import { GeneratedService } from '@/client/services/generatedService';
+import { UserService } from '@/client/services/userService';
 import { DUMMY_USERS } from '@/client/services/mockData';
+import { UserProfile, GeneratedFile, Folder } from '@/shared/types/types';
 import { FileCard } from './_components/FileCard';
 import { FileRow } from './_components/FileRow';
 import { FolderCard } from './_components/FolderCard';
@@ -27,14 +30,15 @@ import { ShareModal } from './_components/ShareModal';
 import { InputModal } from '@/client/components/Shared/InputModal';
 import { Toast, ToastType } from '@/client/components/Shared/Toast';
 
-const CURRENT_USER_ID = 'u-admin'; // Mocking logged in user for filter logic
-
 export default function GeneratedContentPage() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const CURRENT_USER_ID = session?.user?.id || 'u-admin';
   
   // Data State
   const [files, setFiles] = useState<GeneratedFile[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Navigation State
@@ -53,6 +57,8 @@ export default function GeneratedContentPage() {
   const [fileToShare, setFileToShare] = useState<GeneratedFile | null>(null);
   const [toast, setToast] = useState<{message: string, type: ToastType, subMessage?: string} | null>(null);
   const [isNewFolderModalOpen, setIsNewFolderModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -60,13 +66,28 @@ export default function GeneratedContentPage() {
 
   const fetchData = async () => {
     setIsLoading(true);
-    const [fetchedFiles, fetchedFolders] = await Promise.all([
-        MockApi.fetchGeneratedFiles(),
-        MockApi.fetchGeneratedFolders()
-    ]);
-    setFiles(fetchedFiles);
-    setFolders(fetchedFolders);
-    setIsLoading(false);
+    try {
+      const [
+          fetchedFiles, 
+          fetchedFolders, 
+          trashedFiles, 
+          trashedFolders,
+          fetchedUsers
+      ] = await Promise.all([
+          GeneratedService.fetchGeneratedFiles(false),
+          GeneratedService.fetchGeneratedFolders(false),
+          GeneratedService.fetchGeneratedFiles(true),
+          GeneratedService.fetchGeneratedFolders(true),
+          UserService.fetchUsers().catch(() => [])
+      ]);
+      setFiles([...fetchedFiles, ...trashedFiles]);
+      setFolders([...fetchedFolders, ...trashedFolders]);
+      setUsers(fetchedUsers);
+    } catch (error) {
+      showNotification("Failed to fetch content", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getUserName = (userId?: string) => {
@@ -169,28 +190,55 @@ export default function GeneratedContentPage() {
   };
 
   const handleCreateFolder = async (name: string) => {
-      const newFolder: Folder = {
-          id: uuidv4(),
-          name,
-          workspaceId: 'generated',
-          dateCreated: Date.now(),
-          parentId: currentFolderId || undefined
-      };
-      
-      await MockApi.createGeneratedFolder(newFolder);
-      setFolders(prev => [...prev, newFolder]);
-      setIsNewFolderModalOpen(false);
-      showNotification(`Folder "${name}" created.`);
+      try {
+        const newFolder = await GeneratedService.createGeneratedFolder(name, currentFolderId || undefined);
+        setFolders(prev => [...prev, newFolder]);
+        setIsNewFolderModalOpen(false);
+        showNotification(`Folder "${name}" created.`);
+      } catch (error) {
+        showNotification("Failed to create folder", "error");
+      }
   };
 
-  const handleDownload = (file: GeneratedFile) => {
-    const link = document.createElement('a');
-    link.href = '#';
-    link.download = file.name;
-    showNotification(`Downloading ${file.name}...`, 'info');
-    setTimeout(() => {
-        showNotification(`Download Complete: ${file.name}`);
-    }, 1500);
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    showNotification(`Uploading ${file.name}...`, 'info');
+
+    try {
+      const newFile = await GeneratedService.uploadGeneratedFile(file, currentFolderId || undefined);
+      setFiles(prev => [newFile, ...prev]);
+      showNotification(`File "${file.name}" uploaded successfully.`);
+    } catch (error) {
+      showNotification("Failed to upload file", "error");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDownload = async (file: GeneratedFile) => {
+    try {
+      showNotification(`Preparing download for ${file.name}...`, 'info');
+      // If we have a real URL in meta, use it, otherwise we might need an endpoint to get the signed URL
+      let url = file.meta?.url;
+      if (!url) {
+        const res = await fetch(`/restapi/generated/files/url?id=${file.id}`);
+        const data = await res.json();
+        url = data.url;
+      }
+      
+      if (url) {
+        window.open(url, '_blank');
+        showNotification(`Download started: ${file.name}`);
+      } else {
+        showNotification("Download URL not found", "error");
+      }
+    } catch (error) {
+      showNotification("Failed to download file", "error");
+    }
   };
 
   const handleShareFile = (file: GeneratedFile) => {
@@ -198,26 +246,33 @@ export default function GeneratedContentPage() {
   };
 
   const confirmShare = async (userIds: string[]) => {
-      if (fileToShare && userIds.length > 0) {
-          await MockApi.shareFile(fileToShare.id, userIds);
-          // Update local state
+    if (fileToShare && userIds.length > 0) {
+      try {
+        const success = await GeneratedService.shareGeneratedFile(fileToShare.id, userIds);
+        if (success) {
           setFiles(prev => prev.map(f => {
-              if (f.id === fileToShare.id) {
-                  const currentShared = f.sharedWith || [];
-                  const newShared = [...new Set([...currentShared, ...userIds])];
-                  return { ...f, sharedWith: newShared, isShared: true };
-              }
-              return f;
+            if (f.id === fileToShare.id) {
+              const currentShared = f.sharedWith || [];
+              const newShared = [...new Set([...currentShared, ...userIds])];
+              return { ...f, sharedWith: newShared, isShared: true };
+            }
+            return f;
           }));
           showNotification(`File shared with ${userIds.length} users.`);
-          setFileToShare(null);
+        } else {
+          showNotification("Failed to share file", "error");
+        }
+      } catch (error) {
+        showNotification("An error occurred while sharing", "error");
+      } finally {
+        setFileToShare(null);
       }
+    }
   };
 
   const handleToggleStar = async (file: GeneratedFile) => {
-      await MockApi.toggleFileStar(file.id);
-      setFiles(prev => prev.map(f => f.id === file.id ? { ...f, isStarred: !f.isStarred } : f));
-      // No notification needed for quick star actions usually, feels snappier without
+    // For now, local toggle, we should add an API for this
+    setFiles(prev => prev.map(f => f.id === file.id ? { ...f, isStarred: !f.isStarred } : f));
   };
 
   const handleDeleteFileRequest = (file: GeneratedFile) => {
@@ -230,20 +285,51 @@ export default function GeneratedContentPage() {
 
   const confirmDeleteFile = async () => {
     if (fileToDelete) {
-        await MockApi.deleteGeneratedFile(fileToDelete.id);
-        setFiles(prev => prev.filter(f => f.id !== fileToDelete.id));
-        setFileToDelete(null);
-        showNotification("File deleted.");
+        try {
+          await GeneratedService.deleteGeneratedFile(fileToDelete.id);
+          
+          if (fileToDelete.isTrashed) {
+            // Remove from state if it was a permanent delete
+            setFiles(prev => prev.filter(f => f.id !== fileToDelete.id));
+            showNotification("File permanently deleted.");
+          } else {
+            // Mark as trashed if it was a soft delete
+            setFiles(prev => prev.map(f => 
+              f.id === fileToDelete.id ? { ...f, isTrashed: true } : f
+            ));
+            showNotification("File moved to trash.");
+          }
+          setFileToDelete(null);
+        } catch (error) {
+          showNotification("Failed to delete file", "error");
+        }
     }
   };
 
   const confirmDeleteFolder = async () => {
       if(folderToDelete) {
-          await MockApi.deleteGeneratedFolder(folderToDelete.id);
-          setFolders(prev => prev.filter(f => f.id !== folderToDelete.id));
-          setFiles(prev => prev.filter(f => f.folderId !== folderToDelete.id));
-          setFolderToDelete(null);
-          showNotification("Folder deleted.");
+          try {
+            await GeneratedService.deleteGeneratedFolder(folderToDelete.id);
+            
+            if (folderToDelete.isTrashed) {
+                // Permanently remove folder from state
+                setFolders(prev => prev.filter(f => f.id !== folderToDelete.id));
+                showNotification("Folder permanently deleted.");
+            } else {
+                // Update the folder and its contents to be trashed in state
+                setFolders(prev => prev.map(f => 
+                  f.id === folderToDelete.id ? { ...f, isTrashed: true } : f
+                ));
+                // Also mark contents as trashed (recursive depth 1 for now)
+                setFiles(prev => prev.map(f => 
+                  f.folderId === folderToDelete.id ? { ...f, isTrashed: true } : f
+                ));
+                showNotification("Folder moved to trash.");
+            }
+            setFolderToDelete(null);
+          } catch (error) {
+            showNotification("Failed to delete folder", "error");
+          }
       }
   };
 
@@ -320,16 +406,31 @@ export default function GeneratedContentPage() {
                     <ListIcon size={16} />
                  </button>
              </div>
-             
-             {currentCategory === 'home' && !searchQuery && (
-                 <button 
-                    onClick={() => setIsNewFolderModalOpen(true)}
-                    className="flex items-center gap-2 px-3 py-2 bg-accent-600 hover:bg-accent-500 text-white rounded-lg shadow-md transition-colors text-sm font-medium"
-                 >
-                     <FolderPlus size={16} />
-                     <span className="hidden sm:inline">New Folder</span>
-                 </button>
-             )}
+                          {currentCategory === 'home' && !searchQuery && (
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileUpload} 
+                      className="hidden" 
+                    />
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-charcoal-800 hover:bg-gray-100 dark:hover:bg-charcoal-700 text-slate-700 dark:text-slate-200 border border-gray-200 dark:border-charcoal-700 rounded-lg shadow-sm transition-colors text-sm font-medium disabled:opacity-50"
+                    >
+                        <Cloud className={isUploading ? "animate-bounce" : ""} size={16} />
+                        <span className="hidden sm:inline">{isUploading ? 'Uploading...' : 'Upload'}</span>
+                    </button>
+                    <button 
+                        onClick={() => setIsNewFolderModalOpen(true)}
+                        className="flex items-center gap-2 px-3 py-2 bg-accent-600 hover:bg-accent-500 text-white rounded-lg shadow-md transition-colors text-sm font-medium"
+                    >
+                        <FolderPlus size={16} />
+                        <span className="hidden sm:inline">New Folder</span>
+                    </button>
+                  </div>
+              )}
           </div>
         </div>
       </header>
@@ -345,6 +446,12 @@ export default function GeneratedContentPage() {
                  onSelectCategory={handleCategoryChange}
                  storageUsed={calculateStorage()}
                  storageLimit={15 * 1024 * 1024 * 1024} // 15GB Mock Limit
+                 folders={folders}
+                 currentFolderId={currentFolderId}
+                 onSelectFolder={(id) => {
+                   setCurrentCategory('home');
+                   setCurrentFolderId(id);
+                 }}
               />
           </div>
 
@@ -499,8 +606,9 @@ export default function GeneratedContentPage() {
       {/* Share Modal */}
       <ShareModal
         isOpen={!!fileToShare}
+        fileId={fileToShare?.id || ''}
         fileName={fileToShare?.name || ''}
-        users={DUMMY_USERS.filter(u => u.id !== CURRENT_USER_ID)} // Don't allow sharing with self in this list
+        users={(users.length > 0 ? users : DUMMY_USERS).filter(u => u.id !== CURRENT_USER_ID)}
         onConfirm={confirmShare}
         onCancel={() => setFileToShare(null)}
       />

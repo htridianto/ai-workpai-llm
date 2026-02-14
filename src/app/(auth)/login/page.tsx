@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Mail, Lock, ArrowRight, AlertCircle, Sparkles, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from "next/navigation";
@@ -28,29 +28,52 @@ const getErrorMessage = (code: string | null) => {
   }
 };     
 
+function ShowErrorMessage() {
+  const searchParams = useSearchParams()
+  const errorParam = searchParams.get("error");
+  const codeParam = searchParams.get("code");
+  
+  let error = '';
+  if(errorParam === "CredentialsSignin"){
+    error = getErrorMessage(codeParam || null);   
+  }else if(errorParam === "AccessDenied"){
+    error = "Access Denied. Please try again later.";   
+  }
+  
+  return (
+    <>
+    {error && (
+      <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-200 dark:border-red-900/30">
+        <AlertCircle size={16} />
+        {error}
+      </div>    
+    )}
+    </>
+  )      
+}
+
 export default function AuthPage() {  
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
-  const [error, setError] = useState('');
-
-  const searchParams = useSearchParams();
-  const errorParam = searchParams.get("error");
-  const codeParam = searchParams.get("code");
+  // const [error, setError] = useState('');
+  // const searchParams = useSearchParams();
+  // const errorParam = searchParams.get("error");
+  // const codeParam = searchParams.get("code");
   
-  useEffect(() => {
-    if(errorParam === "CredentialsSignin"){
-      setError( getErrorMessage(codeParam || null) );   
-    }else if(errorParam === "AccessDenied"){
-      setError( "Access Denied. Please try again later." );   
-    }
-  }, []);
+  // useEffect(() => {
+  //   if(errorParam === "CredentialsSignin"){
+  //     setError( getErrorMessage(codeParam || null) );   
+  //   }else if(errorParam === "AccessDenied"){
+  //     setError( "Access Denied. Please try again later." );   
+  //   }
+  // }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    // setError('');
     setIsLoading(true);
     setLoadingText('Authenticating...');
 
@@ -97,7 +120,7 @@ export default function AuthPage() {
   };
 
   const handleGoogleLogin = async () => {
-    setError('');
+    // setError('');
     setIsLoading(true);
     setLoadingText('Connecting to Google...');
     
@@ -131,7 +154,7 @@ export default function AuthPage() {
   };
 
   const handleDemoLogin = async () => {
-    setError('');
+    // setError('');
     setIsLoading(true);
     setLoadingText('Provisioning demo instance...');
     
@@ -231,13 +254,16 @@ export default function AuthPage() {
             />
           </div>
         </div>
-
-        {error && (
+        
+      <Suspense fallback={<div>Loading error message...</div>}>
+        <ShowErrorMessage />
+      </Suspense>
+        {/* {error && (
           <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-200 dark:border-red-900/30">
             <AlertCircle size={16} />
             {error}
           </div>
-        )}
+        )} */}
 
         <button
           type="submit"

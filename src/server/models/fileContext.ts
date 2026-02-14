@@ -42,6 +42,7 @@ export const listFileContextsByWorkspace = async (workspaceId: string) => {
   return fileContexts.map(mapFileContext)
 }
 
+
 export const updateFileContext = async (id: string, data: Omit<Prisma.FileContextUncheckedUpdateInput, 'meta'> & { meta?: any }) => {
   const { meta, ...rest } = data
   const updateData: Prisma.FileContextUncheckedUpdateInput = { ...rest }

@@ -165,6 +165,7 @@ export interface GeneratedFile {
   isShared?: boolean;
   ownerId?: string; // ID of the user who owns the file
   sharedWith?: string[]; // IDs of users this file is shared with
+  meta?: any;
 }
 
 export interface AppNotification {

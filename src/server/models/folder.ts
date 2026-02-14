@@ -41,6 +41,7 @@ export const getFolderContent = async (folderId: string) => {
   }
 }
 
+
 export const updateFolder = async (id: string, data: Prisma.FolderUpdateInput) => {
   return await prisma.folder.update({
     where: { id },

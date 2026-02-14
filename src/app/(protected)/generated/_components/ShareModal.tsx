@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, UserPlus, Search, Check } from 'lucide-react';
+import { X, UserPlus, Search, Check, Link as LinkIcon, Copy } from 'lucide-react';
 import { UserProfile } from '@/shared/types/types';
 
 interface ShareModalProps {
   isOpen: boolean;
+  fileId: string;
   fileName: string;
   users: UserProfile[];
   onConfirm: (userIds: string[]) => void;
@@ -14,6 +15,7 @@ interface ShareModalProps {
 
 export const ShareModal: React.FC<ShareModalProps> = ({
   isOpen,
+  fileId,
   fileName,
   users,
   onConfirm,
@@ -21,6 +23,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 }) => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const toggleUser = (id: string) => {
     setSelectedUserIds(prev => 
@@ -32,6 +35,15 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     u.name.toLowerCase().includes(search.toLowerCase()) || 
     u.email.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleCopyLink = () => {
+    if (typeof window !== 'undefined') {
+      const shareUrl = `${window.location.origin}/share/${fileId}`;
+      navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -68,7 +80,39 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 </div>
             </div>
 
+            {/* Copy Link Section */}
+            <div className="mb-8 p-4 bg-charcoal-950/50 border border-charcoal-800 rounded-xl">
+                <label className="block text-[10px] font-bold text-charcoal-500 uppercase tracking-widest mb-2">Share Link</label>
+                <div className="flex gap-2">
+                    <div className="flex-1 bg-charcoal-950 border border-charcoal-700 rounded-lg px-3 py-2 text-xs text-charcoal-400 truncate flex items-center gap-2">
+                        <LinkIcon size={12} className="shrink-0" />
+                        <span className="truncate">.../share/{fileId}</span>
+                    </div>
+                    <button 
+                        onClick={handleCopyLink}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
+                            copied 
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                            : 'bg-accent-600 hover:bg-accent-500 text-white'
+                        }`}
+                    >
+                        {copied ? (
+                            <>
+                                <Check size={14} />
+                                <span>Copied!</span>
+                            </>
+                        ) : (
+                            <>
+                                <Copy size={14} />
+                                <span>Copy Link</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+
             <div className="mb-4">
+                <label className="block text-[10px] font-bold text-charcoal-500 uppercase tracking-widest mb-2 pl-1">Direct Share</label>
                 <div className="relative">
                     <Search size={16} className="absolute left-3 top-2.5 text-charcoal-500" />
                     <input 
@@ -81,7 +125,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 </div>
             </div>
 
-            <div className="max-h-[240px] overflow-y-auto space-y-2 mb-6 scrollbar-thin scrollbar-thumb-charcoal-700">
+            <div className="max-h-[180px] overflow-y-auto space-y-2 mb-6 scrollbar-thin scrollbar-thumb-charcoal-700">
                 {filteredUsers.length === 0 ? (
                     <div className="text-center py-4 text-charcoal-500 text-sm">No users found.</div>
                 ) : (

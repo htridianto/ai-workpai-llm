@@ -11,17 +11,11 @@ export const getAllWorkspaces = async () => {
 }
 
 // --- Constants ---
-
-// export const VIRTUAL_FOLDERS = [
-//   { id: '.links', name: '.links', type: 'link' },
-//   { id: '.whatsapp', name: '.whatsapp', type: 'whatsapp' },
-//   { id: '.databases', name: '.databases', type: 'database' }
-// ];
 const systemFolders = [
   { id: '.links', name: '.links' },
   { id: '.whatsapp', name: '.whatsapp' },
   { id: '.databases', name: '.databases' },
-  { id: null, name: 'My Contexts', isShared: true }
+  { name: 'My Contexts', isShared: true }
 ]
 // --- Mapping Helpers ---
 
@@ -39,11 +33,16 @@ export const mapFolder = (f: any): Folder => ({
 
 export const mapFileContext = (f: any): FileContext => {
   const meta = f.meta ? JSON.parse(f.meta) : {}
+
+  let folderId = f.folderId || undefined;
+  if(f.type === 'whatsapp'){
+    folderId = `.wa_number_${meta.waNumber}`;
+  }
   return {
     id: f.id,
     name: f.name,
     workspaceId: f.workspaceId,
-    folderId: f.folderId || undefined,
+    folderId: folderId,
     type: f.type || 'txt',
     status: f.status || 'indexed',
     size: f.size || 0,
@@ -75,22 +74,30 @@ export const getWorkspaceById = async (id: string) => {
 
   if (!ws) return null
 
+  const waFiles = (ws.fileContexts || []).filter(f => f.type === 'whatsapp');
+  const uniqueWaNumbers = Array.from(new Set(waFiles.map(f => {
+    const meta = f.meta ? JSON.parse(f.meta) : {};    
+    return meta.waNumber || null;
+  }))).filter(n => n !== null) as string[];  
+
+  const waVirtualFolders = uniqueWaNumbers.map(num => ({
+      id: `.wa_number_${num}`,
+      name: num,
+      workspaceId: ws.id,
+      createdAt: waFiles[0].createdAt, 
+      parentFolderId: `.whatsapp-${ws.id}`,
+      isSystem: 1,
+      isShared: 0
+  }));
+  console.log('waVirtualFolders', uniqueWaNumbers, waVirtualFolders);
+
   return {
     ...ws,
     slug: ws.id,
     title: ws.name,
     createdAt: ws.createdAt.getTime(),
-    folders: ws.folders.map(mapFolder),
-    fileContexts: ws.fileContexts.map(mapFileContext)
-    // virtualFolders: VIRTUAL_FOLDERS.map(vf => ({
-    //   id: vf.id,
-    //   name: vf.name,
-    //   workspaceId: ws.id,
-    //   dateCreated: ws.createdAt.getTime(), // or some static date
-    //   isVirtual: true,
-    //   virtualType: vf.type,
-    //   isReadOnly: true
-    // })),    
+    folders: [...ws.folders,...waVirtualFolders].map(mapFolder),
+    fileContexts: ws.fileContexts.map(mapFileContext) 
   }
 }
 
@@ -146,7 +153,7 @@ export const createWorkspaceService = async (data: { id?: string; name: string; 
     await Promise.all(systemFolders.map(folder => {
       return tx.folder.create({
         data: {
-          id: folder.id || undefined,
+          id: folder.id ? `${folder.id}-${workspace.id}` : undefined,
           name: folder.name,
           workspaceId: workspace.id,
           isSystem: 1,

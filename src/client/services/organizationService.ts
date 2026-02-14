@@ -1,5 +1,5 @@
 
-import { Organization, OrganizationUser, OrganizationRole } from '@/shared/types/types';
+import { Organization } from '@/shared/types/types';
 
 export class OrganizationService {
   private static API_BASE = '/app/restapi/organizations'; // Assuming this layout
