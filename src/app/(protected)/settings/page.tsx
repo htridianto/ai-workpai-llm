@@ -16,17 +16,17 @@ import { OrganizationSettings } from './_components/OrganizationSettings';
 import { BillingSettings } from './_components/BillingSettings';
 import { LLMSettings } from './_components/LLMSettings';
 
-type SettingsTab = 'profile' | 'organizations' | 'team' | 'billing' | 'llm';
+type SettingsTab = 'organizations' | 'profile' | 'team' | 'billing' | 'llm';
 
 export default function SettingsPage() {  
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+  const [activeTab, setActiveTab] = useState<SettingsTab>('organizations');
 
   // --- LLM State ---
   const [llmConfig, setLlmConfig] = useState<LLMConfiguration>({
     provider: 'gemini',
     apiKey: '',
-    modelName: 'gemini-3-flash-preview',
+    modelName: 'gemini-1.5-flash',
     baseUrl: 'http://localhost:11434'
   });
 
@@ -73,8 +73,8 @@ export default function SettingsPage() {
           {/* Sidebar Navigation */}
           <aside className="w-full md:w-64 flex-shrink-0 space-y-1">
             <div className="mb-4 px-4 text-xs font-semibold text-charcoal-500 uppercase tracking-wider">Account</div>
-            {renderSidebarItem('profile', <User size={18} />, 'My Profile')}
             {renderSidebarItem('organizations', <Users size={18} />, 'Organizations')}
+            {renderSidebarItem('profile', <User size={18} />, 'My Profile')}            
             {renderSidebarItem('team', <Users size={18} />, 'Manage Users')}
             <div className="mt-6 mb-4 px-4 text-xs font-semibold text-charcoal-500 uppercase tracking-wider">General</div>
             {renderSidebarItem('billing', <CreditCard size={18} />, 'Plans & Billing')}
@@ -85,9 +85,9 @@ export default function SettingsPage() {
           <div className="flex-1 min-w-0">
             <div className="bg-white dark:bg-charcoal-900 rounded-2xl shadow-sm border border-gray-200 dark:border-charcoal-800 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
               
-              {activeTab === 'profile' && <ProfileSettings />}
-
               {activeTab === 'organizations' && <OrganizationSettings />}
+
+              {activeTab === 'profile' && <ProfileSettings />}              
 
               {activeTab === 'team' && <TeamSettings />}
 

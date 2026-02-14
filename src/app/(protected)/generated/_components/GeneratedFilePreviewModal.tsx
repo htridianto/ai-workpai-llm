@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, FileText, Calendar, HardDrive, Download, ImageIcon, FileIcon } from 'lucide-react';
+import { X, FileText, Calendar, HardDrive, Download, ImageIcon, FileIcon, StickyNote } from 'lucide-react';
 import { GeneratedFile } from '@/shared/types/types';
 
 interface GeneratedFilePreviewModalProps {
@@ -105,7 +105,7 @@ export const GeneratedFilePreviewModal: React.FC<GeneratedFilePreviewModalProps>
                     
                     <div className="mt-12 p-8 border border-dashed border-gray-200 dark:border-charcoal-800 rounded-2xl flex flex-col items-center justify-center text-center">
                          <div className="p-4 bg-gray-50 dark:bg-charcoal-900 rounded-2xl mb-4">
-                            {isImage ? <ImageIcon size={32} className="text-charcoal-300" /> : <FileIcon size={32} className="text-charcoal-300" />}
+                            {isImage ? <ImageIcon size={32} className="text-charcoal-300" /> : file.type === 'notes' ? <StickyNote size={32} className="text-charcoal-300" /> : <FileIcon size={32} className="text-charcoal-300" />}
                          </div>
                          <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2">View Full Content</h4>
                          <p className="text-charcoal-500 text-sm max-w-xs mb-6">
@@ -150,7 +150,7 @@ export const GeneratedFilePreviewModal: React.FC<GeneratedFilePreviewModalProps>
             <div className="p-4 md:p-5 border-b border-gray-200 dark:border-charcoal-800 flex items-center justify-between bg-white dark:bg-charcoal-900 shrink-0 z-10">
               <div className="flex items-center gap-3">
                  <div className={`p-2 rounded-lg ${isImage ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' : 'bg-accent-100 dark:bg-accent-900/20 text-accent-600 dark:text-accent-400'}`}>
-                    {isImage ? <ImageIcon size={20} /> : <FileText size={20} />}
+                    {isImage ? <ImageIcon size={20} /> : file.type === 'notes' ? <StickyNote size={20} /> : <FileText size={20} />}
                  </div>
                  <div>
                     <h3 className="text-base md:text-lg font-bold text-slate-800 dark:text-slate-100 max-w-[200px] md:max-w-md truncate" title={file.name}>{file.name}</h3>

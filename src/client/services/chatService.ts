@@ -59,9 +59,22 @@ export const streamChatResponse = async (
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi';
 
-import { ChatSession } from '@/shared/types/types';
+import { ChatSession, ExportFormat, GeneratedFile } from '@/shared/types/types';
 
 export const ChatService = {
+    generateDocument: async (content: string, format: ExportFormat, name?: string): Promise<GeneratedFile> => {
+        const response = await fetch(`${BASE_URL}/generated/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content, format, name })
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Failed to generate document' }));
+            throw new Error(error.message);
+        }
+        return response.json();
+    },
+
     fetchSessions: async (): Promise<ChatSession[]> => {
         const response = await fetch(`${BASE_URL}/chatsession`);
         if (!response.ok) throw new Error('Failed to fetch sessions');

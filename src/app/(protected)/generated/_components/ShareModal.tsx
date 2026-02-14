@@ -24,6 +24,25 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [copied, setCopied] = useState(false);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen && fileId) {
+      fetchFileUrl();
+    }
+  }, [isOpen, fileId]);
+
+  const fetchFileUrl = async () => {
+    try {
+        const res = await fetch(`/restapi/generated/files/url?id=${fileId}`);
+        const data = await res.json();
+        if (data.url) {
+            setFileUrl(data.url);
+        }
+    } catch (error) {
+        console.error("Failed to fetch file URL for sharing", error);
+    }
+  };
 
   const toggleUser = (id: string) => {
     setSelectedUserIds(prev => 
@@ -37,11 +56,16 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   );
 
   const handleCopyLink = () => {
-    if (typeof window !== 'undefined') {
-      const shareUrl = `${window.location.origin}/share/${fileId}`;
-      navigator.clipboard.writeText(shareUrl);
+    if (typeof window !== 'undefined' && fileUrl) {
+      navigator.clipboard.writeText(fileUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } else {
+        // Fallback or internal share link
+        const shareUrl = `${window.location.origin}/share/${fileId}`;
+        navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -86,7 +110,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 <div className="flex gap-2">
                     <div className="flex-1 bg-charcoal-950 border border-charcoal-700 rounded-lg px-3 py-2 text-xs text-charcoal-400 truncate flex items-center gap-2">
                         <LinkIcon size={12} className="shrink-0" />
-                        <span className="truncate">.../share/{fileId}</span>
+                        <span className="truncate">{fileUrl || `.../share/${fileId}`}</span>
                     </div>
                     <button 
                         onClick={handleCopyLink}

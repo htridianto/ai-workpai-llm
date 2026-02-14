@@ -13,7 +13,8 @@ import {
   Home,
   ChevronRight,
   Menu,
-  Cloud
+  Cloud,
+  RefreshCw
 } from 'lucide-react';
 import { GeneratedService } from '@/client/services/generatedService';
 import { UserService } from '@/client/services/userService';
@@ -88,6 +89,11 @@ export default function GeneratedContentPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleReload = () => {
+      fetchData();
+      showNotification("Content refreshed");
   };
 
   const getUserName = (userId?: string) => {
@@ -231,7 +237,15 @@ export default function GeneratedContentPage() {
       }
       
       if (url) {
-        window.open(url, '_blank');
+        // Trigger browser download by creating a temporary link
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.setAttribute('download', file.name);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
         showNotification(`Download started: ${file.name}`);
       } else {
         showNotification("Download URL not found", "error");
@@ -303,6 +317,21 @@ export default function GeneratedContentPage() {
         } catch (error) {
           showNotification("Failed to delete file", "error");
         }
+    }
+  };
+
+  const handleRestore = async (file: GeneratedFile) => {
+    try {
+      showNotification(`Restoring ${file.name}...`, 'info');
+      const success = await GeneratedService.restoreGeneratedFile(file.id);
+      if (success) {
+        setFiles(prev => prev.map(f => f.id === file.id ? { ...f, isTrashed: false } : f));
+        showNotification(`File "${file.name}" restored.`);
+      } else {
+        showNotification("Failed to restore file", "error");
+      }
+    } catch (error) {
+      showNotification("An error occurred while restoring", "error");
     }
   };
 
@@ -386,7 +415,7 @@ export default function GeneratedContentPage() {
 
           <div className="flex items-center gap-3 shrink-0">
              {/* Search */}
-             <div className="flex items-center bg-gray-100 dark:bg-charcoal-800 px-3 py-2 rounded-lg border border-transparent focus-within:border-accent-500 focus-within:ring-1 focus-within:ring-accent-500 transition-all">
+             {/* <div className="flex items-center bg-gray-100 dark:bg-charcoal-800 px-3 py-2 rounded-lg border border-transparent focus-within:border-accent-500 focus-within:ring-1 focus-within:ring-accent-500 transition-all">
                  <Search size={16} className="text-charcoal-400" />
                  <input 
                    type="text" 
@@ -395,7 +424,7 @@ export default function GeneratedContentPage() {
                    onChange={(e) => setSearchQuery(e.target.value)}
                    className="bg-transparent border-none focus:ring-0 text-sm ml-2 w-32 md:w-64 text-slate-800 dark:text-slate-200 placeholder-charcoal-500" 
                  />
-             </div>
+             </div> */}
 
              {/* View Toggle */}
              <div className="hidden sm:flex items-center bg-gray-100 dark:bg-charcoal-800 rounded-lg p-1 border border-gray-200 dark:border-charcoal-700">
@@ -406,6 +435,14 @@ export default function GeneratedContentPage() {
                     <ListIcon size={16} />
                  </button>
              </div>
+
+              <button 
+                onClick={handleReload}
+                className="p-2 text-charcoal-500 hover:bg-gray-100 dark:hover:bg-charcoal-800 rounded-lg transition-colors border border-gray-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800"
+                title="Refresh Content"
+              >
+                  <RefreshCw size={18} className={isLoading ? "animate-spin" : ""} />
+              </button>
                           {currentCategory === 'home' && !searchQuery && (
                   <div className="flex items-center gap-2">
                     <input 
@@ -538,6 +575,7 @@ export default function GeneratedContentPage() {
                                     onDownload={handleDownload}
                                     onShare={handleShareFile}
                                     onDelete={handleDeleteFileRequest}
+                                    onRestore={handleRestore}
                                     onToggleStar={handleToggleStar}
                                 />
                               ))}
@@ -559,6 +597,7 @@ export default function GeneratedContentPage() {
                                     onDownload={handleDownload}
                                     onShare={handleShareFile}
                                     onDelete={handleDeleteFileRequest}
+                                    onRestore={handleRestore}
                                     onToggleStar={handleToggleStar}
                                  />
                                ))}
@@ -574,9 +613,12 @@ export default function GeneratedContentPage() {
       {/* Delete Confirmation Modal for Files */}
       <ConfirmationModal 
          isOpen={!!fileToDelete}
-         title="Delete File"
-         message={`Are you sure you want to delete "${fileToDelete?.name}"? ${currentCategory === 'trash' ? 'This will be permanent.' : 'It will be moved to trash.'}`}
-         confirmLabel="Delete"
+         title={fileToDelete?.isTrashed ? "Delete File Permanently" : "Move to Trash"}
+         message={fileToDelete?.isTrashed 
+            ? `Are you sure you want to permanently delete "${fileToDelete?.name}"? This action cannot be undone.` 
+            : `Are you sure you want to move "${fileToDelete?.name}" to the trash?`
+         }
+         confirmLabel={fileToDelete?.isTrashed ? "Delete Permanently" : "Move to Trash"}
          isDanger={true}
          onConfirm={confirmDeleteFile}
          onCancel={() => setFileToDelete(null)}
@@ -597,7 +639,7 @@ export default function GeneratedContentPage() {
       <InputModal 
          isOpen={isNewFolderModalOpen}
          title="Create New Folder"
-         initialValue=""
+         initialValue="New Folder"
          confirmLabel="Create"
          onConfirm={handleCreateFolder}
          onCancel={() => setIsNewFolderModalOpen(false)}

@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreVertical, FileText, Presentation, FileSpreadsheet, Image as ImageIcon, Music, Video, File, Star, Users } from 'lucide-react';
+import { MoreVertical, FileText, Presentation, FileSpreadsheet, Image as ImageIcon, Music, Video, File, Star, Users, StickyNote } from 'lucide-react';
 import { GeneratedFile, ExportFormat } from '@/shared/types/types';
 
 interface FileCardProps {
@@ -10,10 +10,11 @@ interface FileCardProps {
   onDownload: (file: GeneratedFile) => void;
   onDelete: (file: GeneratedFile) => void;
   onShare: (file: GeneratedFile) => void;
+  onRestore: (file: GeneratedFile) => void;
   onToggleStar: (file: GeneratedFile) => void;
 }
 
-export const FileCard: React.FC<FileCardProps> = ({ file, ownerName, onView, onDownload, onDelete, onShare, onToggleStar }) => {
+export const FileCard: React.FC<FileCardProps> = ({ file, ownerName, onView, onDownload, onDelete, onShare, onRestore, onToggleStar }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -36,6 +37,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, ownerName, onView, onD
       case 'image': return <ImageIcon size={48} className="text-purple-500" />;
       case 'audio': return <Music size={48} className="text-pink-500" />;
       case 'video': return <Video size={48} className="text-sky-500" />;
+      case 'notes': return <StickyNote size={48} className="text-amber-500" />;
       default: return <File size={48} className="text-gray-400" />;
     }
   };
@@ -69,8 +71,13 @@ export const FileCard: React.FC<FileCardProps> = ({ file, ownerName, onView, onD
                         <button onClick={(e) => { e.stopPropagation(); onView(file); setIsMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-charcoal-700 text-slate-700 dark:text-slate-200">Preview</button>
                         <button onClick={(e) => { e.stopPropagation(); onDownload(file); setIsMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-charcoal-700 text-slate-700 dark:text-slate-200">Download</button>
                         <button onClick={(e) => { e.stopPropagation(); onShare(file); setIsMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-charcoal-700 text-slate-700 dark:text-slate-200">Share</button>
+                        {file.isTrashed && (
+                            <button onClick={(e) => { e.stopPropagation(); onRestore(file); setIsMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">Restore</button>
+                        )}
                         <div className="my-1 border-t border-gray-100 dark:border-charcoal-700"></div>
-                        <button onClick={(e) => { e.stopPropagation(); onDelete(file); setIsMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400">Delete</button>
+                        <button onClick={(e) => { e.stopPropagation(); onDelete(file); setIsMenuOpen(false); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400">
+                            {file.isTrashed ? 'Delete Permanently' : 'Move to Trash'}
+                        </button>
                     </div>
                 )}
             </div>

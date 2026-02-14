@@ -39,6 +39,13 @@ export const GeneratedService = {
     return res.ok;
   },
 
+  restoreGeneratedFile: async (id: string): Promise<boolean> => {
+    const res = await fetch(`${API_BASE}/files/restore?id=${id}`, {
+      method: 'POST',
+    });
+    return res.ok;
+  },
+
   uploadGeneratedFile: async (file: File, folderId?: string): Promise<GeneratedFile> => {
     const formData = new FormData();
     formData.append('file', file);

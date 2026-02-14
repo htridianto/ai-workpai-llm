@@ -138,7 +138,7 @@ export interface LLMConfiguration {
 
 // --- Generated Content Types ---
 
-export type ExportFormat = 'pdf' | 'docx' | 'slides' | 'sheets' | 'image' | 'audio' | 'video';
+export type ExportFormat = 'pdf' | 'docx' | 'slides' | 'sheets' | 'image' | 'audio' | 'video' | 'notes';
 
 
 export interface GeneratedFolder {

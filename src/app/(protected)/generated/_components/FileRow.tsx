@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Eye, Download, Trash2, Share2, FileText, Presentation, FileSpreadsheet, Image as ImageIcon, Music, Video, File, Star, Users } from 'lucide-react';
+import { Eye, Download, Trash2, Share2, FileText, Presentation, FileSpreadsheet, Image as ImageIcon, Music, Video, File, Star, Users, StickyNote, RefreshCcw } from 'lucide-react';
 import { GeneratedFile, ExportFormat } from '@/shared/types/types';
 
 interface FileRowProps {
@@ -10,10 +10,11 @@ interface FileRowProps {
   onDownload: (file: GeneratedFile) => void;
   onDelete: (file: GeneratedFile) => void;
   onShare: (file: GeneratedFile) => void;
+  onRestore: (file: GeneratedFile) => void;
   onToggleStar: (file: GeneratedFile) => void;
 }
 
-export const FileRow: React.FC<FileRowProps> = ({ file, ownerName, onView, onDownload, onDelete, onShare, onToggleStar }) => {
+export const FileRow: React.FC<FileRowProps> = ({ file, ownerName, onView, onDownload, onDelete, onShare, onRestore, onToggleStar }) => {
 
   const getMiniIcon = (type: ExportFormat) => {
     switch(type) {
@@ -24,6 +25,7 @@ export const FileRow: React.FC<FileRowProps> = ({ file, ownerName, onView, onDow
       case 'image': return <ImageIcon size={18} className="text-purple-500" />;
       case 'audio': return <Music size={18} className="text-pink-500" />;
       case 'video': return <Video size={18} className="text-sky-500" />;
+      case 'notes': return <StickyNote size={18} className="text-amber-500" />;
       default: return <File size={18} className="text-gray-400" />;
     }
   };
@@ -55,13 +57,18 @@ export const FileRow: React.FC<FileRowProps> = ({ file, ownerName, onView, onDow
             <button onClick={(e) => { e.stopPropagation(); onShare(file); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded hover:bg-gray-100 dark:hover:bg-charcoal-700" title="Share">
                 <Share2 size={16} />
             </button>
+            {file.isTrashed && (
+                <button onClick={(e) => { e.stopPropagation(); onRestore(file); }} className="p-1.5 text-charcoal-400 hover:text-emerald-500 rounded hover:bg-gray-100 dark:hover:bg-charcoal-700" title="Restore">
+                    <RefreshCcw size={16} />
+                </button>
+            )}
             <button onClick={(e) => { e.stopPropagation(); onView(file); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded hover:bg-gray-100 dark:hover:bg-charcoal-700" title="Preview">
                 <Eye size={16} />
             </button>
             <button onClick={(e) => { e.stopPropagation(); onDownload(file); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded hover:bg-gray-100 dark:hover:bg-charcoal-700" title="Download">
                 <Download size={16} />
             </button>
-            <button onClick={(e) => { e.stopPropagation(); onDelete(file); }} className="p-1.5 text-charcoal-400 hover:text-red-500 rounded hover:bg-gray-100 dark:hover:bg-charcoal-700" title="Delete">
+            <button onClick={(e) => { e.stopPropagation(); onDelete(file); }} className="p-1.5 text-charcoal-400 hover:text-red-500 rounded hover:bg-gray-100 dark:hover:bg-charcoal-700" title={file.isTrashed ? "Delete Permanently" : "Move to Trash"}>
                 <Trash2 size={16} />
             </button>
         </div>

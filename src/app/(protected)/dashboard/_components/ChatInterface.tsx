@@ -16,7 +16,8 @@ import {
   File,
   Check,
   Loader2,
-  X
+  X,
+  StickyNote
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -66,6 +67,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     { id: 'image', label: 'Image', icon: <ImageIcon size={14} />, color: 'text-purple-500' },
     { id: 'audio', label: 'Audio', icon: <Music size={14} />, color: 'text-pink-500' },
     { id: 'video', label: 'Video', icon: <Video size={14} />, color: 'text-sky-500' },
+    { id: 'notes', label: 'Notes', icon: <StickyNote size={14} />, color: 'text-amber-500' },
   ];
 
   return (

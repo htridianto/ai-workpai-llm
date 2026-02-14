@@ -332,21 +332,23 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       const msg = currentSession?.messages.find(m => m.id === messageId);
       if(!msg) return;
 
-      const newFile: GeneratedFile = {
-          id: uuidv4(),
-          name: 'Generated_' + format.toUpperCase() + '_' + new Date().getTime() + '.' + format,
-          type: format,
-          dateCreated: Date.now(),
-          size: Math.floor(Math.random() * 5000000) + 1024,
-          snippet: msg.text.slice(0, 100) + '...'
-      };
+      try {
+        const name = 'Generated_' + format.toUpperCase() + '_' + new Date().getTime();
+        const newFile = await ChatService.generateDocument(msg.text, format, name);
 
-      await MockApi.createGeneratedFile(newFile);
-      setToast({
-        message: 'File Generated Successfully',
-        type: 'success',
-        subMessage: newFile.name + ' has been saved to your Generated Content.'
-      });
+        setToast({
+          message: 'File Generated Successfully',
+          type: 'success',
+          subMessage: newFile.name + ' has been saved to your Generated Content.'
+        });
+      } catch (error: any) {
+        console.error("Failed to generate document:", error);
+        setToast({
+          message: 'Generation Failed',
+          type: 'error',
+          subMessage: error.message || 'There was an error generating your document.'
+        });
+      }
   };
 
   const handleRemoveFileContext = async (id: string) => {

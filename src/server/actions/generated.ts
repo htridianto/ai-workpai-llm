@@ -149,6 +149,53 @@ export async function uploadGeneratedFile(file: File, folderId?: string) {
   return mapGeneratedFile(generatedFile);
 }
 
+export async function createGeneratedFileFromContent(name: string, content: string, format: string, folderId?: string) {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error('Unauthorized');
+
+  const buffer = Buffer.from(content, 'utf-8');
+  const fileId = uuidv4();
+  
+  // Map format to correct extension
+  let extension = format;
+  let contentType = 'text/plain';
+
+  switch (format) {
+    case 'pdf': extension = 'pdf'; contentType = 'application/pdf'; break;
+    case 'docx': extension = 'docx'; contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'; break;
+    case 'notes': extension = 'txt'; contentType = 'text/plain'; break;
+    case 'sheets': extension = 'xlsx'; contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'; break;
+    // ... add more if needed
+  }
+
+  const fileName = name.endsWith(`.${extension}`) ? name : `${name}.${extension}`;
+  const minioFileName = `${sanitizeUsernameToFolderName(session.user?.userName || session.user?.id || '')}/${fileId}.${extension}`;
+
+  await uploadFile(minioFileName, buffer, {
+    'Content-Type': contentType,
+    'Original-Name': fileName,
+    'Owner-Id': session.user.id,
+  });
+
+  const generatedFile = await prisma.generatedFile.create({
+    data: {
+      id: fileId,
+      name: fileName,
+      type: format, // Store the original format identifier
+      size: buffer.length,
+      ownerId: session.user.id,
+      folderId: folderId || null,
+      snippet: content.slice(0, 200),
+      meta: JSON.stringify({ minioPath: minioFileName }),
+    },
+    include: {
+      shares: true
+    }
+  });
+
+  return mapGeneratedFile(generatedFile);
+}
+
 export async function shareGeneratedFile(fileId: string, userIds: string[]) {
   const session = await auth();
   if (!session?.user?.id) throw new Error('Unauthorized');

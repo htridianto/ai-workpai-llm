@@ -200,6 +200,7 @@ model GeneratedFile {
   ownerId         String             @map("owner_id")
   folderId        String?            @map("folder_id")
   meta            String?            // JSON string for minio path, etc.
+  notes           String?            
   createdAt       DateTime           @default(now()) @map("created_at")
   deletedAt       DateTime?          @map("deleted_at")
   
