@@ -106,6 +106,21 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
     onClose();
   };
 
+  const uploadFileContext = async (folderId: string | null, file: globalThis.File) => {
+    const ws = selectedWorkspace;
+    if (!ws) return;
+
+    try {
+        await WorkspaceService.uploadFileContext(ws.slug, folderId, file);
+        await refreshWorkspaces();
+        setToast({ message: `File ${file.name} uploaded and indexed`, type: "success" });
+        onClose();
+    } catch (error: any) {
+        setToast({ message: "Failed to upload file", type: "error", subMessage: error.message });
+        throw error;
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -149,6 +164,7 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
               folders={folders}
               currentFolderId={currentFolderId}
               addFileContexts={addFileContexts}
+              uploadFileContext={uploadFileContext}
             />
           )}
 

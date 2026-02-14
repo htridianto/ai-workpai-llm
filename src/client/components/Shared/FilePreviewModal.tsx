@@ -12,35 +12,10 @@ interface FilePreviewModalProps {
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClose }) => {
   if (!file) return null;
 
+  const docData = file.meta?.document || {};
+
   const renderContent = () => {
     switch (file.type) {
-        case 'pdf':
-            return (
-                <div className="bg-gray-100 dark:bg-charcoal-950 p-4 min-h-full flex flex-col gap-4 items-center">
-                    {/* Mock PDF Pages */}
-                    {[1, 2].map((page) => (
-                        <div key={page} className="w-full max-w-2xl bg-white text-black p-8 shadow-md min-h-[600px] flex flex-col gap-4">
-                            <div className="w-full h-4 bg-gray-200 mb-4" /> {/* Title */}
-                            <div className="space-y-2">
-                                <div className="w-full h-2 bg-gray-100" />
-                                <div className="w-[90%] h-2 bg-gray-100" />
-                                <div className="w-[95%] h-2 bg-gray-100" />
-                                <div className="w-[80%] h-2 bg-gray-100" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 mt-8">
-                                <div className="h-32 bg-gray-100 rounded" />
-                                <div className="space-y-2">
-                                    <div className="w-full h-2 bg-gray-100" />
-                                    <div className="w-full h-2 bg-gray-100" />
-                                    <div className="w-full h-2 bg-gray-100" />
-                                </div>
-                            </div>
-                            <div className="mt-auto text-center text-xs text-gray-400">Page {page}</div>
-                        </div>
-                    ))}
-                </div>
-            );
-
         case 'database':
             return (
                 <div className="p-6">
@@ -147,18 +122,22 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
             );
 
         default:
-            // Default TXT/Code view
+            // Default File view
             return (
                 <div className="flex-1 p-6 overflow-y-auto bg-white dark:bg-charcoal-950 font-mono text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                     <pre className="whitespace-pre-wrap font-mono">
-{`[Document Start]
+{`
+ID: ${docData?.id}   
 
-Filename: ${file.name}
+Title: ${docData?.title}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Location: ${docData?.location}
 
-Section 1: Introduction
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Name: ${docData?.name}
+
+[Document Start]
+
+${docData?.pageContent || 'No content available'}
 
 [Document End]`}
                     </pre>
@@ -214,7 +193,7 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
                 </div>
 
                 {/* Sidebar Stats */}
-                <div className="w-72 border-l border-gray-200 dark:border-charcoal-800 bg-gray-50 dark:bg-charcoal-900 p-6 space-y-6 overflow-y-auto hidden md:block shrink-0">
+                <div className="w-[1/3] border-l border-gray-200 dark:border-charcoal-800 bg-gray-50 dark:bg-charcoal-900 p-6 space-y-6 overflow-y-auto hidden md:block shrink-0">
                     <div>
                         <h4 className="text-xs font-bold text-charcoal-500 uppercase tracking-wider mb-4">Metadata</h4>
                         <div className="space-y-3">
@@ -222,13 +201,19 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
                                     <Database size={14} /> Tokens
                                 </span>
-                                <span className="font-mono text-slate-800 dark:text-slate-200">1,240</span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200">{docData.token_count_estimate?.toLocaleString() || '1,240'}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
-                                    <FileText size={14} /> Chunks
+                                    <FileText size={14} /> Words
                                 </span>
-                                <span className="font-mono text-slate-800 dark:text-slate-200">4</span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200">{docData.wordCount?.toLocaleString() || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
+                                    <ExternalLink size={14} /> Source
+                                </span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200 truncate max-w-[120px]" title={docData.chunkSource}>{docData.chunkSource || 'User Upload'}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
@@ -238,6 +223,20 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
                             </div>
                         </div>
                     </div>
+
+                    {docData.docAuthor && docData.docAuthor !== 'Unknown' && (
+                        <div>
+                            <h4 className="text-xs font-bold text-charcoal-500 uppercase tracking-wider mb-2">Author</h4>
+                            <div className="text-sm text-slate-800 dark:text-slate-200 font-medium">{docData.docAuthor}</div>
+                        </div>
+                    )}
+
+                    {docData.description && docData.description !== 'Unknown' && (
+                        <div>
+                            <h4 className="text-xs font-bold text-charcoal-500 uppercase tracking-wider mb-2">Description</h4>
+                            <p className="text-xs text-charcoal-500 dark:text-charcoal-400 leading-relaxed">{docData.description}</p>
+                        </div>
+                    )}
 
                     <div className="p-3 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                         <div className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">Status: Indexed</div>

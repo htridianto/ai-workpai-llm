@@ -155,6 +155,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/restapi/file-contexts/upload/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/file-contexts/upload">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/file-contexts/upload/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/restapi/folders/[folderId]/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/folders/[folderId]">> = Specific

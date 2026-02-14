@@ -19,7 +19,10 @@ interface FilesTabProps {
   folders: FolderType[];
   currentFolderId: string | null;
   addFileContexts: (wsId: string, items: FileContext[]) => Promise<void>;
+  uploadFileContext: (folderId: string | null, file: globalThis.File) => Promise<void>;
 }
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
 export const FilesTab: React.FC<FilesTabProps> = ({ 
   workspace, 
@@ -27,8 +30,10 @@ export const FilesTab: React.FC<FilesTabProps> = ({
   onSuccess, 
   folders,
   currentFolderId,
-  addFileContexts
+  addFileContexts,
+  uploadFileContext
 }) => {
+  const { setToast } = useDashboard();
   const [contextFiles, setContextFiles] = useState<globalThis.File[]>([]);
   const [targetFolderId, setTargetFolderId] = useState<string>('');
   const [isImporting, setIsImporting] = useState(false);
@@ -36,41 +41,57 @@ export const FilesTab: React.FC<FilesTabProps> = ({
   const folderOptions = folders.filter(f => f.isShared);
   useEffect(() => {
     if (currentFolderId && currentFolderId.startsWith('.')) {
-        setTargetFolderId(folderOptions[0].id);
+        setTargetFolderId(folderOptions[0]?.id || '');
     } else {
-        setTargetFolderId(currentFolderId || folderOptions[0].id);
+        setTargetFolderId(currentFolderId || folderOptions[0]?.id || '');
     }
   }, [currentFolderId]);
+
+  const validateAndAddFiles = (files: FileList | globalThis.File[]) => {
+    const fileArray = Array.from(files);
+    const validFiles: globalThis.File[] = [];
+    const invalidFiles: string[] = [];
+
+    fileArray.forEach(file => {
+      if (file.size <= MAX_FILE_SIZE) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(file.name);
+      }
+    });
+
+    if (invalidFiles.length > 0) {
+      setToast({
+        message: "File too large",
+        type: "error",
+        subMessage: `${invalidFiles.length} file(s) exceeded the 20MB limit: ${invalidFiles.join(", ")}`
+      });
+    }
+
+    if (validFiles.length > 0) {
+      setContextFiles(prev => [...prev, ...validFiles]);
+    }
+  };
 
   const handleFileDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setContextFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
+      validateAndAddFiles(e.dataTransfer.files);
     }
   }, []);
 
   const handleConfirm = async () => {
-    const newItems: FileContext[] = [];
-    contextFiles.forEach(file => {
-      newItems.push({
-        id: 'auto',
-        name: file.name,
-        type: 'file', //file.name.endsWith('.pdf') ? 'pdf' : 'txt',
-        status: 'indexed',
-        size: file.size,
-        dateCreated: Date.now(),
-        folderId: targetFolderId || undefined,
-        progress: 100,
-        workspaceId: workspace.slug
-      });
-    });
-
-    if (newItems.length === 0) return;
+    if (contextFiles.length === 0) return;
 
     setIsImporting(true);
     try {
-        await addFileContexts(workspace.id, newItems);
+        await Promise.all(contextFiles.map(file => 
+            uploadFileContext(targetFolderId, file)
+        ));
         onSuccess();
+        onClose();
+    } catch (error) {
+        // Error is handled in the service/parent
     } finally {
         setIsImporting(false);
     }
@@ -114,10 +135,13 @@ export const FilesTab: React.FC<FilesTabProps> = ({
                 multiple 
                 className="hidden" 
                 onChange={(e) => { 
-                  if (e.target.files) setContextFiles(prev => [...prev, ...Array.from(e.target.files as FileList)]); 
+                  if (e.target.files) validateAndAddFiles(e.target.files); 
                 }} 
               />
             </label>
+          </p>
+          <p className="text-[10px] uppercase tracking-wider font-bold text-charcoal-400 bg-gray-100 dark:bg-charcoal-800 px-2 py-1 rounded-md mb-4">
+              Maksimal ukuran file: 20MB
           </p>
           
           {contextFiles.length > 0 && (
@@ -142,8 +166,8 @@ export const FilesTab: React.FC<FilesTabProps> = ({
           disabled={contextFiles.length === 0 || isImporting}
           className="flex items-center gap-2 px-8 py-2.5 bg-accent-600 hover:bg-accent-500 text-white rounded-xl shadow-lg shadow-accent-900/20 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
-          {isImporting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={16} />}
-          {isImporting ? 'Submitting...' : 'Submit'}
+          {isImporting ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={16} />}
+          {isImporting ? 'Uploading...' : 'Upload'}
         </button>
       </div>
     </div>

@@ -63,6 +63,21 @@ const authAnythingLLM = async(identifier: string, password: string): Promise<any
         message: authData.message || 'Invalid credentials.', status: 401
       };
     }
+    /*
+    // do create folder for workspace (POST /v1/document/create-folder)
+    const createFolder = await fetch(`${ragApiUrl}/api/v1/document/create-folder`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authData.token}`
+        },
+        body: JSON.stringify({
+            name: `${newUser.name} Team`
+        })
+    });
+    console.log("createFolder:", createFolder);
+    */
+
     return {      
       status: 200,
       success: true,
@@ -199,25 +214,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             lastLoggedin: new Date(),
             sessionToken: authExternal.token
           });
-          /*
-          const newUser = await (prisma as any).user.create({
-            data: {
-              // id: nanoid(10)+'--'+authExternal.user?.id as string,
-              userName: credentials.identifier as string,
-              email: generateDummyEmail(credentials.identifier as string),
-              name: credentials.identifier as string,
-              credential: hash,
-              emailVerified: 0,
-              ssoAuthProvider: "anythingllm",
-              ssoAuthId: `${authExternal.user?.id}`,
-              role: 'owner',
-              bio: authExternal.user?.bio || null,
-              lastLoggedin: new Date(),
-              sessionToken: authExternal.token
-            }
-          });
-          // console.log("New User:", newUser);
-          */
           return {...newUser, accessToken: accessToken}; //sessionToken: authExternal.token
         }else {
           // do update user

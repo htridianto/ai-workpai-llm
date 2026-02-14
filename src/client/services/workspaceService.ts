@@ -102,6 +102,23 @@ export const WorkspaceService = {
         return response.json();
     },
 
+    uploadFileContext: async (workspaceId: string, folderId: string | null, file: File): Promise<any> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('workspaceId', workspaceId);
+        if (folderId) formData.append('folderId', folderId);
+
+        const response = await fetch(`${BASE_URL}/file-contexts/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || 'Failed to upload file');
+        }
+        return response.json();
+    },
+
     updateFileContext: async (id: string, data: any): Promise<any> => {
         const response = await fetch(`${BASE_URL}/file-contexts/${id}`, {
             method: 'PATCH',

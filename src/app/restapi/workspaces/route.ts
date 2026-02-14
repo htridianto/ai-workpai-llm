@@ -46,8 +46,8 @@ export async function GET(request: Request) {
 
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
-            console.warn("RAG_API_URL not set, falling back to mock store");
-            return NextResponse.json({ message: 'Failed to get workspace: Internal Server Error' }, { status: 500 });
+            console.warn("RAG_API_URL is not configured");
+            return NextResponse.json({ message: 'Failed to get workspace: RAG_API_URL is not configured' }, { status: 500 });
         }
         const response = await fetch(`${ragApiUrl}/api/workspaces`, {
             headers: {
@@ -114,18 +114,45 @@ export async function POST(req: Request) {
         }
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
-            return NextResponse.json({ message: 'Failed to create workspace: Internal Server Error' }, { status: 500 });
+            return NextResponse.json({ message: 'Failed to get workspace: RAG_API_URL is not configured' }, { status: 500 });
         }
         const token = process.env.RAG_API_KEY || "56PZKDF-F2ZMR8P-HQJZBRQ-A403QRE";
         const slug = `ws-${nanoid(12)}`;
         const payload = {
             name: slug, 
-            similarityThreshold: body.similarityThreshold || 0.7,
+            similarityThreshold: body.similarityThreshold || 0.3,
             openAiTemp: body.openAiTemp || 0.7,
             openAiHistory: body.openAiHistory || 20,
-            openAiPrompt: body.openAiPrompt || "You are an AI assistant answering based ONLY on the provided documents.\nIf the answer is not in the documents, respond with:\n\"Tidak ditemukan dalam dokumen.\"\n\nCite page number if available in metadata.\nDo not invent facts.\nUse language based on user query.",
+            openAiPrompt: body.openAiPrompt || `
+### ROLE
+You are **Workpai**, a high-performance AI Document Analyst powered by a Retrieval-Augmented Generation (RAG) system. Your goal is to provide accurate, data-driven, and professional responses based strictly on the provided context.
+
+You have access to specific document chunks. This is your primary source. However, you are allowed to supplement answers with your internal knowledge when the documents are insufficient but relevant to the topic.
+
+### OPERATIONAL GUIDELINES
+1. **Primary Source First:** Always search for the answer in the provided documents first.
+2. **The "Bridge" Protocol:** If the documents do not contain the exact answer, but the topic is related to the documents:
+    - Provide the most relevant information found in the documents.
+    - Supplement it with your general knowledge to provide a complete answer.
+    - **CRITICAL:** You MUST start the supplemental section with: *"Based on general industry knowledge (not explicitly in the documents)..."*
+3. **No Hallucination:** If the topic is completely unrelated to the documents, state that you cannot find the info in your database.
+4. **Citations:** Clearly mark which parts came from the [Document] and which parts came from [General Knowledge].
+5. **Tone & Style:** Maintain a professional, objective, and analytical tone. Use clear headings and bullet points for complex data.
+6. **Language Consistency:** Respond in the same language as the user's query unless instructed otherwise.
+
+### FORMATTING REQUIREMENTS
+- Start with a direct answer or a concise summary.
+- Use **bold text** for key metrics, dates, and names.
+- If comparing data, use a Markdown table for better readability.
+- Conclude with a "Sources" section listing the filenames used DO NOT use labels like "(Context 0)", "(Source 1)", or any bracketed numbers.
+
+### CLEAN RESPONSE RULES
+- **No Technical Labels:** NEVER use labels like "Summary", "(Context 0)", "(Source 1)", or bracketed numbers like [1] in your response.
+- Provide a smooth, natural response without citing specific chunk numbers or indices.
+- If you need to mention a document, use its "Filename" instead of a context number.
+            `,
             queryRefusalResponse: body.queryRefusalResponse || "I'm sorry, but I cannot answer this question.\nThere is no relevant information in this workspace to answer your query.",
-            chatMode: body.chatMode || "query",
+            chatMode: body.chatMode || "chat",
             topN: body.topN || 4
         };
 
@@ -179,22 +206,20 @@ export async function POST(req: Request) {
         }        
         const dataUpdate = await responseUpdate.json(); 
         newWorkspace.title = body.title || dataUpdate.workspace.name;
-
-        if(session.user.ssoAuthId){
-            // do assign users to workspace (POST /v1/admin/workspaces/{slug}/manage-users)
-            await fetch(`${ragApiUrl}/api/v1/admin/workspaces/${ws.slug}/manage-users`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    userIds: [session.user.ssoAuthId],
-                    reset: true
-                })
-            });
-        }
-
+        
+        // do assign users to workspace (POST /v1/admin/workspaces/{slug}/manage-users)
+        await fetch(`${ragApiUrl}/api/v1/admin/workspaces/${ws.slug}/manage-users`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                userIds: [session.user.ssoAuthId],
+                reset: true
+            })
+        });        
+        
         // do create folder for workspace (POST /v1/document/create-folder)
         await fetch(`${ragApiUrl}/api/v1/document/create-folder`, {
             method: 'POST',
@@ -206,6 +231,7 @@ export async function POST(req: Request) {
                 name: newWorkspace.slug
             })
         });
+        
 
         // do create workspace in database
         await createWorkspaceService({

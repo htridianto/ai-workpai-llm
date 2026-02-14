@@ -7,7 +7,8 @@ import {
   Edit2, 
   Trash2, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 import { Workspace } from '@/shared/types/types';
 import { WorkspaceService } from '@/client/services/workspaceService';
@@ -35,6 +36,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
   const { workspaces, refreshWorkspaces, setToast, isLoadingData: isLoading } = useDashboard();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
   const [itemToEditId, setItemToEditId] = useState<string | null>(null);
 
   const handleCreateWorkspace = async () => {
@@ -47,6 +49,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
         return;
     }
 
+    setIsActionLoading(true);
     try {
         const savedAuth = localStorage.getItem('workpai_llm_auth');
         const user = savedAuth ? JSON.parse(savedAuth) : null;
@@ -62,6 +65,8 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
         setToast({ message: "Workspace Created", type: "success" });
     } catch (err: any) {
         setToast({ message: "Failed to create workspace", type: "error", subMessage: err.message });
+    } finally {
+        setIsActionLoading(false);
     }
   };
 
@@ -69,16 +74,19 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
     if (itemToEditId) {
         const ws = workspaces.find(s => s.id === itemToEditId);
         if(ws) {
+            setIsActionLoading(true);
             try {
                 await WorkspaceService.updateWorkspace(ws.slug, { title, description });
                 await refreshWorkspaces();
                 setToast({ message: "Workspace Updated", type: "success" });
+                setIsEditModalOpen(false);
+                setItemToEditId(null);
             } catch (err: any) {
                 setToast({ message: "Failed to update workspace", type: "error", subMessage: err.message });
+            } finally {
+                setIsActionLoading(false);
             }
         }
-        setIsEditModalOpen(false);
-        setItemToEditId(null);
     }
   };
 
@@ -86,15 +94,18 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
     if (itemToEditId) {
       const ws = workspaces.find(s => s.id === itemToEditId);
       if(ws) {  
+        setIsActionLoading(true);
         try {
             await WorkspaceService.deleteWorkspace(ws.slug);
             await refreshWorkspaces();
             setToast({ message: "Workspace Deleted", type: "info" });
+            setIsDeleteModalOpen(false);
+            setItemToEditId(null);
         } catch (err: any) {
             setToast({ message: "Failed to delete workspace", type: "error", subMessage: err.message });
+        } finally {
+            setIsActionLoading(false);
         }
-        setIsDeleteModalOpen(false);
-        setItemToEditId(null);
       }
     }
   };
@@ -113,15 +124,15 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
     const user = savedAuth ? JSON.parse(savedAuth) : null;
     const userId = user?.id;    
 
-    const demoWorkspaces = [{
-        title: 'Market Analysis 2024',
+    const demoWorkspaces = [/*{
+        title: 'Market Analysis 2025',
         description: 'Penyimpanan laporan riset pasar, data kompetitor, dan tren industri terbaru. Memungkinkan LLM melakukan sintesis data untuk strategi penetapan harga atau peluncuran produk baru.',
         userId: userId ? [userId] : []
-    },/*{
+    },*/{
         title: 'Global Markets & Policy Risk',
         description: 'Integrasi dokumen strategi bisnis dan arsip kebijakan publik untuk analisis RAG real-time.',
         userId: userId ? [userId] : []
-    }, {
+    }, /*{
         title: 'Political Marketing Engine',
         description: 'Data demografi pemilih (Marketing) dengan janji kampanye dan isu daerah (Politik).',
         userId: userId ? [userId] : []
@@ -217,10 +228,11 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
 
                       <button 
                           onClick={handleCreateWorkspace}
-                          className="w-full flex items-center gap-3 px-3 py-3 mb-2 rounded-xl border border-dashed border-gray-300 dark:border-charcoal-700 hover:border-accent-500 text-charcoal-500 dark:text-charcoal-400 hover:text-accent-600 dark:hover:text-accent-500 hover:bg-gray-50 dark:hover:bg-charcoal-800/50 transition-all text-sm font-medium"
+                          disabled={isActionLoading}
+                          className="w-full flex items-center justify-center gap-3 px-3 py-3 mb-2 rounded-xl border border-dashed border-gray-300 dark:border-charcoal-700 hover:border-accent-500 text-charcoal-500 dark:text-charcoal-400 hover:text-accent-600 dark:hover:text-accent-500 hover:bg-gray-50 dark:hover:bg-charcoal-800/50 transition-all text-sm font-medium disabled:opacity-50"
                       >
-                          <Plus size={18} />
-                          <span>Create New Workspace</span>
+                          {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
+                          <span>{isActionLoading ? 'Creating...' : 'Create New Workspace'}</span>
                       </button>
                       
                       {workspaces.length === 0 && (
@@ -251,6 +263,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
           initialDescription={workspaces.find(s => s.id === itemToEditId)?.description || ''}
           onConfirm={handleUpdateWorkspace}
           onCancel={() => { setIsEditModalOpen(false); setItemToEditId(null); }}
+          isLoading={isActionLoading}
       />
 
       <ConfirmationModal
@@ -261,6 +274,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
           isDanger={true}
           onConfirm={handleDeleteWorkspace}
           onCancel={() => { setIsDeleteModalOpen(false); setItemToEditId(null); }}
+          isLoading={isActionLoading}
       />
     </>
   );

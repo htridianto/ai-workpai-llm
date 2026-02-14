@@ -35,7 +35,26 @@ export async function DELETE(
     const { contextId } = await params;
 
     try {
+        const context = await getFileContextById(contextId);
+        if (!context) {
+            return NextResponse.json({ message: 'File context not found' }, { status: 404 });
+        }
+
         await deleteFileContext(contextId, true);
+
+        if(context.meta?.document){
+            // do delete document for workspace (POST /v1/system/remove-documents)
+            await fetch(`${process.env.RAG_API_URL}/api/v1/system/remove-documents`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.RAG_API_KEY}`
+                },
+                body: JSON.stringify({
+                    names: [context.meta?.document.location]
+                })
+            });
+        }                
         return NextResponse.json({ message: 'File context deleted successfully' });
     } catch (error) {
         console.error("DELETE FileContext error:", error);

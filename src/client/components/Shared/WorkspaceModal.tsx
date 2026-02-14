@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Box } from 'lucide-react';
+import { X, Box, Loader2 } from 'lucide-react';
 
 interface WorkspaceModalProps {
   isOpen: boolean;
@@ -10,6 +10,7 @@ interface WorkspaceModalProps {
   confirmLabel?: string;
   onConfirm: (title: string, description: string) => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
 export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
@@ -19,7 +20,8 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
   initialDescription,
   confirmLabel = "Save",
   onConfirm,
-  onCancel
+  onCancel,
+  isLoading = false
 }) => {
   const [workspaceTitle, setWorkspaceTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
@@ -98,9 +100,10 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
                 </button>
                 <button
                   onClick={() => onConfirm(workspaceTitle, description)}
-                  disabled={!workspaceTitle.trim()}
-                  className="flex-1 py-2.5 px-4 rounded-xl text-white shadow-lg bg-accent-600 hover:bg-accent-500 shadow-accent-900/20 disabled:bg-charcoal-700 disabled:text-charcoal-500 disabled:shadow-none transition-all text-sm font-medium"
+                  disabled={!workspaceTitle.trim() || isLoading}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-white shadow-lg bg-accent-600 hover:bg-accent-500 shadow-accent-900/20 disabled:bg-charcoal-700 disabled:text-charcoal-500 disabled:shadow-none transition-all text-sm font-medium flex items-center justify-center gap-2"
                 >
+                  {isLoading && <Loader2 size={16} className="animate-spin" />}
                   {confirmLabel}
                 </button>
               </div>

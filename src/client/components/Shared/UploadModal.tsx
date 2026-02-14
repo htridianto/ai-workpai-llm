@@ -14,6 +14,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
   // File State
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
   // Link State
   const [urlInput, setUrlInput] = useState('');
@@ -33,13 +34,23 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files as FileList)]);
+      const droppedFiles = Array.from(e.dataTransfer.files as FileList);
+      const validFiles = droppedFiles.filter(f => f.size <= MAX_FILE_SIZE);
+      if (validFiles.length < droppedFiles.length) {
+          alert('Some files were rejected because they exceed the 20MB limit.');
+      }
+      setFiles(prev => [...prev, ...validFiles]);
     }
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setFiles(prev => [...prev, ...Array.from(e.target.files as FileList)]);
+      const selectedFiles = Array.from(e.target.files as FileList);
+      const validFiles = selectedFiles.filter(f => f.size <= MAX_FILE_SIZE);
+      if (validFiles.length < selectedFiles.length) {
+          alert('Some files were rejected because they exceed the 20MB limit.');
+      }
+      setFiles(prev => [...prev, ...validFiles]);
     }
   };
 
@@ -142,7 +153,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
 
                         <div className="text-[10px] text-charcoal-400 bg-gray-100 dark:bg-charcoal-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
                             <AlertCircle size={12} />
-                            <span>Max 25MB • PDF, TXT, MD</span>
+                            <span>Max 20MB • PDF, TXT, MD</span>
                         </div>
                         </div>
 

@@ -174,29 +174,4 @@ export const DUMMY_GENERATED_FILES: GeneratedFile[] = [
   },
 ];
 
-export const DUMMY_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: 'n1',
-    title: 'File Generated Successfully',
-    message: 'Competitor_Analysis.docx is ready for download.',
-    type: 'success',
-    timestamp: Date.now() - 800000,
-    read: false
-  },
-  {
-    id: 'n2',
-    title: 'File Generated Successfully',
-    message: 'Q1_Strategy_Overview.pdf is ready for download.',
-    type: 'success',
-    timestamp: Date.now() - 1500000,
-    read: true
-  },
-  {
-    id: 'n3',
-    title: 'Welcome to WorkPai',
-    message: 'Get started by creating your first workspace.',
-    type: 'info',
-    timestamp: Date.now() - 10000000,
-    read: true
-  }
-];
+export const DUMMY_NOTIFICATIONS: AppNotification[] = [];
