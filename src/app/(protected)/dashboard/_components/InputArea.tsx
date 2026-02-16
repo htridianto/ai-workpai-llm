@@ -71,7 +71,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, disabled }) => {
 
   return (
     <div className="p-6 bg-white/80 dark:bg-charcoal-950/50 backdrop-blur-sm relative z-10 transition-colors duration-200">
-      <div className="max-w-4xl mx-auto flex flex-col gap-3">
+      <div className="--max-w-4xl mx-auto flex flex-col gap-3">
         
         {/* Attachment Previews */}
         {attachments.length > 0 && (
@@ -101,13 +101,13 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, disabled }) => {
           {/* Removed focus-within border/ring classes */}
           <div className="flex items-end gap-2 bg-gray-100 dark:bg-charcoal-900 p-2.5 rounded-xl border border-gray-200 dark:border-charcoal-800 shadow-inner transition-all">
             
-            <button 
+            {/* <button 
               onClick={() => fileInputRef.current?.click()}
               className="p-2.5 text-charcoal-500 dark:text-charcoal-400 hover:text-accent-500 dark:hover:text-accent-400 hover:bg-white dark:hover:bg-charcoal-800 rounded-lg transition-colors"
               title="Attach file"
             >
               <Paperclip size={20} />
-            </button>
+            </button> */}
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -142,7 +142,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, disabled }) => {
         </div>
         
         <div className="flex justify-between items-center text-[10px] text-charcoal-500 px-1">
-          <span>Gemini Pro Preview</span>
+          <span></span>
           <span className="flex items-center gap-1"><CornerDownLeft size={10} /> Ctrl + Enter to send</span>
         </div>
       </div>

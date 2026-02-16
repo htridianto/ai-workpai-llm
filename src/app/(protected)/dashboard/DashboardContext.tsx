@@ -51,7 +51,7 @@ interface DashboardContextType {
   // Handlers
   handleSelectWorkspace: (id: string) => void;
   createNewSession: () => Promise<void>;
-  deleteSession: (id: string, e: React.MouseEvent) => Promise<void>;
+  deleteSession: (id: string, e?: React.MouseEvent) => Promise<void>;
   renameSession: (id: string, newTitle: string) => Promise<void>;
   handleSendMessage: (text: string, attachments: Attachment[]) => Promise<void>;
   handleGenerateDocument: (messageId: string, format: ExportFormat) => Promise<void>;
@@ -104,17 +104,20 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const refreshWorkspaces = async () => {
       setIsLoadingData(true);
       try {
-        const [fetchedWorkspaces, fetchedSessions] = await Promise.all([
-            WorkspaceService.fetchWorkspaces(),
-            ChatService.fetchSessions()
-        ]);
-        
+        const fetchedWorkspaces = await WorkspaceService.fetchWorkspaces();
         setWorkspaces(fetchedWorkspaces);
-        setSessions(fetchedSessions);
         
-        if (!currentWorkspaceId && fetchedWorkspaces.length > 0) {
-             const initialWsId = fetchedWorkspaces[0].id; 
+        // Determinkan WS awal
+        let initialWsId = currentWorkspaceId;
+        if (!initialWsId && fetchedWorkspaces.length > 0) {
+             initialWsId = fetchedWorkspaces[0].id; 
              setCurrentWorkspaceId(initialWsId);
+        }
+
+        // Fetch sessions hanya untuk WS ini
+        if (initialWsId) {
+            const fetchedSessions = await ChatService.fetchSessions(initialWsId);
+            setSessions(fetchedSessions);
         }
         
       } catch (err: any) {
@@ -142,6 +145,21 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }, [settings]);
 
+  // Load sessions when workspace changes
+  useEffect(() => {
+    const loadSessions = async () => {
+        if (currentWorkspaceId) {
+            try {
+                const fetchedSessions = await ChatService.fetchSessions(currentWorkspaceId);
+                setSessions(fetchedSessions);
+            } catch (err) {
+                console.error("Failed to load sessions for workspace:", err);
+            }
+        }
+    };
+    loadSessions();
+  }, [currentWorkspaceId]);
+
   // Lock body scroll on mobile when sidebars are open
   useEffect(() => {
     const isAnySidebarOpen = isSidebarOpen || isContextOpen;
@@ -159,7 +177,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   }, [isSidebarOpen, isContextOpen]);
 
   // Derived State (Memoized)
-  const currentWorkspace = useMemo(() => workspaces.find(w => w.id === currentWorkspaceId), [workspaces, currentWorkspaceId]);
+  const currentWorkspace = useMemo(() => workspaces.find(w => w.slug === currentWorkspaceId), [workspaces, currentWorkspaceId]);
   const filteredSessions = useMemo(() => sessions.filter(s => s.workspaceId === currentWorkspaceId), [sessions, currentWorkspaceId]);
   const currentSession = useMemo(() => sessions.find(s => s.id === currentSessionId), [sessions, currentSessionId]);
   const currentFileContexts = useMemo(() => currentWorkspace?.fileContexts || [], [currentWorkspace]);
@@ -187,22 +205,38 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       }
   };
 
+  const generateUniqueTitle = (workspaceId: string, baseTitle: string = 'New Chat') => {
+    let newTitle = baseTitle;
+    let counter = 1;
+    const wsSessions = sessions.filter(s => s.workspaceId === workspaceId);
+    while (wsSessions.some(s => s.title === newTitle)) {
+      newTitle = `${baseTitle} ${counter}`;
+      counter++;
+    }
+    return newTitle;
+  };
+
   const createNewSession = async () => {
     if (!currentWorkspaceId) return;
+
+    const newTitle = generateUniqueTitle(currentWorkspaceId, 'Thread');
+    // const newSlug = newTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') + '-' + uuidv4().slice(0, 8);
+
     const newSession: ChatSession = {
       id: uuidv4(),
+      // slug: newSlug,
       workspaceId: currentWorkspaceId,
-      title: 'New Chat',
+      userId: userProfile?.id,
+      title: newTitle,
       messages: [],
-      modelId: settings.defaultModelId,
+      modelId: '', //settings.defaultModelId,
       createdAt: Date.now(),
       fileContextIds: [], 
     };
     
     // We need to find the workspace to get items. 
-    const ws = workspaces.find(w => w.id === currentWorkspaceId);
-    if (ws) {
-        newSession.fileContextIds = ws.fileContexts.map(i => i.id);
+    if (currentWorkspace) {
+        newSession.fileContextIds = currentWorkspace.fileContexts.map(i => i.id);
     }
 
     setSessions(prev => [newSession, ...prev]);
@@ -210,8 +244,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     await ChatService.createSession(newSession);
   };
 
-  const deleteSession = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const deleteSession = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     setSessions(prev => prev.filter(s => s.id !== id));
     if (currentSessionId === id) {
       const remaining = sessions.filter(s => s.id !== id && s.workspaceId === currentWorkspaceId);
@@ -234,17 +268,21 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     if (!sessionToUse) {
        const newId = uuidv4();
-       const ws = workspaces.find(w => w.id === currentWorkspaceId);
-       const initialContextIds = ws ? ws.fileContexts.map(i => i.id) : [];
+       const initialContextIds = currentWorkspace ? currentWorkspace.fileContexts.map(i => i.id) : [];
+
+       const newTitle = text.slice(0, 30) || generateUniqueTitle(currentWorkspaceId);
+      //  const newSlug = newTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') + '-' + uuidv4().slice(0, 8);
 
        const newSession: ChatSession = {
-        id: newId,
-        workspaceId: currentWorkspaceId,
-        title: text.slice(0, 30) || 'New Chat',
-        messages: [],
-        modelId: settings.defaultModelId,
-        createdAt: Date.now(),
-        fileContextIds: initialContextIds
+          id: newId,
+          // slug: newSlug,
+          workspaceId: currentWorkspaceId,
+          userId: userProfile?.id,
+          title: newTitle,
+          messages: [],
+          modelId: settings.defaultModelId,
+          createdAt: Date.now(),
+          fileContextIds: initialContextIds
        };
        sessionToUse = newSession;
        isNewSession = true;
@@ -263,7 +301,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     const updatedSession = {
       ...session,
-      title: session.messages.length === 0 ? (text.slice(0, 30) || 'New Chat') : session.title,
+      title: session.messages.length === 0 ? (text.slice(0, 30) || generateUniqueTitle(currentWorkspaceId)) : session.title,
       messages: [...session.messages, userMessage]
     };
     

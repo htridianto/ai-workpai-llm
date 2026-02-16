@@ -3,7 +3,8 @@
   "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
   "/(protected)/workspaces/page": "app/(protected)/workspaces/page.js",
   "/restapi/auth/[...nextauth]/route": "app/restapi/auth/[...nextauth]/route.js",
+  "/restapi/chat/route": "app/restapi/chat/route.js",
+  "/restapi/chatsession/[sessionId]/route": "app/restapi/chatsession/[sessionId]/route.js",
   "/restapi/chatsession/route": "app/restapi/chatsession/route.js",
-  "/restapi/file-contexts/upload/route": "app/restapi/file-contexts/upload/route.js",
   "/restapi/workspaces/route": "app/restapi/workspaces/route.js"
 }

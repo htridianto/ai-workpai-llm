@@ -27,10 +27,7 @@ export async function POST(req: Request) {
            throw new Error("RAG_API_URL is not configured.");
         }
 
-        // The user said {RAG_API_URL}/v1/document/upload/{workspaceId}
-        // but other calls in the codebase use /api/v1, so we'll use that.
-        const uploadUrl = `${ragApiUrl}/api/v1/document/upload/${workspaceId}`;
-        
+        const uploadUrl = `${ragApiUrl}/api/v1/document/upload/${workspaceId}`;        
         const ragFormData = new FormData();        
         ragFormData.append('addToWorkspaces', workspaceId);        
         const metadata = {

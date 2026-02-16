@@ -75,8 +75,11 @@ export const ChatService = {
         return response.json();
     },
 
-    fetchSessions: async (): Promise<ChatSession[]> => {
-        const response = await fetch(`${BASE_URL}/chatsession`);
+    fetchSessions: async (workspaceId?: string): Promise<ChatSession[]> => {
+        const url = workspaceId 
+            ? `${BASE_URL}/chatsession?workspaceId=${workspaceId}` 
+            : `${BASE_URL}/chatsession`;
+        const response = await fetch(url);
         if (!response.ok) throw new Error('Failed to fetch sessions');
         return response.json();
     },

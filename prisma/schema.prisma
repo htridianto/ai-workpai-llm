@@ -19,6 +19,7 @@ model Workspace {
   users           WorkspaceUser[]
   folders         Folder[]
   fileContexts    FileContext[]
+  chatSessions    ChatSession[]
 
   @@map("workspaces")
 }
@@ -69,6 +70,7 @@ model User {
   workspaces      WorkspaceUser[]
   organizations   OrganizationUser[]
   sharedGeneratedFiles GeneratedFileShare[]
+  chatSessions    ChatSession[]
   
   // NextAuth relations
   accounts        Account[]
@@ -222,5 +224,41 @@ model GeneratedFileShare {
 
   @@id([fileId, userId])
   @@map("generated_file_shares")
+}
+
+model ChatSession {
+  id              String         @id @default(cuid())
+  slug            String?        @unique
+  workspaceId     String         @map("workspace_id")
+  userId          String?        @map("user_id")
+  title           String
+  modelId         String         @map("model_id")
+  fileContextIds  String?        @map("file_context_ids") // JSON array of IDs
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
+  
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages        ChatMessage[]
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id              String         @id @default(cuid())
+  sessionId       String         @map("session_id")
+  role            String         // user, model, system
+  text            String
+  attachments     String?        // JSON string of Attachment[]
+  isError         Int            @default(0) @map("is_error")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  
+  session         ChatSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
 }
 

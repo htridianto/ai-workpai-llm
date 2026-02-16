@@ -89,7 +89,7 @@ export const getWorkspaceById = async (id: string) => {
       isSystem: 1,
       isShared: 0
   }));
-  console.log('waVirtualFolders', uniqueWaNumbers, waVirtualFolders);
+  // console.log('waVirtualFolders', uniqueWaNumbers, waVirtualFolders);
 
   return {
     ...ws,

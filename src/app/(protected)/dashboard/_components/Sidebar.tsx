@@ -45,6 +45,7 @@ export const Sidebar = React.memo(() => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [renameSessionId, setRenameSessionId] = useState<string | null>(null);
+  const [sessionToDeleteId, setSessionToDeleteId] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -213,7 +214,7 @@ export const Sidebar = React.memo(() => {
 
                     <div className="flex items-center justify-between mb-3">
                          <p className="text-[10px] text-charcoal-500 uppercase tracking-wider font-semibold">
-                            Chat History
+                            Chat History (Threads)
                         </p>
                     </div>
 
@@ -228,7 +229,8 @@ export const Sidebar = React.memo(() => {
                 </div>
 
                 {/* Search */}
-                <div className="px-4 py-2">
+                
+                {/* <div className="px-4 py-2">
                     <div className="relative">
                         <Search size={14} className="absolute left-3 top-2.5 text-charcoal-400" />
                         <input 
@@ -242,7 +244,7 @@ export const Sidebar = React.memo(() => {
                             <button onClick={() => setSearchQuery('')} className="absolute right-2 top-2 text-charcoal-400 hover:text-slate-500"><X size={14} /></button>
                         )}
                     </div>
-                </div>
+                </div> */}
 
                 {/* Session List */}
                 <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-charcoal-300 dark:scrollbar-thumb-charcoal-700 space-y-4">
@@ -284,7 +286,7 @@ export const Sidebar = React.memo(() => {
                                                         <Edit2 size={12} />
                                                     </button>
                                                     <button 
-                                                        onClick={(e) => onDeleteSession(session.id, e)}
+                                                        onClick={(e) => { e.stopPropagation(); setSessionToDeleteId(session.id); }}
                                                         className="p-1 hover:text-red-500 transition-colors"
                                                         title="Delete"
                                                     >
@@ -360,6 +362,21 @@ export const Sidebar = React.memo(() => {
              }
           }}
           onCancel={() => setRenameSessionId(null)}
+      />
+
+      <ConfirmationModal
+        isOpen={!!sessionToDeleteId}
+        title="Delete Chat"
+        message="Are you sure you want to delete this chat session? This action cannot be undone."
+        confirmLabel="Delete"
+        isDanger={true}
+        onConfirm={() => {
+          if (sessionToDeleteId) {
+            onDeleteSession(sessionToDeleteId);
+            setSessionToDeleteId(null);
+          }
+        }}
+        onCancel={() => setSessionToDeleteId(null)}
       />
     </>
   );

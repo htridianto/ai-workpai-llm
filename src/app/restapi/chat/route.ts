@@ -41,9 +41,9 @@ export async function POST(req: NextRequest) {
         const { modelId, history, newMessage, attachments, systemInstruction } = await req.json();
 
         const chatHistory = transformMessages(history || []);
-
+        console.log("systemInstruction:", systemInstruction);
         const chat = genAI.chats.create({
-            model: modelId || "gemini-1.5-flash",
+            model: "gemini-1.5-flash",
             history: chatHistory,
             config: {
                 systemInstruction: systemInstruction,

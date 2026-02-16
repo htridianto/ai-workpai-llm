@@ -299,6 +299,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/restapi/workspaces/[workspaceId]/threads/[threadSlug]/chats/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/workspaces/[workspaceId]/threads/[threadSlug]/chats">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/workspaces/[workspaceId]/threads/[threadSlug]/chats/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/restapi/workspaces/[workspaceId]/threads/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/workspaces/[workspaceId]/threads">> = Specific
+  const handler = {} as typeof import("../../../src/app/restapi/workspaces/[workspaceId]/threads/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/restapi/workspaces/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/restapi/workspaces">> = Specific

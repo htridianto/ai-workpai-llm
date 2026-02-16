@@ -2,8 +2,8 @@ import { ModelConfig } from '@/shared/types/types';
 
 export const AVAILABLE_MODELS: ModelConfig[] = [
   {
-    id: 'gemini-1.5-flash', // ID resmi untuk Gemini 1.5 Flash
-    name: 'Gemini 1.5 Flash',
+    id: 'gpt-4o-mini', // ID resmi untuk Gemini 1.5 Flash
+    name: 'GPT 4o Mini',
     description: 'Optimized for speed and efficiency in RAG workflows.',
     maxOutputTokens: 8192,
   },  

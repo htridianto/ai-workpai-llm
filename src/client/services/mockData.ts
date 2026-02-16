@@ -65,7 +65,8 @@ export const DUMMY_SESSIONS: ChatSession[] = [
   // Marketing Chats
   {
     id: 'session-1',
-    workspaceId: 'ws-marketing',
+    workspaceId: 'ws-iumwcvb05tjv',
+    userId: 'u-admin',
     title: 'Q1 Strategy Brainstorm',
     modelId: 'gemini-3-flash-preview',
     fileContextIds: ['ctx-mkt-1'],
@@ -87,7 +88,8 @@ export const DUMMY_SESSIONS: ChatSession[] = [
   },
   {
     id: 'session-2',
-    workspaceId: 'ws-marketing',
+    workspaceId: 'ws-iumwcvb05tjv',
+    userId: 'u-admin',
     title: 'Competitor Pricing Analysis',
     modelId: 'gemini-3-pro-preview',
     createdAt: Date.now() - 100000000, // Older
@@ -97,7 +99,8 @@ export const DUMMY_SESSIONS: ChatSession[] = [
   // Engineering Chats
   {
     id: 'session-3',
-    workspaceId: 'ws-engineering',
+    workspaceId: 'ws-iumwcvb05tjv',
+    userId: 'u-admin',
     title: 'API Authentication Error',
     modelId: 'gemini-3-pro-preview',
     fileContextIds: ['ctx-eng-1'],
@@ -115,6 +118,7 @@ export const DUMMY_SESSIONS: ChatSession[] = [
   {
     id: 'session-4',
     workspaceId: 'ws-legal',
+    userId: 'u-admin',
     title: 'NDA Clause Review',
     modelId: 'gemini-3-flash-preview',
     fileContextIds: ['ctx-leg-1'],

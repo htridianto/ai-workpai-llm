@@ -86,7 +86,9 @@ export interface FileContext {
 
 export interface ChatSession {
   id: string;
+  slug?: string;
   workspaceId: string; // Link to parent workspace
+  userId?: string;    // Owner of the session
   title: string;
   messages: Message[];
   modelId: string;

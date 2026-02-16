@@ -24,9 +24,9 @@ export default function SettingsPage() {
 
   // --- LLM State ---
   const [llmConfig, setLlmConfig] = useState<LLMConfiguration>({
-    provider: 'gemini',
+    provider: 'openai',
     apiKey: '',
-    modelName: 'gemini-1.5-flash',
+    modelName: 'gpt-4o-mini',
     baseUrl: 'http://localhost:11434'
   });
 
