@@ -159,41 +159,94 @@ export async function createGeneratedFileFromContent(name: string, content: stri
   // Map format to correct extension
   let extension = format;
   let contentType = 'text/plain';
+  let action: string | null = null;
 
   switch (format) {
-    case 'pdf': extension = 'pdf'; contentType = 'application/pdf'; break;
-    case 'docx': extension = 'docx'; contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'; break;
-    case 'notes': extension = 'txt'; contentType = 'text/plain'; break;
-    case 'sheets': extension = 'xlsx'; contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'; break;
-    // ... add more if needed
+    case 'pdf': extension = 'pdf'; action = 'pdf'; contentType = 'application/pdf'; break;
+    case 'docx': extension = 'docx'; action = 'docx'; contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'; break;
+    case 'notes': extension = 'txt'; action = 'generate-notes'; contentType = 'text/plain'; break;
+    case 'sheets': extension = 'xlsx'; action = 'xlsx'; contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'; break;
+    case 'slides': extension = 'pptx'; action = 'ppt'; contentType = 'application/vnd.openxmlformats-officedocument.presentationml.presentation'; break;
+    case 'image': extension = 'png'; action = 'image'; contentType = 'image/png'; break;
+    case 'audio': extension = 'mp3'; action = 'text2speech'; contentType = 'audio/mpeg'; break;
+    case 'video': extension = 'mp4'; contentType = 'video/mp4'; break;
+    default: extension = 'txt'; action = 'generate-notes'; contentType = 'text/plain'; break;
   }
 
   const fileName = name.endsWith(`.${extension}`) ? name : `${name}.${extension}`;
   const minioFileName = `${sanitizeUsernameToFolderName(session.user?.userName || session.user?.id || '')}/${fileId}.${extension}`;
 
-  await uploadFile(minioFileName, buffer, {
-    'Content-Type': contentType,
-    'Original-Name': fileName,
-    'Owner-Id': session.user.id,
-  });
+  if(action == 'generate-notes'){
+    await uploadFile(minioFileName, buffer, {
+      'Content-Type': contentType,
+      'Original-Name': fileName,
+      'Owner-Id': session.user.userName,
+    });
 
-  const generatedFile = await prisma.generatedFile.create({
-    data: {
-      id: fileId,
-      name: fileName,
-      type: format, // Store the original format identifier
-      size: buffer.length,
-      ownerId: session.user.id,
-      folderId: folderId || null,
-      snippet: content.slice(0, 200),
-      meta: JSON.stringify({ minioPath: minioFileName }),
+    const generatedFile = await prisma.generatedFile.create({
+      data: {
+        id: fileId,
+        name: fileName,
+        type: format, // Store the original format identifier
+        size: buffer.length,
+        ownerId: session.user.id,
+        folderId: folderId || null,
+        snippet: content.slice(0, 200),
+        meta: JSON.stringify({ minioPath: minioFileName }),
+      },
+      include: {
+        shares: true
+      }
+    });
+
+    return mapGeneratedFile(generatedFile);
+  } else if(action){
+    /* 
+    do send to generate file to 'http://178.128.215.87:5000/api/v2/generate/{action}',
+    output from api:
+    {
+      "id": "0171bf65-ca1e-4389-98be-c9e8db55f3e3",
+      "path": "/app_data/downloads/20260217_081750_0171bf.pdf",
+      "url_path": "http://178.128.215.87:5000/app_data/downloads/20260217_081750_0171bf.pdf"
     },
-    include: {
-      shares: true
-    }
-  });
-
-  return mapGeneratedFile(generatedFile);
+    get file content from response url_path , then the file upload to minio
+    */
+   try {
+      const response = await fetch(`${process.env.GENERATED_CONTENT_URL}/api/v2/generate/${action}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ content: content }),
+      });
+      const data = await response.json();
+      const fileBuffer = await fetch(data.url_path).then(res => res.arrayBuffer());
+      await uploadFile(minioFileName, Buffer.from(fileBuffer), {
+        'Content-Type': contentType,
+        'Original-Name': fileName,
+        'Owner-Id': session.user.userName,
+      });
+      const generatedFile = await prisma.generatedFile.create({
+        data: {
+          id: fileId,
+          name: fileName,
+          type: format, // Store the original format identifier
+          size: fileBuffer.byteLength,
+          ownerId: session.user.id,
+          folderId: folderId || null,
+          snippet: content.slice(0, 200),
+          meta: JSON.stringify({ minioPath: minioFileName }),
+        },
+        include: {
+          shares: true
+        }
+      });
+      return mapGeneratedFile(generatedFile);   
+   } catch (error) {
+    console.log(error);
+    throw new Error('Failed to generate file');
+   }
+  }  
 }
 
 export async function shareGeneratedFile(fileId: string, userIds: string[]) {

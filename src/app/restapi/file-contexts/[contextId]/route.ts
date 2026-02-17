@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/server/lib/auth';
-import { updateFileContext, deleteFileContext, getFileContextById } from '@/server/models';
+import { updateFileContext, deleteFileContext, getFileContextById, mapFileContext } from '@/server/models';
 
 export async function PATCH(
     req: Request,
@@ -33,7 +33,6 @@ export async function DELETE(
     }
 
     const { contextId } = await params;
-
     try {
         const context = await getFileContextById(contextId);
         if (!context) {
@@ -41,17 +40,18 @@ export async function DELETE(
         }
 
         await deleteFileContext(contextId, true);
-
+        
+        // console.log("context", context);
         if(context.meta?.document){
-            // do delete document for workspace (POST /v1/system/remove-documents)
-            await fetch(`${process.env.RAG_API_URL}/api/v1/system/remove-documents`, {
-                method: 'POST',
+            // do delete document for workspace (DELETE/v1/system/remove-documents)
+            const ragResponse = await fetch(`${process.env.RAG_API_URL}/api/v1/system/remove-documents`, {
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${process.env.RAG_API_KEY}`
                 },
                 body: JSON.stringify({
-                    names: [context.meta?.document.location]
+                    names: [context.meta.document.location]
                 })
             });
         }                

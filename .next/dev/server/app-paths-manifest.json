@@ -1,10 +1,22 @@
 {
+  "/(auth)/login/page": "app/(auth)/login/page.js",
   "/(protected)/dashboard/[workspaceId]/page": "app/(protected)/dashboard/[workspaceId]/page.js",
   "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
+  "/(protected)/generated/page": "app/(protected)/generated/page.js",
+  "/(protected)/settings/page": "app/(protected)/settings/page.js",
   "/(protected)/workspaces/page": "app/(protected)/workspaces/page.js",
   "/restapi/auth/[...nextauth]/route": "app/restapi/auth/[...nextauth]/route.js",
   "/restapi/chat/route": "app/restapi/chat/route.js",
   "/restapi/chatsession/[sessionId]/route": "app/restapi/chatsession/[sessionId]/route.js",
   "/restapi/chatsession/route": "app/restapi/chatsession/route.js",
+  "/restapi/file-contexts/[contextId]/route": "app/restapi/file-contexts/[contextId]/route.js",
+  "/restapi/file-contexts/upload/route": "app/restapi/file-contexts/upload/route.js",
+  "/restapi/generated/files/route": "app/restapi/generated/files/route.js",
+  "/restapi/generated/files/url/route": "app/restapi/generated/files/url/route.js",
+  "/restapi/generated/folders/route": "app/restapi/generated/folders/route.js",
+  "/restapi/generated/generate/route": "app/restapi/generated/generate/route.js",
+  "/restapi/organizations/route": "app/restapi/organizations/route.js",
+  "/restapi/users/route": "app/restapi/users/route.js",
+  "/restapi/workspaces/[workspaceId]/route": "app/restapi/workspaces/[workspaceId]/route.js",
   "/restapi/workspaces/route": "app/restapi/workspaces/route.js"
 }

@@ -117,8 +117,16 @@ export const TeamSettings: React.FC = () => {
           <Loader2 size={32} className="animate-spin mb-4" />
           <p>Loading users...</p>
         </div>
-      ) : (
+      ) : (        
         <div className="overflow-hidden border border-gray-200 dark:border-charcoal-800 rounded-xl">
+<div className="flex items-center p-4 mb-4 text-sm rounded-lg text-accent-500" role="alert">
+  <svg className="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+  </svg>
+  <div>
+    <span className="font-medium">Stay tuned!</span> This feature under development.
+  </div>
+</div>          
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-charcoal-800">
               <thead className="bg-gray-50 dark:bg-charcoal-950">
@@ -215,6 +223,14 @@ export const TeamSettings: React.FC = () => {
               </p>
             </div>
 
+<div className="flex items-center p-4 mb-4 text-sm rounded-lg text-accent-500" role="alert">
+  <svg className="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+  </svg>
+  <div>
+    <span className="font-medium">Stay tuned!</span> This feature under development.
+  </div>
+</div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-charcoal-500 uppercase flex items-center gap-1.5 ml-1">
@@ -317,6 +333,7 @@ export const TeamSettings: React.FC = () => {
                 </button>
                 <button
                   type="submit"
+                  disabled={true}
                   className="flex-1 px-4 py-2.5 bg-accent-600 hover:bg-accent-500 text-white rounded-xl font-medium shadow-lg shadow-accent-900/20 transition-all"
                 >
                   {editingUser ? 'Update User' : 'Send Invite'}

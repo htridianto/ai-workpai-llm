@@ -10,6 +10,14 @@ export interface Attachment {
   name?: string;
 }
 
+export interface Source {
+  id: string;
+  title: string;
+  url?: string;
+  text?: string;
+  [key: string]: any;
+}
+
 export interface Message {
   id: string;
   role: Role;
@@ -17,6 +25,7 @@ export interface Message {
   attachments?: Attachment[];
   timestamp: number;
   isError?: boolean;
+  sources?: Source[];
 }
 
 export interface Workspace {
@@ -33,6 +42,7 @@ export interface Workspace {
   folders: Folder[];
   virtualFolders: Folder[];
   systemInstruction?: string;  
+  threads?: ChatSession[];
 }
 
 export interface Organization {

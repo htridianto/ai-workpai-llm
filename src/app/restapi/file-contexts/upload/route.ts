@@ -29,14 +29,15 @@ export async function POST(req: Request) {
 
         const uploadUrl = `${ragApiUrl}/api/v1/document/upload/${workspaceId}`;        
         const ragFormData = new FormData();        
-        ragFormData.append('addToWorkspaces', workspaceId);        
+        ragFormData.append('addToWorkspaces', workspaceId);       
+
         const metadata = {
             docAuthor: (session.user as any).userName || session.user.name || 'Unknown',
             description: `file uploaded on workspace ${workspaceId}`
         };
-        ragFormData.append('metadata', JSON.stringify(metadata));
-        ragFormData.append('docAuthor', metadata.docAuthor);   
-        ragFormData.append('description', metadata.description);   
+        ragFormData.append('metadata', JSON.stringify(metadata)); // its not working
+        ragFormData.append('docAuthor', metadata.docAuthor);    // its not working
+        ragFormData.append('description', metadata.description);   // its not working
 
         ragFormData.append('file', file);
 
@@ -55,15 +56,27 @@ export async function POST(req: Request) {
             console.error("RAG upload error details:", errorText);
             throw new Error(`RAG server upload failed with status ${ragResponse.status}: ${errorText || ragResponse.statusText}`);
         }
-
         const ragResult = await ragResponse.json();
-        console.log("RAG upload result:", ragResult);
-
+        // console.log("RAG upload result:", ragResult);
         if (!ragResult.success) {
             throw new Error(`RAG server error: ${ragResult.error || 'Unknown error'}`);
         }
 
-        // 2. Create FileContext in local DB
+        // 2. Pin document /v1/workspace/{slug}/update-pin
+        const pinUrl = `${ragApiUrl}/api/v1/workspace/${workspaceId}/update-pin`;
+        const pinResponse = await fetch(pinUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${ragApiKey}`
+            },
+            body: JSON.stringify({
+                docPath: ragResult.documents[0].location,
+                pinStatus: true
+            })
+        });
+        console.error("RAG pin details:", pinResponse);
+
+        // 3. Create FileContext in local DB
         // Save 'documents' as part of meta filecontext as requested
         const context = await createFileContext({
             workspaceId,

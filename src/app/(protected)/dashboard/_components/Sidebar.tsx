@@ -217,7 +217,7 @@ export const Sidebar = React.memo(() => {
                             Chat History (Threads)
                         </p>
                     </div>
-
+                    {currentSessionId && (
                     <button 
                         onClick={onNewChat}
                         disabled={!currentWorkspaceId}
@@ -226,6 +226,7 @@ export const Sidebar = React.memo(() => {
                         <Plus size={16} />
                         <span>New Chat</span>
                     </button>
+                    )}
                 </div>
 
                 {/* Search */}

@@ -88,6 +88,7 @@ export const updateChatSession = async (id: string, data: Partial<ChatSession>) 
     if (data.modelId !== undefined) updateData.modelId = data.modelId
     if (data.fileContextIds !== undefined) updateData.fileContextIds = JSON.stringify(data.fileContextIds)
     
+    console.log("updateChatSession", { sessionId: id, messages: data.messages?.length });
     if (data.messages) {
         // Simple re-sync
         await prisma.chatMessage.deleteMany({
@@ -105,10 +106,10 @@ export const updateChatSession = async (id: string, data: Partial<ChatSession>) 
             }))
         }
     }
-
+    console.log("updateChatSession", { sessionId: id, data: updateData });
     const updated = await prisma.chatSession.update({
         where: { id },
-        data: updateData,
+        data: {...updateData, modelId: null},
         include: {
             messages: { orderBy: { createdAt: 'asc' } }
         }

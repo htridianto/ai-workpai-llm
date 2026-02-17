@@ -127,8 +127,6 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                 <div className="flex-1 p-6 overflow-y-auto bg-white dark:bg-charcoal-950 font-mono text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                     <pre className="whitespace-pre-wrap font-mono">
 {`
-ID: ${docData?.id}   
-
 Title: ${docData?.title}
 
 Location: ${docData?.location}
@@ -201,7 +199,7 @@ ${docData?.pageContent || 'No content available'}
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
                                     <Database size={14} /> Tokens
                                 </span>
-                                <span className="font-mono text-slate-800 dark:text-slate-200">{docData.token_count_estimate?.toLocaleString() || '1,240'}</span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200">{docData.token_count_estimate?.toLocaleString() || 'N/A'}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
@@ -217,9 +215,9 @@ ${docData?.pageContent || 'No content available'}
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
-                                    <Calendar size={14} /> Created
+                                    <Calendar size={14} /> Uploaded
                                 </span>
-                                <span className="font-mono text-slate-800 dark:text-slate-200">{new Date(file.dateCreated).toLocaleDateString()}</span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200">{new Date(file.dateCreated).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}</span>
                             </div>
                         </div>
                     </div>
@@ -248,10 +246,10 @@ ${docData?.pageContent || 'No content available'}
                     <div>
                         <h4 className="text-xs font-bold text-charcoal-500 uppercase tracking-wider mb-2">Chunk Preview</h4>
                         <div className="text-[10px] text-charcoal-400 italic">
-                            First 512 tokens vector representation ID:
+                            First {docData.token_count_estimate?.toLocaleString() || 'N/A'} tokens vector representation ID:
                         </div>
                         <div className="mt-2 text-[10px] font-mono text-charcoal-500 bg-gray-200 dark:bg-charcoal-950 p-2 rounded break-all">
-                            vec_89a7df...90b
+                            {docData.id || 'N/A'}
                         </div>
                     </div>
                 </div>

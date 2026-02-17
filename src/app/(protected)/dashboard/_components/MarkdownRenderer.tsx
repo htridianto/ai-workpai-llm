@@ -8,7 +8,7 @@ interface MarkdownRendererProps {
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
   return (
-    <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:text-slate-900 dark:prose-headings:text-slate-100 prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-a:text-accent-600 dark:prose-a:text-accent-400 prose-code:text-accent-600 dark:prose-code:text-accent-400 prose-pre:bg-gray-100 dark:prose-pre:bg-charcoal-950 prose-pre:border prose-pre:border-gray-200 dark:prose-pre:border-charcoal-800">
+    <div className="markdown flex flex-col gap-y-1 --text-normal --text-sm">      
       <ReactMarkdown 
         remarkPlugins={[remarkGfm]}
         components={{

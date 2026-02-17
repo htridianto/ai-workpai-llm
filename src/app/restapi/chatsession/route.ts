@@ -33,12 +33,34 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Workspace ID is required' }, { status: 400 });
         }
 
-        const slug = `${session.user.userName?.toLowerCase()}:${nanoid(10)}`;
-        const created = await createChatSession({
+        const slug = `${session.user.userName?.toLowerCase()}-${nanoid(12)}`;
+        const created = await createChatSession({            
             ...body, 
+            id: slug,
             userId: session.user.id,
             slug
         });
+
+        // do create chat session for workspace (POST /v1/workspace/{slug}/thread/new)
+        const payload = {
+            userId: session.user.ssoAuthId,
+            name: body.title,
+            slug
+        }
+        const ragResponse = await fetch(`${process.env.RAG_API_URL}/api/v1/workspace/${body.workspaceId}/thread/new`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.RAG_API_KEY}`
+            },
+            body: JSON.stringify(payload)
+        });        
+
+        if (!ragResponse.ok) {
+            const errorText = await ragResponse.text();
+            console.error("RAG create chat session error details:", errorText);
+        }
+        
         return NextResponse.json(created, { status: 201 });
     } catch (error) {
         console.error("POST ChatSession Error:", error);

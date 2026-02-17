@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Clock, FileText, Info, AlertTriangle, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AppNotification } from '@/shared/types/types';
+import { AppNotification, GeneratedFile } from '@/shared/types/types';
 import { MockApi } from '@/client/services/mockApiService';
+import { GeneratedService } from '@/client/services/generatedService';
 import { useRouter } from 'next/navigation';
 
 export const NotificationCenter: React.FC = () => {
@@ -13,9 +14,35 @@ export const NotificationCenter: React.FC = () => {
   const router = useRouter();
 
   const fetchNotifications = async () => {
-      const data = await MockApi.fetchNotifications();
-      // Sort by newest
-      setNotifications(data.sort((a, b) => b.timestamp - a.timestamp));
+    try {
+      // 1. Fetch mock notifications
+      const mockNotes = await MockApi.fetchNotifications();
+      
+      // 2. Fetch real generated files
+      const recentFiles = await GeneratedService.fetchGeneratedFiles();
+      
+      // Get read status for generated files from localStorage
+      const readGeneratedIds = JSON.parse(localStorage.getItem('read_generated_files') || '[]');
+
+      // 3. Convert recent files to notifications (last 7 days)
+      const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+      const fileNotes: AppNotification[] = recentFiles
+        .filter(file => file.dateCreated > sevenDaysAgo)
+        .map(file => ({
+          id: `file-${file.id}`,
+          title: 'File Generated Successfully',
+          message: `${file.name} is ready for download.`,
+          type: 'success',
+          timestamp: file.dateCreated,
+          read: readGeneratedIds.includes(file.id)
+        }));
+
+      // 4. Combine and sort
+      const combined = [...mockNotes, ...fileNotes].sort((a, b) => b.timestamp - a.timestamp);
+      setNotifications(combined);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
   };
 
   // Poll for notifications every 10 seconds to simulate real-time updates
@@ -40,12 +67,34 @@ export const NotificationCenter: React.FC = () => {
 
   const handleMarkAsRead = async (id: string, e?: React.MouseEvent) => {
       e?.stopPropagation();
-      await MockApi.markNotificationRead(id);
+      
+      if (id.startsWith('file-')) {
+          const fileId = id.replace('file-', '');
+          const readGeneratedIds = JSON.parse(localStorage.getItem('read_generated_files') || '[]');
+          if (!readGeneratedIds.includes(fileId)) {
+              const updated = [...readGeneratedIds, fileId];
+              localStorage.setItem('read_generated_files', JSON.stringify(updated));
+          }
+      } else {
+          await MockApi.markNotificationRead(id);
+      }
+      
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 
   const handleMarkAllRead = async () => {
+      // Mark all mock notifications as read
       await MockApi.markAllNotificationsRead();
+      
+      // Mark all file notifications as read in localStorage
+      const fileIds = notifications
+        .filter(n => n.id.startsWith('file-'))
+        .map(n => n.id.replace('file-', ''));
+      
+      const readGeneratedIds = JSON.parse(localStorage.getItem('read_generated_files') || '[]');
+      const updatedReadIds = [...new Set([...readGeneratedIds, ...fileIds])];
+      localStorage.setItem('read_generated_files', JSON.stringify(updatedReadIds));
+
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 

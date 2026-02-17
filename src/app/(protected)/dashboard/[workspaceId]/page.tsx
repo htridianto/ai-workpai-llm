@@ -14,6 +14,7 @@ export default function WorkspaceDashboardPage() {
     streamingContent, 
     handleGenerateDocument, 
     handleSendMessage, 
+    handleRegenerate,
     currentWorkspaceId,
     setCurrentWorkspaceId 
   } = useDashboard();
@@ -35,6 +36,7 @@ export default function WorkspaceDashboardPage() {
         isStreaming={isStreaming}
         streamingContent={streamingContent}
         onGenerateDocument={handleGenerateDocument}
+        onRegenerate={handleRegenerate}
       />
       <InputArea 
         onSend={handleSendMessage} 

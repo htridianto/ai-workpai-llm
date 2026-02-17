@@ -8,8 +8,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileContext } from '@/shared/types/types';
-
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
+
+const generateSnippet = (text: string, wordLimit: number) => {
+  const words = text.split(/\s+/); // Memecah berdasarkan spasi
+  if (words.length <= wordLimit) return text;
+  
+  return words.slice(0, wordLimit).join(" ") + "...";
+}
 
 export const ContextSidebar: React.FC = () => {
   const {
@@ -63,7 +69,7 @@ export const ContextSidebar: React.FC = () => {
               </button>
              <button 
               onClick={() => setActiveTab('documents')}
-              className={`flex-1 px-4 py-4 text-xs font-bold uppercase tracking-widest text-center transition-all border-b-2 ${
+              className={`flex-1 px-4 py-4 text-xs font-bold tracking-widest text-left transition-all border-b-2 ${
                 activeTab === 'documents' 
                   ? 'border-accent-500 text-accent-600 dark:text-accent-400' 
                   : 'border-transparent text-charcoal-400 hover:text-slate-600 dark:hover:text-slate-300'
@@ -71,16 +77,16 @@ export const ContextSidebar: React.FC = () => {
              >
                Documents
              </button>
-             <button 
+             {/* <button 
               onClick={() => setActiveTab('settings')}
-              className={`flex-1 px-4 py-4 text-xs font-bold uppercase tracking-widest text-center transition-all border-b-2 ${
+              className={`flex-1 px-4 py-4 text-xs font-bold tracking-widest text-center transition-all border-b-2 ${
                 activeTab === 'settings' 
                   ? 'border-accent-500 text-accent-600 dark:text-accent-400' 
                   : 'border-transparent text-charcoal-400 hover:text-slate-600 dark:hover:text-slate-300'
               }`}
              >
-               Configure
-             </button>
+               Settings
+             </button> */}
           </div>
 
           <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-thin scrollbar-thumb-charcoal-200 dark:scrollbar-thumb-charcoal-800">
@@ -123,7 +129,7 @@ export const ContextSidebar: React.FC = () => {
                                       type="checkbox" 
                                       checked={!!isActive} 
                                       onChange={() => onToggleActive(item.id)}
-                                      disabled={!currentSession}
+                                      disabled={true}
                                       className="w-4 h-4 rounded-md border-gray-300 dark:border-charcoal-700 text-accent-600 focus:ring-accent-500 cursor-pointer disabled:opacity-30 transition-all"
                                     />
                                 </div>
@@ -169,7 +175,7 @@ export const ContextSidebar: React.FC = () => {
                                         <div className="p-3">
                                             <h4 className="text-[9px] font-bold text-charcoal-400 uppercase tracking-widest mb-1.5">Context Content</h4>
                                             <div className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-400 whitespace-pre-wrap italic">
-                                                {item.snippet || "No preview snippet available for this item."}
+                                                {item.snippet || (item.meta?.document?.pageContent && generateSnippet(item.meta.document.pageContent, 20)) || "No preview snippet available for this item."}
                                             </div>
                                             {item.meta?.document.url && (
                                                  <a href={item.meta.document.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-[10px] text-accent-500 hover:underline">

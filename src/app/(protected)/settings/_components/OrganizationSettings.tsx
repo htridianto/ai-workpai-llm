@@ -112,13 +112,21 @@ export const OrganizationSettings: React.FC = () => {
         )}
       </div>
 
+<div className="flex items-center p-4 mb-4 text-sm rounded-lg text-accent-500" role="alert">
+  <svg className="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+  </svg>
+  <div>
+    <span className="font-medium">Stay tuned!</span> This feature under development.
+  </div>
+</div>
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 text-charcoal-400">
           <Loader2 size={32} className="animate-spin mb-4" />
           <p>Loading organizations...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">          
           {organizations.map((org) => (
             <div key={org.id} className="bg-gray-50 dark:bg-charcoal-800/50 border border-gray-200 dark:border-charcoal-800 rounded-2xl p-6 transition-all hover:border-accent-500/50 group">
               <div className="flex items-center mb-4 space-x-2">

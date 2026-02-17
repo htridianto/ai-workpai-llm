@@ -15,7 +15,7 @@ const systemFolders = [
   { id: '.links', name: '.links' },
   { id: '.whatsapp', name: '.whatsapp' },
   { id: '.databases', name: '.databases' },
-  { name: 'My Contexts', isShared: true }
+  { name: 'My Files', isShared: true }
 ]
 // --- Mapping Helpers ---
 
@@ -66,6 +66,10 @@ export const getWorkspaceById = async (id: string) => {
         orderBy: { createdAt: 'desc' }
       },
       fileContexts: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' }
+      },
+      chatSessions: {
         where: { deletedAt: null },
         orderBy: { createdAt: 'desc' }
       }

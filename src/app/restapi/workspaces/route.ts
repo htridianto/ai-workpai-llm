@@ -13,37 +13,6 @@ export async function GET(request: Request) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
     try {
-        /*
-        const dbWorkspaces = await getUserWorkspaces(token.userId as string);        
-        const workspaces = dbWorkspaces.map((ws: any) => ({
-            id: ws.id,
-            slug: ws.id,
-            title: ws.name,            
-            description: ws.description,
-            color: ws.styleColor,
-            symbol: ws.symbol || ws.name.substring(0, 1).toUpperCase(), // Default if missing
-            createdAt: new Date(ws.createdAt).getTime(), // Convert ISO string to timestamp            
-            organizationId: ws.organizationId,
-            contextItems: [], // External API doesn't seem to return items here? Or maybe we fetch detail later.
-            folders: [],
-
-            //it should be in external model
-            chatMode: ws.chatMode,
-            chatProvider: ws.chatProvider,
-            openModel: ws.openAiModel,            
-            openAiHistory: ws.openAiHistory,
-            similarityThreshold: ws.similarityThreshold,
-            openAiPrompt: ws.openAiPrompt,
-            systemInstruction: ws.openAiPrompt,
-            openAiTemp: ws.openAiTemp,
-            queryRefusalResponse: ws.queryRefusalResponse,
-            vectorSearchMode: ws.vectorSearchMode,
-            topN: ws.topN,
-            lastUpdatedAt: ws.lastUpdatedAt
-        }));
-        return NextResponse.json(workspaces);
-        */
-
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
             console.warn("RAG_API_URL is not configured");
@@ -62,6 +31,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ message: message?.error ||'Failed to fetch external workspaces' }, { status: response.status });
         }
         const data = await response.json();
+        console.log('restapi:workspaces:GET:data', data)
         const workspaces = await Promise.all((data.workspaces || []).map(async (ws: any) => {
             let dbWorkspace: any = await getWorkspaceById(ws.slug);
             if(!dbWorkspace){
@@ -78,14 +48,14 @@ export async function GET(request: Request) {
                 organizationId: dbWorkspace.organizationId,
                 fileContexts: dbWorkspace.fileContexts || [],
                 folders: dbWorkspace.folders || [],
-
+                threads: (dbWorkspace.chatSessions || []).filter((s: any) => s.userId === token.id),
                 //it should be in external model
                 chatMode: ws.chatMode,
                 chatProvider: ws.chatProvider,
                 openModel: ws.openAiModel,            
                 openAiHistory: ws.openAiHistory,
                 similarityThreshold: ws.similarityThreshold,
-                openAiPrompt: ws.openAiPrompt,
+                // openAiPrompt: ws.openAiPrompt,
                 systemInstruction: ws.openAiPrompt,
                 openAiTemp: ws.openAiTemp,
                 queryRefusalResponse: ws.queryRefusalResponse,
@@ -116,7 +86,10 @@ export async function POST(req: Request) {
         if (!ragApiUrl) {
             return NextResponse.json({ message: 'Failed to get workspace: RAG_API_URL is not configured' }, { status: 500 });
         }
-        const token = process.env.RAG_API_KEY || "56PZKDF-F2ZMR8P-HQJZBRQ-A403QRE";
+        const token = process.env.RAG_API_KEY;
+        if (!token) {
+            return NextResponse.json({ message: 'Failed to get workspace: RAG_API_KEY is not configured' }, { status: 500 });
+        }
         const slug = `ws-${nanoid(12)}`;
         const payload = {
             name: slug, 
@@ -137,14 +110,14 @@ You have access to specific document chunks. This is your primary source. Howeve
     - **CRITICAL:** You MUST start the supplemental section with: *"Based on general industry knowledge (not explicitly in the documents)..."*
 3. **No Hallucination:** If the topic is completely unrelated to the documents, state that you cannot find the info in your database.
 4. **Citations:** Clearly mark which parts came from the [Document] and which parts came from [General Knowledge].
-5. **Tone & Style:** Maintain a professional, objective, and analytical tone. Use clear headings and bullet points for complex data.
-6. **Language Consistency:** Respond in the same language as the user's query unless instructed otherwise.
+5. **If the retrieved context contains documents that are irrelevant to the user's specific question, prioritize the most relevant document and ignore the outliers in your final answer.
+6. **Tone & Style:** Maintain a professional, objective, and analytical tone. Use clear headings and bullet points for complex data.
+7. **Language Consistency:** Respond in the same language as the user's query unless instructed otherwise.
 
 ### FORMATTING REQUIREMENTS
 - Start with a direct answer or a concise summary.
 - Use **bold text** for key metrics, dates, and names.
 - If comparing data, use a Markdown table for better readability.
-- Conclude with a "Sources" section listing the filenames used DO NOT use labels like "(Context 0)", "(Source 1)", or any bracketed numbers.
 
 ### CLEAN RESPONSE RULES
 - **No Technical Labels:** NEVER use labels like "Summary", "(Context 0)", "(Source 1)", or bracketed numbers like [1] in your response.
@@ -155,6 +128,8 @@ You have access to specific document chunks. This is your primary source. Howeve
             chatMode: body.chatMode || "chat",
             topN: body.topN || 4
         };
+
+// - Conclude with a "Sources" section listing the filenames used DO NOT use labels like "(Context 0)", "(Source 1)", or any bracketed numbers.        
 
         // (POST /v1/workspace/new)
         const response = await fetch(`${ragApiUrl}/api/v1/workspace/new`, {
@@ -197,7 +172,10 @@ You have access to specific document chunks. This is your primary source. Howeve
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({name: `${session.user.userName}:${body.title}`})
+            body: JSON.stringify({
+                name: `${session.user.userName}:${body.title}`,
+                openAiPrompt: payload.openAiPrompt
+            })
         });
         if (!responseUpdate.ok) {
             const message = await responseUpdate.json();

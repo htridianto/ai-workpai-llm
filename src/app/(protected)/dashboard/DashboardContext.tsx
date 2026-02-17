@@ -54,6 +54,7 @@ interface DashboardContextType {
   deleteSession: (id: string, e?: React.MouseEvent) => Promise<void>;
   renameSession: (id: string, newTitle: string) => Promise<void>;
   handleSendMessage: (text: string, attachments: Attachment[]) => Promise<void>;
+  handleRegenerate: () => Promise<void>;
   handleGenerateDocument: (messageId: string, format: ExportFormat) => Promise<void>;
   handleRemoveFileContext: (id: string) => Promise<void>;
   handleToggleFileContextActive: (id: string) => Promise<void>;
@@ -110,16 +111,15 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         // Determinkan WS awal
         let initialWsId = currentWorkspaceId;
         if (!initialWsId && fetchedWorkspaces.length > 0) {
-             initialWsId = fetchedWorkspaces[0].id; 
+             initialWsId = fetchedWorkspaces[0].slug; 
              setCurrentWorkspaceId(initialWsId);
         }
 
         // Fetch sessions hanya untuk WS ini
-        if (initialWsId) {
-            const fetchedSessions = await ChatService.fetchSessions(initialWsId);
-            setSessions(fetchedSessions);
-        }
-        
+        // if (initialWsId) {          
+        //     const fetchedSessions = await ChatService.fetchSessions(initialWsId);
+        //     setSessions(fetchedSessions);
+        // }        
       } catch (err: any) {
         console.error("Failed to fetch data", err);
         setToast({ 
@@ -150,8 +150,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     const loadSessions = async () => {
         if (currentWorkspaceId) {
             try {
-                const fetchedSessions = await ChatService.fetchSessions(currentWorkspaceId);
-                setSessions(fetchedSessions);
+              // console.log('currentWorkspace', currentWorkspace);
+              const fetchedSessions = await ChatService.fetchSessions(currentWorkspaceId);
+              setSessions(fetchedSessions);
+
+              if(currentWorkspace?.threads && currentWorkspace.threads.length > 0 && currentWorkspace.threads[0].slug) {
+                setCurrentSessionId(currentWorkspace.threads[0].slug);
+              }
             } catch (err) {
                 console.error("Failed to load sessions for workspace:", err);
             }
@@ -159,6 +164,24 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     };
     loadSessions();
   }, [currentWorkspaceId]);
+
+  // Load session when session changes
+  useEffect(() => {   
+    const loadSessions = async () => {
+        if (currentWorkspaceId && currentSessionId) {
+            try {
+                const fetchedChatSession = await ChatService.fetchSessions(currentWorkspaceId, currentSessionId);
+                // do replace session
+                const updatedSessions = sessions.map(s => s.id === currentSessionId ? fetchedChatSession[0] : s);
+                setSessions(updatedSessions);
+            } catch (err) {
+                console.error("Failed to load sessions for workspace:", err);
+            }
+        }
+    };
+    loadSessions();
+  }, [currentSessionId]);
+ 
 
   // Lock body scroll on mobile when sidebars are open
   useEffect(() => {
@@ -239,9 +262,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         newSession.fileContextIds = currentWorkspace.fileContexts.map(i => i.id);
     }
 
-    setSessions(prev => [newSession, ...prev]);
-    setCurrentSessionId(newSession.id);
-    await ChatService.createSession(newSession);
+    const createdSession = await ChatService.createSession(newSession);
+    setSessions(prev => [createdSession, ...prev]);
+    setCurrentSessionId(createdSession.id);
   };
 
   const deleteSession = async (id: string, e?: React.MouseEvent) => {
@@ -283,11 +306,12 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           modelId: settings.defaultModelId,
           createdAt: Date.now(),
           fileContextIds: initialContextIds
-       };
-       sessionToUse = newSession;
+       };       
        isNewSession = true;
-       setSessions(prev => [newSession, ...prev]);
-       setCurrentSessionId(newId);
+       const createdSession = await ChatService.createSession(newSession);
+       setSessions(prev => [createdSession, ...prev]);
+       setCurrentSessionId(createdSession.id);
+       sessionToUse = createdSession;
     }
 
     const session = sessionToUse!;
@@ -309,8 +333,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setIsStreaming(true);
     setStreamingContent('');
 
-    if(isNewSession) await ChatService.createSession(updatedSession);
-    else await ChatService.updateSession(updatedSession);
+    // if(isNewSession) await ChatService.createSession(updatedSession);
+    // else await ChatService.updateSession(updatedSession);
+    if(isNewSession) {
+      await ChatService.renameSession(updatedSession.id, updatedSession.title);       
+    }else {
+      await ChatService.updateSession(updatedSession); 
+    }
 
     try {
       const activeContext = (currentWorkspace?.fileContexts || []).filter(item => 
@@ -320,7 +349,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       const wsSystemInstruction = currentWorkspace?.systemInstruction || settings.systemInstruction;
       const systemWithContext = wsSystemInstruction + '\\n\\n[CONTEXT DOCUMENTS FROM WORKSPACE "' + (currentWorkspace?.title || '') + '"]: ' + activeContext.map(i => i.name).join(', ');
 
-      const responseText = await streamChatResponse(
+      const { text: responseText, sources } = await streamChatResponse(
+        currentWorkspace?.slug || '',
+        updatedSession.slug || updatedSession.id,
         session.modelId,
         updatedSession.messages,
         text,
@@ -335,6 +366,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         id: uuidv4(),
         role: Role.MODEL,
         text: responseText,
+        sources: sources,
         timestamp: Date.now()
       };
 
@@ -347,6 +379,94 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     } catch (error) {
       console.error("Chat error", error);
+      const errorMessage: Message = {
+        id: uuidv4(),
+        role: Role.MODEL,
+        text: "System Error: Unable to reach inference endpoint. Please check your API Key.",
+        timestamp: Date.now(),
+        isError: true
+      };
+      const errorSession = {
+        ...updatedSession,
+        messages: [...updatedSession.messages, errorMessage]
+      };
+      updateSessionState(errorSession);
+      await ChatService.updateSession(errorSession);
+    } finally {
+      setIsStreaming(false);
+      setStreamingContent('');
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!currentSession || currentSession.messages.length === 0 || isStreaming) return;
+
+    const messages = [...currentSession.messages];
+    const lastMessage = messages[messages.length - 1];
+    
+    let history: Message[] = [];
+    let lastUserMessage: Message | null = null;
+
+    if (lastMessage.role === Role.MODEL) {
+      // Regenerating last response
+      const historyUntilLastPrompt = messages.slice(0, -1);
+      lastUserMessage = historyUntilLastPrompt[historyUntilLastPrompt.length - 1];
+      history = historyUntilLastPrompt.slice(0, -1);
+    } else if (lastMessage.role === Role.USER) {
+      // Sending again if last was user (e.g. after error)
+      lastUserMessage = lastMessage;
+      history = messages.slice(0, -1);
+    }
+
+    if (!lastUserMessage || lastUserMessage.role !== Role.USER) return;
+
+    const updatedSession = {
+      ...currentSession,
+      messages: [...history, lastUserMessage]
+    };
+    
+    updateSessionState(updatedSession);
+    setIsStreaming(true);
+    setStreamingContent('');
+
+    try {
+      const activeContext = (currentWorkspace?.fileContexts || []).filter(item => 
+          updatedSession.fileContextIds.includes(item.id)
+      );
+      
+      const wsSystemInstruction = currentWorkspace?.systemInstruction || settings.systemInstruction;
+      const systemWithContext = wsSystemInstruction + '\\n\\n[CONTEXT DOCUMENTS FROM WORKSPACE "' + (currentWorkspace?.title || '') + '"]: ' + activeContext.map(i => i.name).join(', ');
+
+      const { text: responseText, sources } = await streamChatResponse(
+        currentWorkspace?.slug || '',
+        updatedSession.slug || updatedSession.id,
+        currentSession.modelId || settings.defaultModelId,
+        history,
+        lastUserMessage.text,
+        lastUserMessage.attachments || [],
+        systemWithContext,
+        (chunkText) => {
+          setStreamingContent(chunkText);
+        }
+      );
+
+      const botMessage: Message = {
+        id: uuidv4(),
+        role: Role.MODEL,
+        text: responseText,
+        sources: sources,
+        timestamp: Date.now()
+      };
+
+      const finalSession = {
+        ...updatedSession,
+        messages: [...updatedSession.messages, botMessage]
+      };
+      updateSessionState(finalSession);
+      await ChatService.updateSession(finalSession);
+
+    } catch (error) {
+      console.error("Regenerate error", error);
       const errorMessage: Message = {
         id: uuidv4(),
         role: Role.MODEL,
@@ -432,7 +552,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     if (sessionData) {
-      console.log(sessionData);
       setUserProfile({
         id: sessionData?.user?.id || '',
         name: sessionData?.user?.name || 'Unknown',
@@ -462,7 +581,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       settings, setSettings,
       currentWorkspace, filteredSessions, currentSession, currentFileContexts,
       handleSelectWorkspace, createNewSession, deleteSession, renameSession,
-      handleSendMessage, handleGenerateDocument, handleRemoveFileContext,
+      handleSendMessage, handleRegenerate, handleGenerateDocument, handleRemoveFileContext,
       handleToggleFileContextActive, updateThreshold, handleLogout,
       refreshWorkspaces, userProfile, setUserProfile,
       setWorkspaces
