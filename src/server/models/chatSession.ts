@@ -61,7 +61,7 @@ export const createChatSession = async (data: ChatSession) => {
             workspaceId: data.workspaceId,
             userId: data.userId || null,
             title: data.title || 'New Chat',
-            modelId: data.modelId,
+            modelId: data.modelId || '',
             fileContextIds: data.fileContextIds ? JSON.stringify(data.fileContextIds) : JSON.stringify([]),
             messages: {
                 create: (data.messages || []).map((m: Message) => ({
@@ -109,7 +109,7 @@ export const updateChatSession = async (id: string, data: Partial<ChatSession>) 
     console.log("updateChatSession", { sessionId: id, data: updateData });
     const updated = await prisma.chatSession.update({
         where: { id },
-        data: {...updateData, modelId: null},
+        data: {...updateData},
         include: {
             messages: { orderBy: { createdAt: 'asc' } }
         }
