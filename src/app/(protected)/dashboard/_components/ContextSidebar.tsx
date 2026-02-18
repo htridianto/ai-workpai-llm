@@ -110,7 +110,7 @@ export const ContextSidebar: React.FC = () => {
                     ) : (
                       <div className="space-y-3">
                         {fileContexts.map(item => {
-                           const isActive = currentSession?.fileContextIds?.includes(item.id);
+                           const isActive = !currentSession || currentSession?.fileContextIds?.includes(item.id);
                            const isExpanded = expandedItems.includes(item.id);
                            
                            return (
@@ -129,7 +129,7 @@ export const ContextSidebar: React.FC = () => {
                                       type="checkbox" 
                                       checked={!!isActive} 
                                       onChange={() => onToggleActive(item.id)}
-                                      disabled={true}
+                                      disabled={!currentSession}
                                       className="w-4 h-4 rounded-md border-gray-300 dark:border-charcoal-700 text-accent-600 focus:ring-accent-500 cursor-pointer disabled:opacity-30 transition-all"
                                     />
                                 </div>

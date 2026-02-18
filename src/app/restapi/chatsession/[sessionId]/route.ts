@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getChatSessionById, updateChatSession, deleteChatSession } from '@/server/models';
+import { getChatSessionById, updateChatSession, deleteChatSession, listFileContextsByWorkspace } from '@/server/models';
 
 export async function GET(
     request: NextRequest,
@@ -66,6 +66,32 @@ export async function PUT(
         const body = await request.json();
         // console.log("PUT [sessionId] Body:", body);
         const updated = await updateChatSession(params.sessionId, body);
+
+        const { workspaceId, fileContextIds } = body;
+        if (fileContextIds) {
+            const fileContexts = await listFileContextsByWorkspace(workspaceId);
+            // do get array from fileContexts.meta?.document.location
+            const fileContextLocations = fileContexts.map((fileContext) => fileContext.meta?.document.location);
+
+            // do filter fileContexts by fileContextIds, output should be array of fileContextIds that match
+            const filteredFileContexts = fileContexts.filter((fileContext) => fileContextIds.includes(fileContext.id));
+            // do get array from filteredFileContexts.meta?.document.location
+            const filteredFileContextLocations = filteredFileContexts.map((fileContext) => fileContext.meta?.document.location);
+            
+            // do update workspace embedding, call api /v1/workspace/{slug}/update-embeddings, with body "adds": [], "deletes": []
+            const ragResponse = await fetch(`${process.env.RAG_API_URL}/api/v1/workspace/${workspaceId}/update-embeddings`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.RAG_API_KEY}`
+                },
+                body: JSON.stringify({
+                    adds: [...filteredFileContextLocations],
+                    deletes: [...fileContextLocations]
+                })
+            });
+            console.log("RAG update embeddings response:", ragResponse);
+        }
         
         return NextResponse.json(updated);
     } catch (error) {

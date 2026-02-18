@@ -45,10 +45,10 @@ export const NotificationCenter: React.FC = () => {
     }
   };
 
-  // Poll for notifications every 10 seconds to simulate real-time updates
+  // Poll for notifications every 5 minutes to simulate real-time updates
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 10000);
+    const interval = setInterval(fetchNotifications, 1000*60*5);
     return () => clearInterval(interval);
   }, []);
 

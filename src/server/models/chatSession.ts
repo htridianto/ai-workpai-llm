@@ -88,7 +88,7 @@ export const updateChatSession = async (id: string, data: Partial<ChatSession>) 
     if (data.modelId !== undefined) updateData.modelId = data.modelId
     if (data.fileContextIds !== undefined) updateData.fileContextIds = JSON.stringify(data.fileContextIds)
     
-    console.log("updateChatSession", { sessionId: id, messages: data.messages?.length });
+    // console.log("updateChatSession", { sessionId: id, messages: data.messages?.length });
     if (data.messages) {
         // Simple re-sync
         await prisma.chatMessage.deleteMany({

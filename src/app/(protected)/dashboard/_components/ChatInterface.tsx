@@ -269,7 +269,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                         title="Regenerate Response"
                       >
                         <RotateCcw size={14} className={isStreaming ? 'animate-spin' : ''} />
-                        <span>Regenerate</span>
+                        <span>Regenerate Answer</span>
                       </button>
                     )}                    
                     </>

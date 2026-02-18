@@ -130,6 +130,10 @@ You have access to specific document chunks. This is your primary source. Howeve
         };
 
 // - Conclude with a "Sources" section listing the filenames used DO NOT use labels like "(Context 0)", "(Source 1)", or any bracketed numbers.        
+/*
+###STRICT
+Only use file ['GEP-2025-Analysis-EAP.pdf'] as your reference
+*/
 
         // (POST /v1/workspace/new)
         const response = await fetch(`${ragApiUrl}/api/v1/workspace/new`, {

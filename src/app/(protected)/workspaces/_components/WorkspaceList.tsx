@@ -132,11 +132,11 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
         title: 'Global Markets & Policy Risk',
         description: 'Integrasi dokumen strategi bisnis dan arsip kebijakan publik untuk analisis RAG real-time.',
         userId: userId ? [userId] : []
-    }, /*{
+    }, {
         title: 'Political Marketing Engine',
         description: 'Data demografi pemilih (Marketing) dengan janji kampanye dan isu daerah (Politik).',
         userId: userId ? [userId] : []
-    }*/];
+    }];
     
     try {
         await Promise.all(demoWorkspaces.map(ws => WorkspaceService.createWorkspace(ws)));
