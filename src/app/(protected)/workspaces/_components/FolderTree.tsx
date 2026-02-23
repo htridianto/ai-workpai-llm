@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronDown, Folder, FolderOpen, Home } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder, FolderOpen, Home, Users2Icon, PhoneCallIcon, PhoneIcon, Phone, UserCircle, UserCheck, PhoneOutgoing, MessageCircle } from 'lucide-react';
 import { Folder as FolderType, Workspace } from '@/shared/types/types';
 
 interface FolderTreeProps {
@@ -99,11 +99,19 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
           >
             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
-          
-          {isSelected ? (
-             <FolderOpen size={16} className="text-accent-500 shrink-0" />
-          ) : (
-             <Folder size={16} className="text-charcoal-400 shrink-0" />
+          {!node.isStarred && (
+            isSelected ? (
+               <FolderOpen size={16} className="text-accent-500 shrink-0" />
+            ) : (
+               <Folder size={16} className="text-charcoal-400 shrink-0" />
+            )
+          )}
+          {node.isStarred && (
+            !node.parentId ? (
+              isSelected ? (<Users2Icon size={16} className="text-accent-500 shrink-0" />) : (<Users2Icon size={16} className="text-charcoal-400 shrink-0" />)
+            ) : (
+              <MessageCircle size={16} className="text-charcoal-400 shrink-0" />
+            )
           )}
           
           <span className="truncate">{node.name}</span>

@@ -73,6 +73,7 @@ export interface Folder {
   isReadOnly?: boolean;
   isVirtual?: boolean;
   virtualType?: string;
+  meta?: any;
 }
 
 export interface FileContext {

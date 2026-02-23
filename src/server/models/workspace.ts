@@ -2,6 +2,7 @@
 import { prisma } from '@/server/lib/db'
 import { Prisma } from '@prisma/client'
 import { Folder, FileContext } from '@/shared/types/types'
+import { isStringObject } from 'util/types'
 
 export const getAllWorkspaces = async () => {
   return await prisma.workspace.findMany({
@@ -12,32 +13,36 @@ export const getAllWorkspaces = async () => {
 
 // --- Constants ---
 const systemFolders = [
-  { id: '.links', name: '.links' },
-  { id: '.whatsapp', name: '.whatsapp' },
-  { id: '.databases', name: '.databases' },
-  { name: 'My Files', isShared: true }
+  { id: '.base', name: 'Knowledge Base', isShared: true },
+  { id: '.troops', name: 'Troops', isShared: true, isStarred: true },
+  { id: '.links', name: '.links' },  
+  { id: '.databases', name: '.databases' }  
 ]
 // --- Mapping Helpers ---
 
-export const mapFolder = (f: any): Folder => ({
-  id: f.id,
-  name: f.name,
-  workspaceId: f.workspaceId,
-  parentId: f.parentFolderId || undefined,
-  dateCreated: f.createdAt.getTime(),
-  isReadOnly: f.isSystem === 1,
-  isStarred: f.isStarred === 1,
-  isShared: f.isShared === 1,
-  isTrashed: f.deletedAt !== null
-})
+export const mapFolder = (f: any): Folder => {
+  const meta = f.meta ? JSON.parse(f.meta) : {}
+  return {
+    id: f.id,
+    name: f.name,
+    workspaceId: f.workspaceId,
+    parentId: f.parentFolderId || undefined,
+    dateCreated: f.createdAt.getTime(),
+    isReadOnly: f.isSystem === 1,
+    isStarred: f.isStarred === 1,
+    isShared: f.isShared === 1,
+    isTrashed: f.deletedAt !== null,
+    meta: meta
+  }
+}
 
 export const mapFileContext = (f: any): FileContext => {
   const meta = f.meta ? JSON.parse(f.meta) : {}
 
   let folderId = f.folderId || undefined;
-  if(f.type === 'whatsapp'){
-    folderId = `.wa_number_${meta.waNumber}`;
-  }
+  // if(f.type === 'whatsapp'){
+  //   folderId = `.wa_number_${meta.waNumber}`;
+  // }
   return {
     id: f.id,
     name: f.name,
@@ -63,7 +68,7 @@ export const getWorkspaceById = async (id: string) => {
     include: {
       folders: {
         where: { deletedAt: null },
-        orderBy: { createdAt: 'desc' }
+        orderBy: [{ name: 'asc' }, { createdAt: 'desc' }]
       },
       fileContexts: {
         where: { deletedAt: null },
@@ -77,7 +82,7 @@ export const getWorkspaceById = async (id: string) => {
   })
 
   if (!ws) return null
-
+  /*
   const waFiles = (ws.fileContexts || []).filter(f => f.type === 'whatsapp');
   const uniqueWaNumbers = Array.from(new Set(waFiles.map(f => {
     const meta = f.meta ? JSON.parse(f.meta) : {};    
@@ -93,6 +98,7 @@ export const getWorkspaceById = async (id: string) => {
       isSystem: 1,
       isShared: 0
   }));
+  */
   // console.log('waVirtualFolders', uniqueWaNumbers, waVirtualFolders);
 
   return {
@@ -100,7 +106,7 @@ export const getWorkspaceById = async (id: string) => {
     slug: ws.id,
     title: ws.name,
     createdAt: ws.createdAt.getTime(),
-    folders: [...ws.folders,...waVirtualFolders].map(mapFolder),
+    folders: [...ws.folders].map(mapFolder),
     fileContexts: ws.fileContexts.map(mapFileContext) 
   }
 }
@@ -162,6 +168,7 @@ export const createWorkspaceService = async (data: { id?: string; name: string; 
           workspaceId: workspace.id,
           isSystem: 1,
           isShared: folder.isShared ? 1 : 0,
+          isStarred: folder.isStarred ? 1 : 0,
           parentFolderId: null // Top level
         }
       })

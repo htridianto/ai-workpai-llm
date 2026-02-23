@@ -7,74 +7,74 @@ datasource db {
 }
 
 model Workspace {
-  id              String             @id @default(cuid())
-  name            String
-  description     String?
-  styleColor      String?            @map("style_color")
-  organizationId  String?            @map("organization_id")
-  createdAt       DateTime           @default(now()) @map("created_at")
-  deletedAt       DateTime?          @map("deleted_at")
-  
-  organization    Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  users           WorkspaceUser[]
-  folders         Folder[]
-  fileContexts    FileContext[]
-  chatSessions    ChatSession[]
+  id             String    @id @default(cuid())
+  name           String
+  description    String?
+  styleColor     String?   @map("style_color")
+  organizationId String?   @map("organization_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  users        WorkspaceUser[]
+  folders      Folder[]
+  fileContexts FileContext[]
+  chatSessions ChatSession[]
 
   @@map("workspaces")
 }
 
 model Organization {
-  id              String             @id @default(cuid())
-  name            String
-  description     String?
-  createdAt       DateTime           @default(now()) @map("created_at")
-  deletedAt       DateTime?          @map("deleted_at")
-  users           OrganizationUser[]
-  workspaces      Workspace[]
+  id          String             @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime           @default(now()) @map("created_at")
+  deletedAt   DateTime?          @map("deleted_at")
+  users       OrganizationUser[]
+  workspaces  Workspace[]
 
   @@map("organizations")
 }
 
 model OrganizationUser {
-  userId         String       @map("user_id")
-  organizationId String       @map("organization_id")
-  role           String       @default("member") // owner, admin, member
-  
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String @map("user_id")
+  organizationId String @map("organization_id")
+  role           String @default("member") // owner, admin, member
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@id([userId, organizationId])
   @@map("organization_users")
 }
 
 model User {
-  id              String             @id @default(uuid())
-  name            String?            @map("display_name")
-  email           String             @unique
-  emailVerified   Int?               @default(0) @map("email_verified") // Boolean (0 = false, 1 = true)
-  image           String?            @map("avatar_url")
-  
+  id            String  @id @default(uuid())
+  name          String? @map("display_name")
+  email         String  @unique
+  emailVerified Int?    @default(0) @map("email_verified") // Boolean (0 = false, 1 = true)
+  image         String? @map("avatar_url")
+
   // Custom fields
-  userName        String?            @unique @map("user_name")
-  ssoAuthProvider String?            @map("sso_auth_provider")
-  ssoAuthId       String?            @map("sso_auth_id")
-  credential      String?            // Password hash
+  userName        String?   @unique @map("user_name")
+  ssoAuthProvider String?   @map("sso_auth_provider")
+  ssoAuthId       String?   @map("sso_auth_id")
+  credential      String? // Password hash
   bio             String?
-  role            String             @default("owner") // superuser, owner, member
-  createdAt       DateTime           @default(now()) @map("created_at")
-  lastLoggedin    DateTime?          @map("last_loggedin")
-  sessionToken    String?           @map("session_token")
-  deletedAt       DateTime?          @map("deleted_at")
-  
-  workspaces      WorkspaceUser[]
-  organizations   OrganizationUser[]
+  role            String    @default("owner") // superuser, owner, member
+  createdAt       DateTime  @default(now()) @map("created_at")
+  lastLoggedin    DateTime? @map("last_loggedin")
+  sessionToken    String?   @map("session_token")
+  deletedAt       DateTime? @map("deleted_at")
+
+  workspaces           WorkspaceUser[]
+  organizations        OrganizationUser[]
   sharedGeneratedFiles GeneratedFileShare[]
-  chatSessions    ChatSession[]
-  
+  chatSessions         ChatSession[]
+
   // NextAuth relations
-  accounts        Account[]
-  sessions        Session[]
+  accounts Account[]
+  sessions Session[]
 
   @@map("users")
 }
@@ -129,44 +129,45 @@ model WorkspaceUser {
 }
 
 model Folder {
-  id              String             @id @default(cuid())
-  name            String
-  parentFolderId  String?            @map("parent_folder_id")
-  workspaceId     String             @map("workspace_id")
-  isSystem        Int                @default(0) @map("is_system") // Boolean (0 = false, 1 = true)
-  isStarred       Int                @default(0) @map("is_starred")
-  isShared        Int                @default(0) @map("is_shared")
-  createdAt       DateTime           @default(now()) @map("created_at")
-  deletedAt       DateTime?          @map("deleted_at")
-  
-  parentFolder    Folder?            @relation("FolderToFolder", fields: [parentFolderId], references: [id], onDelete: SetNull)
-  subFolders      Folder[]           @relation("FolderToFolder")
-  workspace       Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
-  fileContexts    FileContext[]
+  id             String    @id @default(cuid())
+  name           String
+  parentFolderId String?   @map("parent_folder_id")
+  workspaceId    String    @map("workspace_id")
+  isSystem       Int       @default(0) @map("is_system") // Boolean (0 = false, 1 = true)
+  isStarred      Int       @default(0) @map("is_starred")
+  isShared       Int       @default(0) @map("is_shared")
+  meta           String? // Disimpan sebagai JSON string
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  parentFolder Folder?   @relation("FolderToFolder", fields: [parentFolderId], references: [id], onDelete: SetNull)
+  subFolders   Folder[]  @relation("FolderToFolder")
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  fileContexts FileContext[]
 
   @@index([workspaceId])
   @@map("folders")
 }
 
 model FileContext {
-  id              String             @id @default(cuid())
-  name            String
-  type            String?            // e.g. 'pdf', 'link', 'whatsapp', etc.
-  status          String             @default("indexed") // indexed, indexing, error
-  size            Int                @default(0)
-  snippet         String?            // Short preview text
-  isStarred       Int                @default(0) @map("is_starred")
-  isShared        Int                @default(0) @map("is_shared")
-  ownerId         String?            @map("owner_id")
-  folderId        String?            @map("folder_id")
-  workspaceId     String             @map("workspace_id")
-  meta            String?            // Disimpan sebagai JSON string
-  createdAt       DateTime           @default(now()) @map("created_at")
-  deletedAt       DateTime?          @map("deleted_at")
-  
-  folder          Folder?            @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  workspace       Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  name        String
+  type        String? // e.g. 'pdf', 'link', 'whatsapp', etc.
+  status      String    @default("indexed") // indexed, indexing, error
+  size        Int       @default(0)
+  snippet     String? // Short preview text
+  isStarred   Int       @default(0) @map("is_starred")
+  isShared    Int       @default(0) @map("is_shared")
+  ownerId     String?   @map("owner_id")
+  folderId    String?   @map("folder_id")
+  workspaceId String    @map("workspace_id")
+  meta        String? // Disimpan sebagai JSON string
+  createdAt   DateTime  @default(now()) @map("created_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  folder    Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
   @@index([folderId])
@@ -174,40 +175,40 @@ model FileContext {
 }
 
 model GeneratedFolder {
-  id              String             @id @default(cuid())
-  name            String
-  parentFolderId  String?            @map("parent_folder_id")
-  ownerId         String             @map("owner_id")
-  isStarred       Int                @default(0) @map("is_starred")
-  isShared        Int                @default(0) @map("is_shared")
-  createdAt       DateTime           @default(now()) @map("created_at")
-  deletedAt       DateTime?          @map("deleted_at")
-  
-  parentFolder    GeneratedFolder?   @relation("GenFolderToGenFolder", fields: [parentFolderId], references: [id], onDelete: SetNull)
-  subFolders      GeneratedFolder[]  @relation("GenFolderToGenFolder")
-  files           GeneratedFile[]
+  id             String    @id @default(cuid())
+  name           String
+  parentFolderId String?   @map("parent_folder_id")
+  ownerId        String    @map("owner_id")
+  isStarred      Int       @default(0) @map("is_starred")
+  isShared       Int       @default(0) @map("is_shared")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  parentFolder GeneratedFolder?  @relation("GenFolderToGenFolder", fields: [parentFolderId], references: [id], onDelete: SetNull)
+  subFolders   GeneratedFolder[] @relation("GenFolderToGenFolder")
+  files        GeneratedFile[]
 
   @@index([ownerId])
   @@map("generated_folders")
 }
 
 model GeneratedFile {
-  id              String             @id @default(cuid())
-  name            String
-  type            String?            // e.g. 'pdf', 'docx', etc.
-  size            Int                @default(0)
-  snippet         String?            
-  isStarred       Int                @default(0) @map("is_starred")
-  isShared        Int                @default(0) @map("is_shared")
-  ownerId         String             @map("owner_id")
-  folderId        String?            @map("folder_id")
-  meta            String?            // JSON string for minio path, etc.
-  notes           String?            
-  createdAt       DateTime           @default(now()) @map("created_at")
-  deletedAt       DateTime?          @map("deleted_at")
-  
-  folder          GeneratedFolder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  shares          GeneratedFileShare[]
+  id        String    @id @default(cuid())
+  name      String
+  type      String? // e.g. 'pdf', 'docx', etc.
+  size      Int       @default(0)
+  snippet   String?
+  isStarred Int       @default(0) @map("is_starred")
+  isShared  Int       @default(0) @map("is_shared")
+  ownerId   String    @map("owner_id")
+  folderId  String?   @map("folder_id")
+  meta      String? // JSON string for minio path, etc.
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  folder GeneratedFolder?     @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  shares GeneratedFileShare[]
 
   @@index([ownerId])
   @@index([folderId])
@@ -219,28 +220,28 @@ model GeneratedFileShare {
   userId    String   @map("user_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  file      GeneratedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  file GeneratedFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([fileId, userId])
   @@map("generated_file_shares")
 }
 
 model ChatSession {
-  id              String         @id @default(cuid())
-  slug            String?        @unique
-  workspaceId     String         @map("workspace_id")
-  userId          String?        @map("user_id")
-  title           String
-  modelId         String         @map("model_id")
-  fileContextIds  String?        @map("file_context_ids") // JSON array of IDs
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  deletedAt       DateTime?      @map("deleted_at")
-  
-  workspace       Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
-  messages        ChatMessage[]
+  id             String    @id @default(cuid())
+  slug           String?   @unique
+  workspaceId    String    @map("workspace_id")
+  userId         String?   @map("user_id")
+  title          String
+  modelId        String    @map("model_id")
+  fileContextIds String?   @map("file_context_ids") // JSON array of IDs
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages  ChatMessage[]
 
   @@index([workspaceId])
   @@index([userId])
@@ -248,17 +249,16 @@ model ChatSession {
 }
 
 model ChatMessage {
-  id              String         @id @default(cuid())
-  sessionId       String         @map("session_id")
-  role            String         // user, model, system
-  text            String
-  attachments     String?        // JSON string of Attachment[]
-  isError         Int            @default(0) @map("is_error")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  
-  session         ChatSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  sessionId   String   @map("session_id")
+  role        String // user, model, system
+  text        String
+  attachments String? // JSON string of Attachment[]
+  isError     Int      @default(0) @map("is_error")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
   @@map("chat_messages")
 }
-

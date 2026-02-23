@@ -192,9 +192,9 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <div className="w-16 h-16 rounded-2xl bg-white dark:bg-charcoal-900 border border-gray-200 dark:border-charcoal-800 flex items-center justify-center mb-6 shadow-xl">
              <Sparkles size={32} className="text-accent-500" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">WorkPai Workspace</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">AI Assistant for Campaign</h2>
           <p className="text-charcoal-500 dark:text-charcoal-400 max-w-md text-center">
-            Ready to assist. Upload documents to the context panel or start typing to interact with your local LLM.
+            Ready to assist. Upload documents to the context panel or start typing to interact with our LLM.
           </p>
         </div>
       )}

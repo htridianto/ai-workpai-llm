@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  experimental: {
-    serverComponentsExternalPackages: ['@libsql/client', '@prisma/adapter-libsql'],
+  serverExternalPackages: ['@libsql/client', '@prisma/adapter-libsql'],
+  experimental: {    
+    // serverComponentsExternalPackages: ['@libsql/client', '@prisma/adapter-libsql'],
   },
   async rewrites() {
     return [

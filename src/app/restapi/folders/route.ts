@@ -10,7 +10,8 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { name, workspaceId, parentFolderId } = body;
+        // console.log("POST Folder body:", JSON.stringify(body, null, 2));
+        const { name, workspaceId, parentFolderId, meta } = body;
 
         if (!name || !workspaceId) {
             return NextResponse.json({ message: 'Name and Workspace ID are required' }, { status: 400 });
@@ -25,6 +26,8 @@ export async function POST(req: Request) {
             workspaceId,
             isShared: 1,
             parentFolderId: parentFolderId || null,
+            isStarred: (meta && meta.waNumber) ? 1 : 0,
+            meta: meta ? JSON.stringify(meta) : null
         });
 
         return NextResponse.json(folder, { status: 201 });

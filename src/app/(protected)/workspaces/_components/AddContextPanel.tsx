@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   File, 
   Globe, 
@@ -14,6 +14,7 @@ import { FilesTab } from './AddContextTabs/FilesTab';
 import { LinkTab } from './AddContextTabs/LinkTab';
 import { DatabaseTab } from './AddContextTabs/DatabaseTab';
 import { WhatsappTab } from './AddContextTabs/WhatsappTab';
+import { TroopsTab } from './AddContextTabs/TroopsTab';
 
 interface AddContextPanelProps {
   isOpen: boolean;
@@ -21,7 +22,6 @@ interface AddContextPanelProps {
   onAddContext: () => void;
   currentFolderId: string | null;
   folders: FolderType[];
-  // selectedWorkspaceId: string;
   selectedWorkspace: Workspace;
 }
 
@@ -34,8 +34,8 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
   selectedWorkspace
 }) => {
   const { setWorkspaces, workspaces, refreshWorkspaces, setToast } = useDashboard();
-  const [activeTab, setActiveTab] = useState<'files' | 'link' | 'whatsapp' | 'database'>('files');
-  
+  const [activeTab, setActiveTab] = useState<'files' | 'link' | 'whatsapp' | 'database'>('files');    
+
   const addFileContexts = async (wsId: string, newItems: FileContext[]) => {
     const ws = selectedWorkspace;//workspaces.find(w => w.id === wsId);
     if (!ws) return;
@@ -123,35 +123,48 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
 
   if (!isOpen) return null;
 
+  const currentFolder = folders?.find(v => v.id === currentFolderId);
+  const isTroops = (currentFolder && currentFolder.isStarred);
+  
+  useEffect(() => {
+    if (isTroops) {
+      setActiveTab('whatsapp');
+    }
+  }, []);
+
   return (
     <div className="mx-6 mb-4 mt-2 p-6 bg-white dark:bg-charcoal-900 border border-gray-200 dark:border-charcoal-800 rounded-2xl shadow-sm animate-in slide-in-from-top-2 duration-300 min-h-[400px] flex flex-col relative overflow-hidden">
         
         {/* Header Tabs */}
         <div className="flex gap-6 border-b border-gray-200 dark:border-charcoal-800 mb-6 overflow-x-auto shrink-0">
-            <button 
+            {!isTroops && <button 
                 onClick={() => setActiveTab('files')}
                 className={`pb-3 flex items-center gap-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'files' ? 'border-accent-500 text-accent-600 dark:text-accent-500' : 'border-transparent text-charcoal-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
             >
                 <File size={16} /> Upload Files
-            </button>
-            <button 
+            </button>}
+
+            {!isTroops && <button 
                 onClick={() => setActiveTab('link')}
                 className={`pb-3 flex items-center gap-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'link' ? 'border-accent-500 text-accent-600 dark:text-accent-500' : 'border-transparent text-charcoal-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
             >
                 <Globe size={16} /> Website Link
-            </button>
-            <button 
-                onClick={() => setActiveTab('whatsapp')}
-                className={`pb-3 flex items-center gap-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'whatsapp' ? 'border-green-500 text-green-600 dark:text-green-500' : 'border-transparent text-charcoal-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
-            >
-                <MessageCircle size={16} /> WhatsApp Group
-            </button>
-            <button 
+            </button>}
+
+            {!isTroops && <button 
                 onClick={() => setActiveTab('database')}
                 className={`pb-3 flex items-center gap-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'database' ? 'border-accent-500 text-accent-600 dark:text-accent-500' : 'border-transparent text-charcoal-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
             >
                 <Database size={16} /> Database
-            </button>
+            </button>}
+
+            {isTroops && <button 
+                onClick={() => setActiveTab('whatsapp')}
+                className={`pb-3 flex items-center gap-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'whatsapp' ? 'border-green-500 text-green-600 dark:text-green-500' : 'border-transparent text-charcoal-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+            >
+                <MessageCircle size={16} /> WhatsApp Number
+            </button>}
+
             <button onClick={onClose} className="p-1 ml-auto text-charcoal-400 hover:text-red-500 rounded"><X size={20}/></button>
         </div>
 
@@ -187,8 +200,9 @@ export const AddContextPanel: React.FC<AddContextPanelProps> = ({
           )}
 
           {activeTab === 'whatsapp' && (
-            <WhatsappTab 
+            <TroopsTab 
               workspace={selectedWorkspace}
+              parentFolder={currentFolder as FolderType}  
               onClose={onClose}
               onSuccess={onAddContext}
               addFileContexts={addFileContexts}

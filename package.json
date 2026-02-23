@@ -1,5 +1,6 @@
 {
-  "name": "workpai-anythingllm-v2",
+  "name": "rag-campaign-v1",
+  "description": "RAG for Campaigns based on anythingllm. each campaign will have Knowledge Base, Troops and Channels",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -35,7 +36,8 @@
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.1.18",
     "uuid": "^13.0.0",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "jose": "^5.6.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

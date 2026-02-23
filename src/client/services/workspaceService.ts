@@ -52,7 +52,7 @@ export const WorkspaceService = {
     },
 
     // Folder Actions
-    createFolder: async (data: { name: string; workspaceId: string; parentFolderId?: string }): Promise<any> => {
+    createFolder: async (data: { name: string; workspaceId: string; parentFolderId?: string, meta?: any }): Promise<any> => {
         const response = await fetch(`${BASE_URL}/folders`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

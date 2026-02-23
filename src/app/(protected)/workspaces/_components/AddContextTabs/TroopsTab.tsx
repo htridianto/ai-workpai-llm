@@ -13,16 +13,20 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { FileContext, Workspace } from '@/shared/types/types';
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
+import { WorkspaceService } from '@/client/services/workspaceService';
+import { Folder } from '@/shared/types/types';
 
-interface WhatsappTabProps {
+interface TroopsTabProps {
   workspace: Workspace;
+  parentFolder: Folder;
   onClose: () => void;
   onSuccess: () => void;
   addFileContexts: (wsId: string, items: FileContext[]) => Promise<void>;
 }
 
-export const WhatsappTab: React.FC<WhatsappTabProps> = ({ 
+export const TroopsTab: React.FC<TroopsTabProps> = ({ 
   workspace, 
+  parentFolder,
   onClose, 
   onSuccess,
   addFileContexts
@@ -32,11 +36,52 @@ export const WhatsappTab: React.FC<WhatsappTabProps> = ({
   const [isWaLoading, setIsWaLoading] = useState(false);
   const [waGroups, setWaGroups] = useState<{id: string, name: string, count: number}[]>([]);
   const [selectedWaGroups, setSelectedWaGroups] = useState<string[]>([]);
-  const [isImporting, setIsImporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);  
+  const { setToast } = useDashboard();
+
+  const formatToIndoInternational = (phone: string) => {
+    // 1. Hapus semua karakter non-angka (kecuali tanda + di awal)
+    let cleaned = phone.replace(/(?!^\+)\D/g, "");
+
+    // 2. Jika diawali '08', ganti '0' dengan '+62'
+    if (cleaned.startsWith('08')) {
+        cleaned = '+62' + cleaned.substring(1);
+    }
+    
+    // 3. Jika diawali '8' (langsung angka operator), tambahkan '+62'
+    else if (cleaned.startsWith('8')) {
+        cleaned = '+62' + cleaned;
+    }
+    
+    // 4. Jika diawali '62' tanpa '+', tambahkan '+'
+    else if (cleaned.startsWith('62')) {
+        cleaned = '+' + cleaned;
+    }
+
+    // 5. Validasi akhir: Apakah sesuai standar global E.164?
+    const e164Regex = /^\+[1-9]\d{6,14}$/;
+    const isValid = e164Regex.test(cleaned);
+
+    return {
+        original: phone,
+        formatted: isValid ? cleaned : "Invalid Number",
+        isValid: isValid
+    };
+}  
 
   // WhatsApp Simulation Handlers
   const handleGenerateQR = () => {
     if (!waPhoneNumber) return;
+    const validFormat = formatToIndoInternational(waPhoneNumber);
+    if (!validFormat.isValid) {
+      setToast({ 
+        message: "Invalid Phone Number", 
+        subMessage: "Please enter a valid phone number.",
+        type: 'error' 
+      });
+      return;
+    }    
+    setWaPhoneNumber(validFormat.formatted);
     setIsWaLoading(true);
     setTimeout(() => {
         setIsWaLoading(false);
@@ -44,20 +89,43 @@ export const WhatsappTab: React.FC<WhatsappTabProps> = ({
     }, 800);
   };
 
-  const handleScanQR = () => {
+  const handleScanQR = async () => {
     setIsWaLoading(true);
-    setTimeout(() => {
+    setTimeout(async () => {
         setIsWaLoading(false);
+
+        setIsImporting(true);
+        try {
+          await WorkspaceService.createFolder({
+            name: `WA: ${waPhoneNumber}`,
+            workspaceId: workspace.slug,
+            parentFolderId: `.troops-${workspace.slug}`,
+            meta: {
+              waNumber: waPhoneNumber,
+              session:{
+                name: "default",
+                status: "WORKING",
+                me: {
+                  id: `${waPhoneNumber}@c.us`,
+                  lid: `${waPhoneNumber}@lid`,
+                  jid: `${waPhoneNumber}@s.whatsapp.net`,
+                  pushName: "string"
+                }
+              }              
+            }
+          });
+          onSuccess();
+          onClose();
+        } catch (error: any) {
+          setToast({ 
+            message: "Failed to create troop", 
+            subMessage: "Troop already exists. Use another phone number.",
+            type: 'error' 
+          });
+        } finally {
+          setIsImporting(false);          
+        }        
         
-        setWaStep('groups');
-        // Simulate fetch groups
-        setWaGroups([
-            { id: 'wa-1', name: 'Product Launch 🚀', count: 12 },
-            { id: 'wa-2', name: 'Dev Team Updates', count: 5 },
-            { id: 'wa-3', name: 'Marketing Alerts', count: 8 },
-            { id: 'wa-4', name: 'Family Group', count: 4 },
-            { id: 'wa-5', name: 'Client: Acme Corp', count: 3 },
-        ]);
     }, 2000);
   };
 
@@ -104,14 +172,6 @@ export const WhatsappTab: React.FC<WhatsappTabProps> = ({
     <div className="flex flex-col h-full">
       <div className="flex-1 mb-6">
         <div className="max-w-xl mx-auto h-full flex flex-col justify-center">     
-<div className="max-w-sm mx-auto flex items-center p-4 mb-4 text-sm rounded-lg text-accent-500" role="alert">
-  <svg className="flex-shrink-0 inline w-4 h-4 mr-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
-  </svg>
-  <div>
-    <span className="font-medium">Stay tuned!</span> This feature under development.
-  </div>
-</div>                    
           {waStep === 'input' && (
             <div className="text-center space-y-6 animate-in fade-in duration-300">         
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-500 rounded-full flex items-center justify-center mx-auto shadow-inner">

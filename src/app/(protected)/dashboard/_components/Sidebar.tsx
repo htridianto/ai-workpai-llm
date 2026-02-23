@@ -196,14 +196,14 @@ export const Sidebar = React.memo(() => {
                             <Box size={20} strokeWidth={2.5} />
                         </div>
                         <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">
-                           WorkpAI
+                           CampAIgn
                         </h1>
                     </div>
 
                     <div className="h-px bg-gray-200 dark:bg-charcoal-800 mb-4"></div>
 
                     <h2 className="font-bold text-slate-800 dark:text-slate-100 truncate mb-1 text-sm">
-                        {activeWorkspace?.title || 'Select Workspace'}
+                        {activeWorkspace?.title || 'Select Campaign'}
                     </h2>
                     
                     {activeWorkspace?.description && (
@@ -252,10 +252,10 @@ export const Sidebar = React.memo(() => {
                     {!currentWorkspaceId ? (
                         <div className="text-center py-10 px-4 text-charcoal-500 text-sm">
                             <Box size={24} className="mx-auto mb-2 opacity-50" />
-                            Please select a workspace from the left rail.
+                            Please select a campaign from the left rail.
                         </div>
                     ) : (
-                        Object.entries(groupedSessions).map(([group, groupSessions]) => (
+                        Object.entries(groupedSessions).map(([group, groupSessions]: [string, ChatSession[]]) => (
                             groupSessions.length > 0 && (
                                 <div key={group}>
                                     <div className="px-3 py-1 text-[10px] font-bold text-charcoal-400 uppercase tracking-wider mb-1">
@@ -301,9 +301,9 @@ export const Sidebar = React.memo(() => {
                             )
                         ))
                     )}
-                    {currentWorkspaceId && Object.values(groupedSessions).every(g => g.length === 0) && (
+                    {currentWorkspaceId && Object.values(groupedSessions).every((g: ChatSession[]) => g.length === 0) && (
                          <div className="text-center py-8 text-charcoal-400 text-xs italic">
-                            No chats in this workspace yet.
+                            No chats in this campaign yet.
                          </div>
                     )}
                 </div>
@@ -315,7 +315,7 @@ export const Sidebar = React.memo(() => {
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-charcoal-600 dark:text-charcoal-400 hover:bg-white dark:hover:bg-charcoal-800 hover:text-slate-900 dark:hover:text-white transition-all text-sm group"
                      >
                         <Layout size={16} className="group-hover:text-accent-500 transition-colors" />
-                        <span>Workspaces</span>
+                        <span>Manage Campaigns</span>
                      </button>
                      <button 
                         onClick={() => router.push('/generated')}

@@ -28,7 +28,7 @@ export default function AuthLayout({
           </div>          
 
           <h1 className="text-4xl mb-0 leading-tight text-slate-900 dark:text-white">            
-            <span className="ms-2 font-bold text-6xl text-transparent bg-clip-text bg-gradient-to-r from-accent-500 to-red-600 dark:from-accent-400 dark:to-red-500">WorkpAI</span>
+            <span className="ms-2 font-bold text-6xl text-transparent bg-clip-text bg-gradient-to-r from-accent-500 to-red-600 dark:from-accent-400 dark:to-red-500">campAIgn</span>
             <span className="text-xs text-slate-300 dark:text-slate-600 text-normal leading-tight ms-2">based on anythingLLM</span>
             <br /> <span className="ms-2 font-bold"></span>Your Private RAG
           </h1>                    

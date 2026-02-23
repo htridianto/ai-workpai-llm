@@ -67,7 +67,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
 
               <div className="w-full space-y-4 mb-6">
                 <div className="text-left">
-                    <label className="block text-xs font-medium text-charcoal-400 mb-1.5 ml-1">Workspace Name</label>
+                    <label className="block text-xs font-medium text-charcoal-400 mb-1.5 ml-1">Campaign Name</label>
                     <input
                       type="text"
                       value={workspaceTitle}
@@ -86,7 +86,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
                       rows={3}
                       maxLength={225}
                       className="w-full px-3 py-2 bg-charcoal-950 border border-charcoal-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition-all placeholder-charcoal-600 resize-none"
-                      placeholder="Briefly describe the purpose of this workspace..."
+                      placeholder="Briefly describe the purpose of this campaign..."
                     />
                 </div>
               </div>

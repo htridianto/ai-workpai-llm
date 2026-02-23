@@ -16,7 +16,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
        <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-charcoal-950 text-accent-500">
          <div className="flex flex-col items-center gap-4">
            <div className="w-10 h-10 border-4 border-charcoal-200 dark:border-charcoal-800 border-t-accent-500 rounded-full animate-spin"></div>
-           <p className="text-charcoal-500 dark:text-charcoal-400 text-sm animate-pulse">Loading Workspace...</p>
+           <p className="text-charcoal-500 dark:text-charcoal-400 text-sm animate-pulse">Loading Campaign...</p>
          </div>
        </div>
     );

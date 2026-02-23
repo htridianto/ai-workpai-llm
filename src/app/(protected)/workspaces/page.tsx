@@ -118,8 +118,8 @@ export default function WorkspacesPage() {
                   <div className="w-20 h-20 bg-gray-100 dark:bg-charcoal-800 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
                       <Box size={40} className="text-accent-500 opacity-50" />
                   </div>
-                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">No Workspace Selected</h2>
-                  <p className="max-w-lg text-center">Select a workspace from the sidebar or create a new one to manage your files.</p>
+                  <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">No Campaign Selected</h2>
+                  <p className="max-w-lg text-center">Select a campaign from the sidebar or create a new one to manage your knowledge base.</p>
               </div>
           )}
       </div>

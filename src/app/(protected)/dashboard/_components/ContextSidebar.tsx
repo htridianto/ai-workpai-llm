@@ -75,7 +75,7 @@ export const ContextSidebar: React.FC = () => {
                   : 'border-transparent text-charcoal-400 hover:text-slate-600 dark:hover:text-slate-300'
               }`}
              >
-               Documents
+               Contexts
              </button>
              {/* <button 
               onClick={() => setActiveTab('settings')}

@@ -58,6 +58,14 @@ export default function AuthPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingText, setLoadingText] = useState('');
+
+  const [isIpAddress, setIsIpAddress] = useState(false);
+  useEffect(() => {
+    if (window.location.hostname.match(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)) {
+      setIsIpAddress(true);
+    }
+  }, []);  
+
   // const [error, setError] = useState('');
   // const searchParams = useSearchParams();
   // const errorParam = searchParams.get("error");
@@ -83,40 +91,6 @@ export default function AuthPage() {
       redirect: true,
       callbackUrl: "/dashboard"
     });
-
-    // const result = await signIn("credentials", {
-    //   identifier: email,
-    //   password,
-    //   redirect: false
-    // });
-    // setIsLoading(false);
-    // if(result.error || result.code){   
-    //   setError( getErrorMessage(result.code || null) );    
-    //   return;
-    // }    
-    // setTimeout(() => {
-    //     router.push('/');
-    //   }, 500);
-
-    // try {
-    //   // 1. API Call
-    //   await AuthService.login(email, password);
-      
-    //   // 2. Setup Data Environment (Default: Populated for standard login)
-    //   localStorage.removeItem('anything_llm_mock_workspaces');
-    //   localStorage.removeItem('anything_llm_mock_sessions');
-    //   localStorage.removeItem('anything_llm_mock_generated_files');
-    //   localStorage.removeItem('anything_llm_mock_generated_folders');
-
-    //   setLoadingText('Redirecting to dashboard...');
-    //   setTimeout(() => {
-    //     router.push('/');
-    //   }, 500);
-      
-    // } catch (err: any) {
-    //   setError(err.message || 'Authentication failed');
-    //   setIsLoading(false);
-    // }
   };
 
   const handleGoogleLogin = async () => {
@@ -125,32 +99,6 @@ export default function AuthPage() {
     setLoadingText('Connecting to Google...');
     
     await signIn('google', { callbackUrl: "/dashboard" });
-
-    /*
-    setError('');
-    setIsLoading(true);
-    setLoadingText('Connecting to Google...');
-    
-    try {
-      // 1. Setup Data Environment (Populated for Demo)
-      localStorage.removeItem('anything_llm_mock_workspaces');
-      localStorage.removeItem('anything_llm_mock_sessions');
-      localStorage.removeItem('anything_llm_mock_generated_files');
-      localStorage.removeItem('anything_llm_mock_generated_folders');
-
-      // 2. Simulate OAuth
-      await AuthService.loginWithGoogle();
-      
-      setLoadingText('Verifying token...');
-      setTimeout(() => {
-         onLogin();
-      }, 500);
-
-    } catch (err: any) {
-      setError('Google sign-in failed. Please try again.');
-      setIsLoading(false);
-    }
-    */
   };
 
   const handleDemoLogin = async () => {
@@ -164,39 +112,21 @@ export default function AuthPage() {
       redirect: true,
       callbackUrl: "/dashboard"
     });    
-    // try {
-    //   // 1. Setup Data Environment (Populated for Demo)
-    //   localStorage.removeItem('anything_llm_mock_workspaces');
-    //   localStorage.removeItem('anything_llm_mock_sessions');
-    //   localStorage.removeItem('anything_llm_mock_generated_files');
-    //   localStorage.removeItem('anything_llm_mock_generated_folders');
-
-    //   // 2. Simulate Demo Setup
-    //   await AuthService.loginDemo();
-      
-    //   setLoadingText('Finalizing workspace...');
-    //   setTimeout(() => {
-    //     router.push('/');
-    //   }, 500);
-
-    // } catch (err: any) {
-    //    setError('Failed to launch demo instance.');
-    //    setIsLoading(false);
-    // }
   };
   
   return (
     <>
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Sign In</h2>
-        <p className="text-slate-500 dark:text-charcoal-400">Access your WorkPai workspace.</p>
+        <p className="text-slate-500 dark:text-charcoal-400">Access your campAIgn workspace.</p>
       </div>
 
       <div className="space-y-4 mb-6">
+        {/* do disabled when domain is ip address, check domain is ip or not */}
         <button
           type="button"
           onClick={handleGoogleLogin}
-          disabled={isLoading}
+          disabled={isLoading || isIpAddress}
           className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-gray-200 dark:border-charcoal-700 bg-white dark:bg-charcoal-800 text-slate-700 dark:text-slate-200 font-medium hover:bg-gray-50 dark:hover:bg-charcoal-700 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed group relative overflow-hidden"
         >
            {isLoading && loadingText.includes('Google') ? (
