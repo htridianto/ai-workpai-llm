@@ -31,4 +31,4 @@ dist-ssr
 .env.local
 *.db
 storage/
-/docker-compose.yml
+docker-compose.yml
