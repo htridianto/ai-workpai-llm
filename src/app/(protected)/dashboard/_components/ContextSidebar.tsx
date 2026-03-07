@@ -105,7 +105,7 @@ export const ContextSidebar: React.FC = () => {
                       <div className="text-center py-12 px-6 bg-gray-50 dark:bg-charcoal-950/40 border border-dashed border-gray-200 dark:border-charcoal-800 rounded-2xl">
                         <FileText size={32} className="mx-auto mb-3 text-charcoal-300 dark:text-charcoal-700" />
                         <p className="text-sm font-medium text-slate-600 dark:text-slate-400">No documents indexed</p>
-                        <p className="text-xs text-charcoal-400 mt-1">Manage files in your "Workspaces" settings.</p>
+                        <p className="text-xs text-charcoal-400 mt-1">Manage files in your "Campaigns" settings.</p>
                       </div>
                     ) : (
                       <div className="space-y-3">

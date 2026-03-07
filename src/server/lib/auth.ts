@@ -63,20 +63,6 @@ const authAnythingLLM = async(identifier: string, password: string): Promise<any
         message: authData.message || 'Invalid credentials.', status: 401
       };
     }
-    /*
-    // do create folder for workspace (POST /v1/document/create-folder)
-    const createFolder = await fetch(`${ragApiUrl}/api/v1/document/create-folder`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authData.token}`
-        },
-        body: JSON.stringify({
-            name: `${newUser.name} Team`
-        })
-    });
-    console.log("createFolder:", createFolder);
-    */
 
     return {      
       status: 200,
@@ -222,8 +208,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             data: {
               lastLoggedin: new Date(),
               sessionToken: authExternal.token,
-              // role: authExternal.user?.role || 'default',
-              // bio: authExternal.user?.bio || null,
               deletedAt: null 
             }
           });
@@ -249,7 +233,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             data
           });
           
-          //@todo: create default organization for new user, with organization id is new user id, check if organization with id is new user id already exists first
+          //do: create default organization for new user, with organization id is new user id, check if organization with id is new user id already exists first
           const existingOrganization = await (prisma as any).organization.findUnique({
             where: {
               id: user.id
@@ -275,14 +259,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         try {
           const identifier = user.userName as string;
           const authExternal = await createOrAuthAnythingLLM(identifier, 'raganythingllm');
-          // console.debug("callbacks::signIn::authExternal:", authExternal);   
           if (authExternal.success) {
             // (account as any ).access_token = authExternal.token;
             user.sessionToken = authExternal.token;
             user.ssoAuthId = `${authExternal.user?.id}`;       
-          }            
-          // console.debug("callbacks::signIn::user:", user);
-          // console.debug("callbacks::signIn::account:", account);                 
+          }                           
           return authExternal.success; 
         }catch(error){
           console.error("callbacks::signIn::error:", error);      

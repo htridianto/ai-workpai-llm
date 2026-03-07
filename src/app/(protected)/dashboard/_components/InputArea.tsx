@@ -118,6 +118,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, disabled }) => {
 
             <textarea
               ref={textareaRef}
+              autoFocus={true}
               value={text}
               onChange={handleChange}
               onKeyDown={handleKeyDown}

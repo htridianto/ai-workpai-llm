@@ -73,7 +73,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   // Layout State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isContextOpen, setIsContextOpen] = useState(false);
+  const [isContextOpen, setIsContextOpen] = useState(true);
   const [toast, setToast] = useState<{message: string, type: ToastType, subMessage?: string} | null>(null);
 
   // App State

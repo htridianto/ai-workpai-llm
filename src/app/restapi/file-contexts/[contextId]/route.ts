@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/server/lib/auth';
 import { updateFileContext, deleteFileContext, getFileContextById, mapFileContext } from '@/server/models';
+import { deleteFile } from '@/server/lib/minio';
 
 export async function PATCH(
     req: Request,
@@ -38,11 +39,14 @@ export async function DELETE(
         if (!context) {
             return NextResponse.json({ message: 'File context not found' }, { status: 404 });
         }
-
         await deleteFileContext(contextId, true);
+
+        if(context.meta?.storage && context.meta?.storage.location){
+            // do delete file from minio
+            await deleteFile(context.meta.storage.location);
+        }
         
-        // console.log("context", context);
-        if(context.meta?.document){
+        if(context.meta?.document && context.meta.document.location){
             // do delete document for workspace (DELETE/v1/system/remove-documents)
             const ragResponse = await fetch(`${process.env.RAG_API_URL}/api/v1/system/remove-documents`, {
                 method: 'DELETE',
@@ -72,7 +76,6 @@ export async function GET(
     }
 
     const { contextId } = await params;
-
     try {
         const context = await getFileContextById(contextId);
         if (!context) {

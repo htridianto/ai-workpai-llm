@@ -14,6 +14,7 @@ model Workspace {
   organizationId String?   @map("organization_id")
   createdAt      DateTime  @default(now()) @map("created_at")
   deletedAt      DateTime? @map("deleted_at")
+  meta           String?   // Disimpan sebagai JSON string
 
   organization Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   users        WorkspaceUser[]

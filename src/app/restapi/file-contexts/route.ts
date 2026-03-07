@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/server/lib/auth';
-import { createFileContext } from '@/server/models';
+import { createFileContext, getFolderById, updateFileContext } from '@/server/models';
+import { processChats } from '@/server/actions/whatsapp';
 
 export async function POST(req: Request) {
     const session = await auth();
@@ -16,28 +17,50 @@ export async function POST(req: Request) {
             return NextResponse.json({ message: 'Workspace ID is required' }, { status: 400 });
         }
         
-        let newFolderId = folderId || null;
+        let parentFolderId = folderId || null;
         if(!folderId){
             if(type == 'whatsapp'){
-                newFolderId = `.whatsapp-${workspaceId}`;
+                parentFolderId = `.whatsapp-${workspaceId}`;
             }else if(type == 'database'){
-                newFolderId = `.databases-${workspaceId}`;
+                parentFolderId = `.databases-${workspaceId}`;
             }else if(type == 'link'){
-                newFolderId = `.links-${workspaceId}`;
+                parentFolderId = `.links-${workspaceId}`;
             }
-        }
-
+        }  
+        const metadata = meta || {
+            progress: (status == 'indexed') ? 100 : 0,
+            storage: {},
+            document: {}
+        } 
         const context = await createFileContext({
             workspaceId,
-            folderId: newFolderId,
+            folderId: parentFolderId,
             type: type || 'txt',
-            meta: meta || null,
             name: name || 'Untitled',
             size: size || 0,
             snippet: snippet || null,
-            status: status || 'indexed'
+            status: status || 'indexed',
+            meta: metadata
         });
 
+        if(type == 'whatsapp'){
+            const parentFolder = await getFolderById(parentFolderId);
+            const sessionName = parentFolder?.meta?.session.id;
+            const result = await processChats(sessionName, context);
+            if(result){
+                const updatedContext = await updateFileContext(context.id, {
+                    size: result.size || 0,
+                    meta: {
+                        ...context.meta,
+                        progress: (status == 'indexed') ? 100 : 50,
+                        lastMessage: result.lastMessage,
+                        lastMessageTimestamp: result.lastMessageTimestamp,
+                        storage: result.storage
+                    }
+                });
+                return NextResponse.json(updatedContext, { status: 201 });
+            }
+        }
         return NextResponse.json(context, { status: 201 });
     } catch (error) {
         console.error("POST FileContext error:", error);

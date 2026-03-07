@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileText, Database, Link as LinkIcon, Calendar, MessageCircle, Table, Image, ExternalLink } from 'lucide-react';
 import { FileContext } from '@/shared/types/types';
+import Link from 'next/link';
+import { MarkdownRenderer } from '@/app/(protected)/dashboard/_components/MarkdownRenderer';
 
 interface FilePreviewModalProps {
   file: FileContext | null;
@@ -12,7 +14,25 @@ interface FilePreviewModalProps {
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClose }) => {
   if (!file) return null;
 
+  const [contentChats, setContentChats] = useState<any[]>([]);
   const docData = file.meta?.document || {};
+  const storageData = file.meta?.storage || {};
+
+//   useEffect(() => {
+    if (file.type === 'whatsapp') {
+      const fetchChats = async () => {
+        // get content file from file.meta.storage.location (http://localhost:3000/.source/whatsapp/1234567890/1234567890.txt)
+        const content = await fetch(file.meta.storage.location).then(res => res.json());       
+        if(content){
+            // do reverse array then get max last 20 rows
+            content.splice(20);
+            content.reverse();            
+            setContentChats(content);
+        }
+      }
+      fetchChats();
+    }
+//   }, [file]);
 
   const renderContent = () => {
     switch (file.type) {
@@ -85,38 +105,35 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
             return (
                 <div className="bg-gray-100 dark:bg-[#0b141a] min-h-full flex flex-col">
                     <div className="bg-[#00a884] dark:bg-[#202c33] p-4 text-white flex items-center gap-3 shadow-md">
-                        <div className="w-10 h-10 bg-gray-300 rounded-full" />
-                        <div>
-                            <div className="font-semibold">{file.name.split(':')[1] || 'Group Chat'}</div>
-                            <div className="text-xs opacity-80">Online</div>
+                        <div className="text-xs opacity-80">
+                            {file.meta?.count} participants
+                            • Last message: {new Date(file.meta?.lastMessageTimestamp).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
                         </div>
                     </div>
-                    <div className="p-4 space-y-4 flex-1 overflow-y-auto bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d93612ebad.png')] dark:bg-opacity-10 bg-repeat bg-opacity-5">
-                        <div className="flex justify-center">
-                            <span className="bg-yellow-100 dark:bg-[#1f2c34] text-charcoal-600 dark:text-[#8696a0] text-xs px-3 py-1.5 rounded-lg shadow-sm">
-                                Messages and calls are end-to-end encrypted.
-                            </span>
-                        </div>
-                        
-                        <div className="flex justify-start">
-                            <div className="bg-white dark:bg-[#202c33] p-2.5 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
-                                <p className="text-sm text-slate-800 dark:text-[#e9edef]">System: Imported last 500 messages for context embedding.</p>
-                                <span className="text-[10px] text-charcoal-400 block text-right mt-1">10:00 AM</span>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <div className="bg-[#d9fdd3] dark:bg-[#005c4b] p-2.5 rounded-lg rounded-tr-none shadow-sm max-w-[80%]">
-                                <p className="text-sm text-slate-900 dark:text-[#e9edef]">This is a sample message from the group history.</p>
-                                <span className="text-[10px] text-[#59936e] dark:text-[#8696a0] block text-right mt-1">10:02 AM</span>
-                            </div>
-                        </div>
-                         <div className="flex justify-start">
-                            <div className="bg-white dark:bg-[#202c33] p-2.5 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
-                                <p className="text-sm text-slate-800 dark:text-[#e9edef]">Another participant response that is now part of your knowledge base.</p>
-                                <span className="text-[10px] text-charcoal-400 block text-right mt-1">10:05 AM</span>
-                            </div>
-                        </div>
+                    <div className="p-4 space-y-4 flex-1 overflow-y-auto bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d93612ebad.png')] dark:bg-opacity-10 bg-repeat bg-opacity-5">                       
+                        {contentChats.map((chat, index) => (
+                            chat.is_from_me ? (
+                                <div className="flex justify-end" key={index}>
+                                    <div className="bg-[#d9fdd3] dark:bg-[#005c4b] p-2.5 rounded-lg rounded-tr-none shadow-sm max-w-[80%]">
+                                        <MarkdownRenderer content={chat.content} />                                        
+                                        <span className="text-[10px] text-[#59936e] dark:text-[#8696a0] block text-right mt-1">{new Date(chat.timestamp).toLocaleTimeString([], {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex justify-start" key={index}>
+                                    <div className="bg-white dark:bg-[#202c33] p-2.5 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
+                                        <p className="font-bold text-[10px] text-slate-800 dark:text-[#e9edef] mb-1">{chat.sender_jid.split('@')[0].split('-')[0]}</p>                                        
+                                        {chat.media_type == 'image' && (
+                                            <div className="mt-2">
+                                                <img src={chat.url} alt="[Image]" className="w-full h-auto rounded-lg" />
+                                            </div>
+                                        )}
+                                        <MarkdownRenderer content={chat.content} /> 
+                                        <span className="text-[10px] text-charcoal-400 block text-right mt-1">{new Date(chat.timestamp).toLocaleTimeString([], { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                                    </div>
+                                </div>
+                            )                         
+                        ))} 
                     </div>
                 </div>
             );
@@ -173,7 +190,14 @@ ${docData?.pageContent || 'No content available'}
                  </div>
                  <div>
                     <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{file.name}</h3>
-                    <p className="text-xs text-charcoal-500 dark:text-charcoal-400 capitalize">{file.type} Source • Indexed Content</p>
+                    <p className="text-xs text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
+                        <span className="font-bold">{file.type} Source • Indexed Content</span> 
+                        {storageData.location && (
+                            <Link href={storageData.location} target="_blank" className="hover:underline flex items-center gap-1">                                
+                                <ExternalLink size={12} /> View Source
+                            </Link>
+                        )}                        
+                    </p>
                  </div>
               </div>
               <button 
@@ -211,7 +235,7 @@ ${docData?.pageContent || 'No content available'}
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
                                     <ExternalLink size={14} /> Source
                                 </span>
-                                <span className="font-mono text-slate-800 dark:text-slate-200 truncate max-w-[120px]" title={docData.chunkSource}>{docData.chunkSource || 'User Upload'}</span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200 truncate max-w-[120px]">{docData.chunkSource || file.type}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-charcoal-500 dark:text-charcoal-400 flex items-center gap-2">
@@ -237,9 +261,9 @@ ${docData?.pageContent || 'No content available'}
                     )}
 
                     <div className="p-3 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                        <div className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">Status: Indexed</div>
+                        <div className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1">Status: {file.status}</div>
                         <p className="text-[10px] text-green-600 dark:text-green-500/80">
-                            This document is fully vectorised and ready for retrieval.
+                            {file.status === 'indexed' ? 'This document is fully vectorised and ready for retrieval.' : 'This document is being processed and will be ready for retrieval soon.'}
                         </p>
                     </div>
 

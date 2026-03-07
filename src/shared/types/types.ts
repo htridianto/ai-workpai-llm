@@ -1,3 +1,5 @@
+import { DEFAULT_SYSTEM_INSTRUCTION } from "../constants";
+
 export enum Role {
   USER = 'user',
   MODEL = 'model',
@@ -36,12 +38,14 @@ export interface Workspace {
   symbol?: string; // Emoji or abbreviation
   color?: string; // UI decoration
   organizationId?: string;
-  createdAt: number;
-  similarityThreshold: number;
-  fileContexts: FileContext[];
-  folders: Folder[];
-  virtualFolders: Folder[];
-  systemInstruction?: string;  
+  createdAt?: number;
+  // similarityThreshold?: number;
+  // openAiTemp?: number;
+  // systemInstruction?: string;    
+  meta?: any;
+  folders?: Folder[];
+  fileContexts?: FileContext[];
+  virtualFolders?: Folder[];  
   threads?: ChatSession[];
 }
 

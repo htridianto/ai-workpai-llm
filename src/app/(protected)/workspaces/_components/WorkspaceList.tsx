@@ -119,22 +119,21 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
         });
         return;
     }
-
     const savedAuth = localStorage.getItem('workpai_llm_auth');
     const user = savedAuth ? JSON.parse(savedAuth) : null;
-    const userId = user?.id;    
+    const userId = user?.id;
 
-    const demoWorkspaces = [/*{
-        title: 'Market Analysis 2025',
-        description: 'Penyimpanan laporan riset pasar, data kompetitor, dan tren industri terbaru. Memungkinkan LLM melakukan sintesis data untuk strategi penetapan harga atau peluncuran produk baru.',
+    const demoWorkspaces = [{
+        title: 'SmartGov-Assist: Jawaban Instan untuk Hak Anda',
+        description: 'Sistem bertenaga AI yang memproses ribuan dokumen regulasi, prosedur perizinan, dan SOP pemerintah secara real-time. Warga tidak perlu lagi membaca dokumen PDF ratusan halaman; cukup tanya melalui chat, dan AI akan memberikan jawaban akurat yang bersumber langsung dari basis data resmi pemerintah daerah.',
         userId: userId ? [userId] : []
     },{
-        title: 'Global Markets & Policy Risk',
-        description: 'Integrasi dokumen strategi bisnis dan arsip kebijakan publik untuk analisis RAG real-time.',
+        title: 'Mutawif Digital: Panduan Ibadah dalam Genggaman',
+        description: 'Pendamping pintar bagi jamaah yang mengintegrasikan seluruh panduan fiqih, jadwal perjalanan, dan data lokasi. RAG memungkinkan AI memberikan jawaban yang personal dan sesuai syariat berdasarkan kitab panduan resmi yang diunggah, memastikan setiap pertanyaan jamaah tentang tata cara ibadah dijawab dengan referensi yang valid dan terpercaya.',
         userId: userId ? [userId] : []
-    }, */{
-        title: 'Political Marketing Engine',
-        description: 'Data demografi pemilih (Marketing) dengan janji kampanye dan isu daerah (Politik).',
+    }, {
+        title: 'Assistant untuk Data Perusahaan Anda',
+        description: 'Ubah tumpukan dokumen internal, laporan keuangan, dan basis pengetahuan tim menjadi asisten yang proaktif. Menggunakan teknologi RAG untuk memastika AI tidak berhalusinasi; ia hanya berbicara berdasarkan data yang Anda miliki. Cari informasi spesifik dari ribuan file dalam hitungan detik tanpa perlu membuka satu pun folder.',
         userId: userId ? [userId] : []
     }];
     
@@ -146,6 +145,14 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
         setToast({ message: "Failed to create demo campaign", type: "error", subMessage: err.message });
     }
   };
+
+  const getValidationStringDelete = () => {
+    const workspace = workspaces.find(s => s.id === itemToEditId)
+    if (workspace && workspace.fileContexts.length > 0) {
+      return workspace.slug
+    }
+    return undefined
+  }
 
   useEffect(() => {
     if(workspaces.length > 0 && selectedWorkspaceId === null) {
@@ -276,7 +283,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
           isOpen={isDeleteModalOpen}
           title="Delete Campaign?"
           message={`Are you sure you want to delete "${workspaces.find(s => s.id === itemToEditId)?.title}"?`}
-          validationString={workspaces.find(s => s.id === itemToEditId)?.slug}
+          validationString={getValidationStringDelete()}
           isDanger={true}
           onConfirm={handleDeleteWorkspace}
           onCancel={() => { setIsDeleteModalOpen(false); setItemToEditId(null); }}
