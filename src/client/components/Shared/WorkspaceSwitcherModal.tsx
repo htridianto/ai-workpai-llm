@@ -12,6 +12,8 @@ interface WorkspaceSwitcherModalProps {
   onClose: () => void;
 }
 
+const WORKSPACE_TITLE = process.env.NEXT_PUBLIC_WORKSPACE_TITLE || "Workspace"
+
 export const WorkspaceSwitcherModal: React.FC<WorkspaceSwitcherModalProps> = ({
   isOpen,
   workspaces,
@@ -54,7 +56,7 @@ export const WorkspaceSwitcherModal: React.FC<WorkspaceSwitcherModalProps> = ({
 
             <div className="overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-charcoal-700">
                {workspaces.length === 0 ? (
-                 <div className="text-center py-8 text-charcoal-500">No workspaces found.</div>
+                 <div className="text-center py-8 text-charcoal-500">No {WORKSPACE_TITLE} found.</div>
                ) : (
                  workspaces.map(workspace => (
                    <button
@@ -76,10 +78,10 @@ export const WorkspaceSwitcherModal: React.FC<WorkspaceSwitcherModalProps> = ({
                      </div>
                      <div className="flex-1 text-left">
                         <h4 className={`font-medium ${workspace.id === currentWorkspaceId ? 'text-accent-400' : 'text-slate-200'}`}>
-                           {workspace.title}
+                           {workspace.name}
                         </h4>
                         <p className="text-xs text-charcoal-400">
-                           {workspace.fileContexts?.length || 0} documents • {new Date(workspace.createdAt).toLocaleDateString()}
+                           {workspace.fileContexts?.length || 0} documents • {new Date(workspace.createdAt!).toLocaleDateString()}
                         </p>
                      </div>
                      {workspace.id === currentWorkspaceId && (
@@ -92,7 +94,7 @@ export const WorkspaceSwitcherModal: React.FC<WorkspaceSwitcherModalProps> = ({
             
             <div className="p-4 border-t border-charcoal-800 bg-charcoal-900">
                <p className="text-center text-xs text-charcoal-500">
-                 Select a workspace to activate it on your dashboard.
+                 Select a {WORKSPACE_TITLE} to activate it on your dashboard.
                </p>
             </div>
           </motion.div>

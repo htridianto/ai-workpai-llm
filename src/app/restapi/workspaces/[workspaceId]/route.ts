@@ -18,6 +18,7 @@ export async function PATCH(
         if (!body.title) {
             return NextResponse.json({ message: 'Title is required' }, { status: 400 });
         }
+        /*
         const ragApiUrl = process.env.RAG_API_URL;
         const token = process.env.RAG_API_KEY;
         if (!ragApiUrl || !token) {
@@ -51,17 +52,19 @@ export async function PATCH(
             createdAt: new Date(ws.createdAt).getTime(),            
             lastUpdatedAt: ws.lastUpdatedAt
         } as any;        
-
+        */     
+        
         // do update workspace in database
         const updatedWorkspace = await updateWorkspaceService(params.workspaceId, {
             name: body.title,
             description: body.description
         });
-        newWorkspace.title = updatedWorkspace.name;
-        newWorkspace.description = updatedWorkspace.description;
-        newWorkspace.symbol = updatedWorkspace.name.substring(0, 1).toUpperCase();
+        // newWorkspace.title = updatedWorkspace.name;
+        // newWorkspace.description = updatedWorkspace.description;
+        // newWorkspace.symbol = updatedWorkspace.name.substring(0, 1).toUpperCase();
         
-        return NextResponse.json(newWorkspace);
+        const workspace = await getWorkspaceById(params.workspaceId);
+        return NextResponse.json(workspace);
     } catch (error) {
         console.error("PATCH Workspace error:", error);
         return NextResponse.json({ message: 'Failed to update workspace' }, { status: 500 });
@@ -95,6 +98,7 @@ export async function DELETE(
     }    
     const params = await props.params;
     try {
+        /*
         const ragApiUrl = process.env.RAG_API_URL;
         if (!ragApiUrl) {
             return NextResponse.json({ message: 'Failed to delete workspace RAG_API_URL not set' }, { status: 500 });
@@ -107,11 +111,11 @@ export async function DELETE(
                 'Authorization': `Bearer ${token}`
             }
         });
-
-        if (!response.ok) {
-            const message = await response.json();
-            console.error("External API error (DELETE):", response.status, message?.error);
-            return NextResponse.json({ message: message?.error || 'Failed to delete workspace rag' }, { status: response.status });
+        
+        if (!response.ok) {           
+            const responseText = await response.text();
+            console.error("External API error (DELETE):", response);
+            return NextResponse.json({ message: responseText || 'Failed to delete workspace rag' }, { status: response.status });
         }
 
         // do delete folder for workspace (POST /v1/document/remove-folder)
@@ -125,13 +129,17 @@ export async function DELETE(
                 name: params.workspaceId
             })
         });
+        */
 
         // Delete workspace from database
-        await deleteWorkspaceService(params.workspaceId, true);
-        
-        return NextResponse.json({ message: 'Workspace deleted successfully' });
+        await deleteWorkspaceService(params.workspaceId, true);        
     } catch (error) {
-        console.error("DELETE Workspace error:", error);
-        return NextResponse.json({ message: 'Failed to delete workspace' }, { status: 500 });
+        if (error.code === 'P2025') {
+            console.warn("DELETE Workspace warning: Workspace already deleted");
+        }else{
+            console.error("DELETE Workspace error:", error);
+            return NextResponse.json({ message: 'Failed to delete workspace' }, { status: 500 });
+        }
     }
+    return NextResponse.json({ message: 'Workspace deleted successfully' });
 }

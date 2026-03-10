@@ -17,25 +17,22 @@ export const authConfig = {
       if (user) {
         token.id = user.id;
         token.role = user.role;   
-        token.userName = user.userName;
-        token.name = user.name;
+        token.userName = user.user_name;
+        token.name = user.display_name;
         token.bio = user.bio;   
-        token.lastLoggedin = user.lastLoggedin;   
-        token.ssoAuthId = user.ssoAuthId;
-        token.ssoAuthProvider = user.ssoAuthProvider;
-        token.sessionToken = user.sessionToken;
-        token.accessToken = user.accessToken;      
-      }
-      if (account && account.access_token) {
-        token.accessToken = account.access_token;        
-      }      
+        token.lastLoggedin = user.last_loggedin;   
+        token.ssoAuthId = user.sso_auth_id;
+        token.ssoAuthProvider = user.sso_auth_provider;
+        // token.sessionToken = user.session_token;
+        token.accessToken = user.access_token;      
+      }    
       return token;
     },
     async session({ session, token, user, account }: any) {      
       // console.log("callback:session:Token:", token);      
       // console.log("callback:session:session:", session);          
       // Transfer data from the token to the session object  
-      if (session.user) {
+      if (session && session.user) {
         session.user.id = token.id;
         session.user.role = token.role;      
         session.user.userName = token.userName;

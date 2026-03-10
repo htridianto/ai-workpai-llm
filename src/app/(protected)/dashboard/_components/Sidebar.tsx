@@ -10,25 +10,26 @@ import {
   Sun,
   Layout,
   FileBox,
-  Search,
   X,
   Edit2,
   Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChatSession, Workspace } from '@/shared/types/types';
+import { ChatSession } from '@/shared/types/types';
 import { ConfirmationModal } from '@/client/components/Shared/ConfirmationModal';
 import { InputModal } from '@/client/components/Shared/InputModal';
 import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 import { useTheme } from '@/client/components/ThemeProvider';
 
+const WORKSPACE_TITLE = process.env.NEXT_PUBLIC_WORKSPACE_TITLE || "Workspace"
+const WORKSPACE_TITLE_PLURAL = process.env.NEXT_PUBLIC_WORKSPACE_TITLE_PLURAL || "Workspaces"
+
 export const Sidebar = React.memo(() => {
   const {
       workspaces,
       currentWorkspaceId,
       handleSelectWorkspace: onSelectWorkspace,
-      sessions: allSessions, // Renaming to avoid conflict if needed, or just use sessions
       filteredSessions: sessions, // We want the filtered ones
       currentSessionId,
       createNewSession: onNewChat,
@@ -146,7 +147,7 @@ export const Sidebar = React.memo(() => {
                             ? `bg-${ws.color || 'accent-500'} text-white shadow-lg shadow-accent-500/20` 
                             : `bg-white dark:bg-charcoal-800 text-${ws.color || 'charcoal-500'} x-dark:text-charcoal-400 hover:bg-accent-100 dark:hover:bg-charcoal-700`
                         }`}
-                        title={ws.title}
+                        title={ws.name}
                     >
                         {ws.symbol ? <span className="font-bold text-sm">{ws.symbol}</span> : <Box size={18} />}
                         {/* Active Indicator */}
@@ -155,7 +156,7 @@ export const Sidebar = React.memo(() => {
                         )}
                         {/* Tooltip (Glassmorphism) */}
                         <div className="absolute left-14 bg-charcoal-900/80 backdrop-blur-xl border border-white/10 text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 whitespace-nowrap pointer-events-none z-50 transition-all duration-200 shadow-xl scale-95 group-hover:scale-100 origin-left">
-                            <span className="font-bold block text-xs mb-0.5 text-left text-accent-500">{ws.title}</span>
+                            <span className="font-bold block text-xs mb-0.5 text-left text-accent-500">{ws.name}</span>
                             {ws.description && <span className="block font-normal text-[10px] opacity-70 max-w-[180px] truncate">{ws.description}</span>}
                         </div>
                     </button>
@@ -203,7 +204,7 @@ export const Sidebar = React.memo(() => {
                     <div className="h-px bg-gray-200 dark:bg-charcoal-800 mb-4"></div>
 
                     <h2 className="font-bold text-slate-800 dark:text-slate-100 truncate mb-1 text-sm">
-                        {activeWorkspace?.title || 'Select Campaign'}
+                        {activeWorkspace?.name || `Select ${WORKSPACE_TITLE}`}
                     </h2>
                     
                     {activeWorkspace?.description && (
@@ -252,7 +253,7 @@ export const Sidebar = React.memo(() => {
                     {!currentWorkspaceId ? (
                         <div className="text-center py-10 px-4 text-charcoal-500 text-sm">
                             <Box size={24} className="mx-auto mb-2 opacity-50" />
-                            Please select a campaign from the left rail.
+                            Please select a {WORKSPACE_TITLE} from the left rail.
                         </div>
                     ) : (
                         Object.entries(groupedSessions).map(([group, groupSessions]: [string, ChatSession[]]) => (
@@ -303,7 +304,7 @@ export const Sidebar = React.memo(() => {
                     )}
                     {currentWorkspaceId && Object.values(groupedSessions).every((g: ChatSession[]) => g.length === 0) && (
                          <div className="text-center py-8 text-charcoal-400 text-xs italic">
-                            No chats in this campaign yet.
+                            No chats in this {WORKSPACE_TITLE} yet.
                          </div>
                     )}
                 </div>
@@ -315,7 +316,7 @@ export const Sidebar = React.memo(() => {
                         className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-charcoal-600 dark:text-charcoal-400 hover:bg-white dark:hover:bg-charcoal-800 hover:text-slate-900 dark:hover:text-white transition-all text-sm group"
                      >
                         <Layout size={16} className="group-hover:text-accent-500 transition-colors" />
-                        <span>Manage Campaigns</span>
+                        <span>Manage {WORKSPACE_TITLE_PLURAL}</span>
                      </button>
                      <button 
                         onClick={() => router.push('/generated')}

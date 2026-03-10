@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
-import { Box, Link } from 'lucide-react';
+import { Box } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();

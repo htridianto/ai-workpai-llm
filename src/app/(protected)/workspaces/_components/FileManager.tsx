@@ -33,13 +33,14 @@ import { FolderList } from './FolderList';
 import { FileList } from './FileList';
 import { TroopList } from './TroopList';
 
+const WORKSPACE_TITLE = process.env.NEXT_PUBLIC_WORKSPACE_TITLE || "Workspace"
+
 interface FileManagerProps {
   selectedWorkspace: Workspace;
   viewMode: 'grid' | 'list';
   isFolderTreeOpen: boolean;
   setIsFolderTreeOpen: (open: boolean) => void;
 }
-
 
 export const FileManager: React.FC<FileManagerProps> = ({
   selectedWorkspace,
@@ -188,14 +189,13 @@ export const FileManager: React.FC<FileManagerProps> = ({
   let currentFolders: FolderType[] = [];
   let currentFiles: FileContext[] = [];
 
-  const isWaNumberFolder = (id: string) => id.startsWith('.wa_number_');
-
   if (currentFolderId === null) {
-      currentFolders = (selectedWorkspace?.folders || []).filter(f => !f.parentId);
-      currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => !f.folderId && !['link', 'whatsapp', 'database'].includes(f.type));
+    currentFolders = (selectedWorkspace?.folders || []).filter(f => !f.parentId);
+    currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => !f.folderId);
+    //   currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => !f.folderId && !['link', 'whatsapp', 'database'].includes(f.type));
   } else {
-      currentFolders = (selectedWorkspace?.folders || []).filter(f => f.parentId === currentFolderId);
-      currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.folderId === currentFolderId);
+    currentFolders = (selectedWorkspace?.folders || []).filter(f => f.parentId === currentFolderId);    
+    currentFiles = (selectedWorkspace?.fileContexts || []).filter(f => f.folderId === currentFolderId);
   }
 
   // Breadcrumbs Logic
@@ -236,7 +236,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
               <div className="flex-1 mr-4">
                   <div className="flex items-center gap-3">
                       <h1 className="text-2xl font-bold text-slate-900 dark:text-white truncate">
-                          {isAddContextOpen ? `Add ${currentFolder?.isStarred ? 'Troop' : 'Data Source'}` : (currentFolderId ? breadcrumbs[breadcrumbs.length - 1]?.name : selectedWorkspace.title)}
+                          {isAddContextOpen ? `Add ${currentFolder?.isStarred ? 'Troop' : 'Data Source'}` : (currentFolderId ? breadcrumbs[breadcrumbs.length - 1]?.name : selectedWorkspace.name)}
                       </h1>
                       {canRenameCurrent && !isAddContextOpen && (
                         <>
@@ -270,7 +270,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                             <ChevronLeft size={18} />
                         </button>
                     )}
-                    {isAddContextOpen ? `Select and import ${currentFolder?.isStarred ? 'Troop' : 'Data'} to your campaign` : (currentFolder ? `Manage ${currentFolder.name} Contents` : (selectedWorkspace.description || 'Manage your documents'))}
+                    {isAddContextOpen ? `Select and import ${currentFolder?.isStarred ? 'Troop' : 'Data'} to your ${WORKSPACE_TITLE}` : (currentFolder ? `Manage ${currentFolder.name} Contents` : (selectedWorkspace.description || 'Manage your documents'))}
                   </p>
               </div>
               <div className="flex gap-3">
@@ -347,7 +347,7 @@ export const FileManager: React.FC<FileManagerProps> = ({
                               <div className="w-16 h-16 bg-gray-100 dark:bg-charcoal-800 rounded-full flex items-center justify-center mb-4">
                                   <UploadCloud size={32} className="opacity-50" />
                               </div>
-                              <p className="font-medium text-slate-600 dark:text-slate-300">This folder <i>{(currentFolderId ? breadcrumbs[breadcrumbs.length - 1]?.name : selectedWorkspace.title)}</i> is empty</p>
+                              <p className="font-medium text-slate-600 dark:text-slate-300">This folder <i className="me-1">{(currentFolderId ? breadcrumbs[breadcrumbs.length - 1]?.name : selectedWorkspace.name)}</i> is empty</p>
                               <p className="text-sm">Add files, database connections, or links to get started.</p>
                             </div>
                         )}

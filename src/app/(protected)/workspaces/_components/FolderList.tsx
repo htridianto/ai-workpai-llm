@@ -1,6 +1,6 @@
 import React from 'react';
 import { Folder as FolderType, Workspace } from '@/shared/types/types';
-import { Lock, Folder, Layers, Calendar, Trash2 } from 'lucide-react';
+import { Lock, Folder, Layers, Calendar, Trash2, MessageCircle } from 'lucide-react';
 
 interface FolderListProps {
     folders: FolderType[];
@@ -35,7 +35,8 @@ export const FolderList: React.FC<FolderListProps> = ({
                             className={`group relative flex items-center gap-3 p-4 bg-white dark:bg-charcoal-800 border border-gray-200 dark:border-charcoal-700 rounded-xl hover:border-accent-500/50 hover:shadow-md cursor-pointer transition-all ${viewMode === 'list' ? 'flex-row' : 'flex-col justify-between text-center aspect-[4/3]'}`}
                         >
                             <div className={`p-3 rounded-lg ${isPrivate ? 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-500' : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-500'} ${viewMode === 'list' ? '' : 'mb-2 mx-auto'}`}>
-                                {isPrivate ? <Lock size={viewMode === 'grid' ? 32 : 24} className="opacity-80" /> : <Folder size={viewMode === 'grid' ? 32 : 24} fill="currentColor" className="opacity-80" />}
+                               {folder.isStarred && <MessageCircle size={viewMode === 'grid' ? 32 : 24} className="opacity-80" />}
+                               {!folder.isStarred && (isPrivate ? <Lock size={viewMode === 'grid' ? 32 : 24} className="opacity-80" /> : <Folder size={viewMode === 'grid' ? 32 : 24} fill="currentColor" className="opacity-80" />)}
                             </div>
                             <div className={`min-w-0 flex-1 w-full`}>
                                 <span className={`font-medium text-sm truncate w-full block ${isPrivate ? 'text-orange-600 dark:text-orange-400 font-mono tracking-tight' : 'text-slate-700 dark:text-slate-200'}`}>{folder.name}</span>

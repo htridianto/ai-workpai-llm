@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { listUsers, createUser, getUserById, updateUser, deleteUser } from '@/server/models/user';
+import { listUsers, createUser } from '@/server/models/user';
 import { auth } from '@/server/lib/auth';
 /**
  * GET /restapi/users

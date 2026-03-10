@@ -16,6 +16,9 @@ import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 import { WorkspaceModal } from '@/client/components/Shared/WorkspaceModal';
 import { ConfirmationModal } from '@/client/components/Shared/ConfirmationModal';
 
+const WORKSPACE_TITLE = process.env.NEXT_PUBLIC_WORKSPACE_TITLE || "Workspace"
+const WORKSPACE_TITLE_PLURAL = process.env.NEXT_PUBLIC_WORKSPACE_TITLE_PLURAL || "Workspaces"
+
 interface WorkspaceListProps {
   isOpen: boolean;
   selectedWorkspaceId: string | null;
@@ -33,7 +36,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
   onNavigateHome,
   onEnterChat
 }) => {
-  const { workspaces, refreshWorkspaces, setToast, isLoadingData: isLoading } = useDashboard();
+  const { userProfile, workspaces, refreshWorkspaces, setToast, isLoadingData: isLoading } = useDashboard();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -42,47 +45,45 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
   const handleCreateWorkspace = async () => {
     if (workspaces.length >= 5) {
         setToast({ 
-            message: "Campaign Limit Reached", 
-            subMessage: "You have reached the maximum number of campaigns.",
+            message: `${WORKSPACE_TITLE} Limit Reached`, 
+            subMessage: `You have reached the maximum number of ${WORKSPACE_TITLE_PLURAL}.`,
             type: 'error' 
         });
         return;
     }
 
     setIsActionLoading(true);
-    try {
-        const savedAuth = localStorage.getItem('workpai_llm_auth');
-        const user = savedAuth ? JSON.parse(savedAuth) : null;
-        
+    try {        
         const newWorkspaceData = {
-          title: 'New Campaign ' + (workspaces.length + 1),
-          description: 'A new campaign for your knowledge and chats.',
-          userId: user?.id ? [user.id] : []
+          name: `New ${WORKSPACE_TITLE} ${workspaces.length + 1}`,
+          description: `A new ${WORKSPACE_TITLE} for your knowledge and chats.`,
+          organization_id: userProfile?.id,
+          userId: userProfile?.id ? [userProfile.id] : []
         };
         
         await WorkspaceService.createWorkspace(newWorkspaceData);
         await refreshWorkspaces();
-        setToast({ message: "Campaign Created", type: "success" });
+        setToast({ message: `${WORKSPACE_TITLE} Created`, type: "success" });
     } catch (err: any) {
-        setToast({ message: "Failed to create campaign", type: "error", subMessage: err.message });
+        setToast({ message: `Failed to create ${WORKSPACE_TITLE}`, type: "error", subMessage: err.message });
     } finally {
         setIsActionLoading(false);
     }
   };
 
-  const handleUpdateWorkspace = async (title: string, description: string) => {
+  const handleUpdateWorkspace = async (name: string, description: string) => {
     if (itemToEditId) {
         const ws = workspaces.find(s => s.id === itemToEditId);
         if(ws) {
             setIsActionLoading(true);
             try {
-                await WorkspaceService.updateWorkspace(ws.slug, { title, description });
+                await WorkspaceService.updateWorkspace(ws.slug, { name, description });
                 await refreshWorkspaces();
-                setToast({ message: "Campaign Updated", type: "success" });
+                setToast({ message: `${WORKSPACE_TITLE} Updated`, type: "success" });
                 setIsEditModalOpen(false);
                 setItemToEditId(null);
             } catch (err: any) {
-                setToast({ message: "Failed to update campaign", type: "error", subMessage: err.message });
+                setToast({ message: `Failed to update ${WORKSPACE_TITLE}`, type: "error", subMessage: err.message });
             } finally {
                 setIsActionLoading(false);
             }
@@ -98,11 +99,11 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
         try {
             await WorkspaceService.deleteWorkspace(ws.slug);
             await refreshWorkspaces();
-            setToast({ message: "Campaign Deleted", type: "info" });
+            setToast({ message: `${WORKSPACE_TITLE} Deleted`, type: "info" });
             setIsDeleteModalOpen(false);
             setItemToEditId(null);
         } catch (err: any) {
-            setToast({ message: "Failed to delete campaign", type: "error", subMessage: err.message });
+            setToast({ message: `Failed to delete ${WORKSPACE_TITLE}`, type: "error", subMessage: err.message });
         } finally {
             setIsActionLoading(false);
         }
@@ -120,32 +121,33 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
         return;
     }
 
-    const savedAuth = localStorage.getItem('workpai_llm_auth');
-    const user = savedAuth ? JSON.parse(savedAuth) : null;
-    const userId = user?.id;    
-
-    const demoWorkspaces = [/*{
-        title: 'Market Analysis 2025',
-        description: 'Penyimpanan laporan riset pasar, data kompetitor, dan tren industri terbaru. Memungkinkan LLM melakukan sintesis data untuk strategi penetapan harga atau peluncuran produk baru.',
-        userId: userId ? [userId] : []
+    const demoWorkspaces = [{
+        name: 'SmartGov-Assist: Jawaban Instan untuk Hak Anda',
+        description: 'Sistem bertenaga AI yang memproses ribuan dokumen regulasi, prosedur perizinan, dan SOP pemerintah secara real-time. Warga tidak perlu lagi membaca dokumen PDF ratusan halaman; cukup tanya melalui chat, dan AI akan memberikan jawaban akurat yang bersumber langsung dari basis data resmi pemerintah daerah.'        
     },{
-        title: 'Global Markets & Policy Risk',
-        description: 'Integrasi dokumen strategi bisnis dan arsip kebijakan publik untuk analisis RAG real-time.',
-        userId: userId ? [userId] : []
-    }, */{
-        title: 'Political Marketing Engine',
-        description: 'Data demografi pemilih (Marketing) dengan janji kampanye dan isu daerah (Politik).',
-        userId: userId ? [userId] : []
+        name: 'Mutawif Digital: Panduan Ibadah dalam Genggaman',
+        description: 'Pendamping pintar bagi jamaah yang mengintegrasikan seluruh panduan fiqih, jadwal perjalanan, dan data lokasi. RAG memungkinkan AI memberikan jawaban yang personal dan sesuai syariat berdasarkan kitab panduan resmi yang diunggah, memastikan setiap pertanyaan jamaah tentang tata cara ibadah dijawab dengan referensi yang valid dan terpercaya.'        
+    }, {
+        name: 'Assistant untuk Data Perusahaan Anda',
+        description: 'Ubah tumpukan dokumen internal, laporan keuangan, dan basis pengetahuan tim menjadi asisten yang proaktif. Menggunakan teknologi RAG untuk memastika AI tidak berhalusinasi; ia hanya berbicara berdasarkan data yang Anda miliki. Cari informasi spesifik dari ribuan file dalam hitungan detik tanpa perlu membuka satu pun folder.'
     }];
     
     try {
         await Promise.all(demoWorkspaces.map(ws => WorkspaceService.createWorkspace(ws)));
         await refreshWorkspaces();
-        setToast({ message: "Demo Campaign Created", type: "success" });
+        setToast({ message: `Demo ${WORKSPACE_TITLE} Created`, type: "success" });
     } catch (err: any) {
-        setToast({ message: "Failed to create demo campaign", type: "error", subMessage: err.message });
+        setToast({ message: `Failed to create demo ${WORKSPACE_TITLE}`, type: "error", subMessage: err.message });
     }
   };
+
+  const getValidationStringDelete = () => {
+    const workspace = workspaces.find(s => s.id === itemToEditId)
+    if (workspace && (workspace.fileContexts || []).length > 0) {
+      return workspace.slug
+    }
+    return undefined
+  }
 
   useEffect(() => {
     if(workspaces.length > 0 && selectedWorkspaceId === null) {
@@ -164,7 +166,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
                   <button onClick={onNavigateHome} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-charcoal-800 text-charcoal-500 transition-colors">
                       <ArrowLeft size={18} />
                   </button>
-                  <h2 className="font-bold text-lg truncate">Campaigns</h2>
+                  <h2 className="font-bold text-lg truncate">{WORKSPACE_TITLE_PLURAL}</h2>
               </div>
               { selectedWorkspaceId && (
               <button 
@@ -198,10 +200,10 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
                               >
                                   <div className="flex items-center gap-3 mb-1">
                                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-${ws.color ? ws.color : 'gray-200'} text-white`}>
-                                          {ws.symbol || ws.title.substring(0, 1).toUpperCase()}
+                                          {ws.symbol || ws.name.substring(0, 1).toUpperCase()}
                                       </div>
                                       <div className="flex-1 min-w-0">
-                                          <h3 className={`text-sm font-semibold truncate ${isSelected ? 'text-accent-700 dark:text-accent-400' : 'text-slate-700 dark:text-slate-200'}`}>{ws.title}</h3>
+                                          <h3 className={`text-sm font-semibold truncate ${isSelected ? 'text-accent-700 dark:text-accent-400' : 'text-slate-700 dark:text-slate-200'}`}>{ws.name}</h3>
                                       </div>
                                   </div>
                                   {ws.description && (
@@ -238,7 +240,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
                           className="w-full flex items-center justify-center gap-3 px-3 py-3 mb-2 rounded-xl border border-dashed border-gray-300 dark:border-charcoal-700 hover:border-accent-500 text-charcoal-500 dark:text-charcoal-400 hover:text-accent-600 dark:hover:text-accent-500 hover:bg-gray-50 dark:hover:bg-charcoal-800/50 transition-all text-sm font-medium disabled:opacity-50"
                       >
                           {isActionLoading ? <Loader2 size={18} className="animate-spin" /> : <Plus size={18} />}
-                          <span>{isActionLoading ? 'Creating...' : 'Create New Campaign'}</span>
+                          <span>{isActionLoading ? 'Creating...' : `Create New ${WORKSPACE_TITLE}`}</span>
                       </button>
                       
                       {workspaces.length === 0 && (
@@ -252,7 +254,7 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
                                   </div>
                                   <div className="text-center">
                                       <p className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Start with a Demo</p>
-                                      <p className="text-xs text-charcoal-400 mt-1">Populate a sample campaign to explore features.</p>
+                                      <p className="text-xs text-charcoal-400 mt-1">Populate a sample {WORKSPACE_TITLE} to explore features.</p>
                                   </div>
                               </button>
                           </div>
@@ -264,8 +266,8 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
 
       <WorkspaceModal
           isOpen={isEditModalOpen}
-          title="Edit Campaign"
-          initialTitle={workspaces.find(s => s.id === itemToEditId)?.title || ''}
+          title={`Edit ${WORKSPACE_TITLE}`}
+          initialTitle={workspaces.find(s => s.id === itemToEditId)?.name || ''}
           initialDescription={workspaces.find(s => s.id === itemToEditId)?.description || ''}
           onConfirm={handleUpdateWorkspace}
           onCancel={() => { setIsEditModalOpen(false); setItemToEditId(null); }}
@@ -274,9 +276,9 @@ export const WorkspaceList: React.FC<WorkspaceListProps> = ({
 
       <ConfirmationModal
           isOpen={isDeleteModalOpen}
-          title="Delete Campaign?"
-          message={`Are you sure you want to delete "${workspaces.find(s => s.id === itemToEditId)?.title}"?`}
-          validationString={workspaces.find(s => s.id === itemToEditId)?.slug}
+          title={`Delete ${WORKSPACE_TITLE}?`}
+          message={`Are you sure you want to delete "${workspaces.find(s => s.id === itemToEditId)?.name}"?`}
+          validationString={getValidationStringDelete()}
           isDanger={true}
           onConfirm={handleDeleteWorkspace}
           onCancel={() => { setIsDeleteModalOpen(false); setItemToEditId(null); }}

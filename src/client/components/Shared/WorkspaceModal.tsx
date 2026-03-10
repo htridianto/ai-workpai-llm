@@ -13,6 +13,8 @@ interface WorkspaceModalProps {
   isLoading?: boolean;
 }
 
+const WORKSPACE_TITLE = process.env.NEXT_PUBLIC_WORKSPACE_TITLE || "Workspace"
+
 export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
   isOpen,
   title,
@@ -67,7 +69,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
 
               <div className="w-full space-y-4 mb-6">
                 <div className="text-left">
-                    <label className="block text-xs font-medium text-charcoal-400 mb-1.5 ml-1">Campaign Name</label>
+                    <label className="block text-xs font-medium text-charcoal-400 mb-1.5 ml-1">{WORKSPACE_TITLE} Name</label>
                     <input
                       type="text"
                       value={workspaceTitle}

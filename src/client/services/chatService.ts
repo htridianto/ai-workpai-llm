@@ -1,4 +1,4 @@
-import { Message, Role, Attachment, Source } from '@/shared/types/types';
+import { Message, Attachment, Source } from '@/shared/types/types';
 
 export const streamChatResponse = async (
   workspaceSlug: string,

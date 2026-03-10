@@ -12,6 +12,18 @@ const nextConfig: NextConfig = {
         source: '/',
         destination: '/dashboard',
       },
+      {
+        source: '/.source/:path*',
+        destination: `${process.env.MINIO_PUBLIC_ENDPOINT || 'http://localhost:7000'}/${process.env.MINIO_BUCKET || 'rag-llm'}/.source/:path*`, // Proxy to External API
+      },
+      {
+        source: '/whatsapp/:path*',
+        destination: `${process.env.WHATSAPP_API_URL || 'http://localhost:30302'}/:path*`, // Proxy to External API
+      },
+      {
+        source: '/aissistant/:path*',
+        destination: `${process.env.AISSISTANT_API_URL || 'http://localhost:8080'}/api/v1/:path*`, // Proxy to External API
+      },
     ];
   },
   images: {
@@ -25,7 +37,7 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
-  },
+  },  
 };
 
 export default nextConfig;

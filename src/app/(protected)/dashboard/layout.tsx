@@ -8,7 +8,7 @@ import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   const {
-    settings, isLoadingData
+    isLoadingData
   } = useDashboard();
 
   if (isLoadingData) {

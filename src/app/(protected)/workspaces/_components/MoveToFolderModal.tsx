@@ -56,7 +56,7 @@ export const MoveToFolderModal: React.FC<MoveToFolderModalProps> = ({
 
           <div className="border border-gray-100 dark:border-charcoal-800 rounded-xl max-h-[300px] overflow-y-auto bg-gray-50 dark:bg-charcoal-950">
             <FolderTree 
-              folders={folders.filter(f => f.isShared)} // Only real folders
+              folders={folders.filter(f => f.isShared && !f.isStarred)} // Only real folders
               currentFolderId={selectedFolderId}
               onSelectFolder={setSelectedFolderId}
               className="p-2"

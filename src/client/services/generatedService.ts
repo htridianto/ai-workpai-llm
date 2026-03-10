@@ -1,22 +1,22 @@
 import { GeneratedFile, Folder } from '@/shared/types/types';
 
-const API_BASE = '/restapi/generated';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/aissistant';
 
 export const GeneratedService = {
   fetchGeneratedFiles: async (includeTrashed = false): Promise<GeneratedFile[]> => {
-    const res = await fetch(`${API_BASE}/files${includeTrashed ? '?includeTrashed=true' : ''}`);
+    const res = await fetch(`${BASE_URL}/generated/files${includeTrashed ? '?includeTrashed=true' : ''}`);
     if (!res.ok) throw new Error('Failed to fetch files');
     return await res.json();
   },
 
   fetchGeneratedFolders: async (includeTrashed = false): Promise<Folder[]> => {
-    const res = await fetch(`${API_BASE}/folders${includeTrashed ? '?includeTrashed=true' : ''}`);
+    const res = await fetch(`${BASE_URL}/generated/folders${includeTrashed ? '?includeTrashed=true' : ''}`);
     if (!res.ok) throw new Error('Failed to fetch folders');
     return await res.json();
   },
 
   createGeneratedFolder: async (name: string, parentId?: string): Promise<Folder> => {
-    const res = await fetch(`${API_BASE}/folders`, {
+    const res = await fetch(`${BASE_URL}/generated/folders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, parentId }),
@@ -26,21 +26,21 @@ export const GeneratedService = {
   },
 
   deleteGeneratedFolder: async (id: string): Promise<boolean> => {
-    const res = await fetch(`${API_BASE}/folders?id=${id}`, {
+    const res = await fetch(`${BASE_URL}/generated/folders?id=${id}`, {
       method: 'DELETE',
     });
     return res.ok;
   },
 
   deleteGeneratedFile: async (id: string): Promise<boolean> => {
-    const res = await fetch(`${API_BASE}/files?id=${id}`, {
+    const res = await fetch(`${BASE_URL}/generated/files?id=${id}`, {
       method: 'DELETE',
     });
     return res.ok;
   },
 
   restoreGeneratedFile: async (id: string): Promise<boolean> => {
-    const res = await fetch(`${API_BASE}/files/restore?id=${id}`, {
+    const res = await fetch(`${BASE_URL}/generated/files/restore?id=${id}`, {
       method: 'POST',
     });
     return res.ok;
@@ -51,7 +51,7 @@ export const GeneratedService = {
     formData.append('file', file);
     if (folderId) formData.append('folderId', folderId);
 
-    const res = await fetch(`${API_BASE}/files`, {
+    const res = await fetch(`${BASE_URL}/generated/files`, {
       method: 'POST',
       body: formData,
     });
@@ -60,7 +60,7 @@ export const GeneratedService = {
   },
 
   shareGeneratedFile: async (fileId: string, userIds: string[]): Promise<boolean> => {
-    const res = await fetch(`${API_BASE}/files/share`, {
+    const res = await fetch(`${BASE_URL}/generated/files/share`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileId, userIds }),

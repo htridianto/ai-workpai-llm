@@ -10,7 +10,7 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [isDarkMode, setIsDarkMode] = useState(true); // Default matches layout.tsx manual dark
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     // Only access localStorage on client mount
@@ -20,6 +20,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
         // Check system preference if no stored value? Or default to dark.
         // For now default to dark as per existing behavior.
+        setIsDarkMode(window.matchMedia("(prefers-color-scheme: dark)").matches);
     }
   }, []);
 
@@ -30,11 +31,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove("dark");
     }
-    localStorage.setItem("isDarkMode", String(isDarkMode));
+    // localStorage.setItem("isDarkMode", String(isDarkMode));
   }, [isDarkMode]);
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);
+    localStorage.setItem("isDarkMode", String(!isDarkMode));
   };
 
   return (

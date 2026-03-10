@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   MessageCircle, 
   Loader2,
@@ -32,11 +32,11 @@ export const TroopsTab: React.FC<TroopsTabProps> = ({
   addFileContexts
 }) => {
   const [waStep, setWaStep] = useState<'input' | 'qr' | 'groups'>('input');
+  const [sessionWa, setSessionWa] = useState<any>(null);
   const [waPhoneNumber, setWaPhoneNumber] = useState('');
+  const [imageQrCode, setImageQrCode] = useState<string>('');
+  const [qrCodeExpiresIn, setQrCodeExpiresIn] = useState<number>(0);
   const [isWaLoading, setIsWaLoading] = useState(false);
-  const [waGroups, setWaGroups] = useState<{id: string, name: string, count: number}[]>([]);
-  const [selectedWaGroups, setSelectedWaGroups] = useState<string[]>([]);
-  const [isImporting, setIsImporting] = useState(false);  
   const { setToast } = useDashboard();
 
   const formatToIndoInternational = (phone: string) => {
@@ -70,8 +70,8 @@ export const TroopsTab: React.FC<TroopsTabProps> = ({
 }  
 
   // WhatsApp Simulation Handlers
-  const handleGenerateQR = () => {
-    if (!waPhoneNumber) return;
+  const handleGenerateQR = async () => {
+    if (!waPhoneNumber || isWaLoading) return;
     const validFormat = formatToIndoInternational(waPhoneNumber);
     if (!validFormat.isValid) {
       setToast({ 
@@ -83,90 +83,144 @@ export const TroopsTab: React.FC<TroopsTabProps> = ({
     }    
     setWaPhoneNumber(validFormat.formatted);
     setIsWaLoading(true);
-    setTimeout(() => {
-        setIsWaLoading(false);
-        setWaStep('qr');
-    }, 800);
-  };
-
-  const handleScanQR = async () => {
-    setIsWaLoading(true);
-    setTimeout(async () => {
-        setIsWaLoading(false);
-
-        setIsImporting(true);
-        try {
-          await WorkspaceService.createFolder({
-            name: `WA: ${waPhoneNumber}`,
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi'}/wa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: `WA:${validFormat.formatted}`,
             workspaceId: workspace.slug,
             parentFolderId: `.troops-${workspace.slug}`,
             meta: {
-              waNumber: waPhoneNumber,
-              session:{
-                name: "default",
-                status: "WORKING",
-                me: {
-                  id: `${waPhoneNumber}@c.us`,
-                  lid: `${waPhoneNumber}@lid`,
-                  jid: `${waPhoneNumber}@s.whatsapp.net`,
-                  pushName: "string"
-                }
-              }              
+              waNumber: validFormat.formatted
             }
+        })
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setToast({ 
+            message: "Failed to create troop", 
+            subMessage: errorData.message || 'Failed to create troop',
+            type: 'error' 
+        });
+        setIsWaLoading(false);
+        return;
+    }
+    const session = await response.json();
+    
+    console.log("Session Data:", JSON.stringify(session, null, 2));
+    if(session.state === 'logged_in') {
+      setIsWaLoading(false);
+      try {
+        await WorkspaceService.createFolder({
+          name: session.display_name || `WA:${validFormat.formatted}`,
+          workspaceId: workspace.slug,
+          parentFolderId: `.troops-${workspace.slug}`,
+          meta: {
+            waNumber: validFormat.formatted,
+            session: session        
+          }
+        });
+        setToast({ 
+          message: "Troop created successfully", 
+          subMessage: 'Troop already connected',
+          type: 'success' 
+        });
+        onSuccess();
+        onClose();
+      } catch (error: any) {
+        setToast({ 
+          message: "Failed to create troop", 
+          subMessage: "Troop already exists. Use another phone number.",
+          type: 'error' 
+        });
+      }              
+      return;
+    }
+
+    setSessionWa(session);
+    if(session.qr){
+      setImageQrCode(session.qr.qr_link);
+    }     
+    setIsWaLoading(false);
+    setWaStep('qr');  
+    setQrCodeExpiresIn(0);
+  };
+
+  const handleChangeNumber = () => {
+      setWaStep('input');
+      setImageQrCode('');
+  };
+
+
+  useEffect(() => {
+    let timerQr: NodeJS.Timeout;
+    // Only start timer if we are in 'qr' step and have a duration
+    if (waStep === 'qr' && sessionWa?.qr?.qr_duration) {     
+      timerQr = setInterval(() => {
+        setQrCodeExpiresIn((prev) => {
+          const nextValue = prev + 1;   
+          // Check if we hit the limit
+          if (nextValue >= sessionWa.qr.qr_duration) {
+            // Trigger the async call outside the state transition
+            handleGenerateQR();
+            return 0; // Reset counter
+          }
+          return nextValue;
+        });
+      }, 1000);
+    } else {
+      setQrCodeExpiresIn(0);
+    }
+    // Cleanup: This is crucial to stop the timer when waStep changes
+    return () => {
+      if (timerQr) clearInterval(timerQr);
+    };
+  }, [waStep, sessionWa?.qr?.qr_duration, handleGenerateQR]);
+
+  const checkSessionWa = async () => {
+    if (!sessionWa?.id) return;
+    setIsWaLoading(true);
+    const validFormat = formatToIndoInternational(waPhoneNumber);
+    try {      
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi'}/wa?sessionName=${sessionWa.id}`);
+      const data = await res.json();
+      console.log("Session Status:", data);
+      if(data.state === 'logged_in') { 
+        try {
+          await WorkspaceService.createFolder({
+            name: data.display_name || `WA:${validFormat.formatted}`,
+            workspaceId: workspace.slug,
+            parentFolderId: `.troops-${workspace.slug}`,
+            meta: {
+              waNumber: validFormat.formatted,
+              session: data
+            }
+          });
+          setToast({ 
+            message: "Troop created successfully",
+            type: 'success' 
           });
           onSuccess();
           onClose();
         } catch (error: any) {
           setToast({ 
-            message: "Failed to create troop", 
-            subMessage: "Troop already exists. Use another phone number.",
+            message: "Failed to create troop",
             type: 'error' 
           });
-        } finally {
-          setIsImporting(false);          
-        }        
-        
-    }, 2000);
-  };
-
-  const handleChangeNumber = () => {
-      setWaStep('input');
-      setWaGroups([]);
-      setSelectedWaGroups([]);
-  };
-
-  const handleConfirm = async () => {
-    const newItems: FileContext[] = [];
-    selectedWaGroups.forEach(groupId => {
-      const group = waGroups.find(g => g.id === groupId);
-      if(group) {
-        newItems.push({
-          id: 'auto',
-          name: `${group.name}`,
-          type: 'whatsapp',
-          status: 'indexed',
-          size: 0,
-          dateCreated: Date.now(),
-          progress: 0,
-          workspaceId: workspace.slug,
-          meta: {
-            waNumber: waPhoneNumber,
-            progress: 100
-          }
-        });
+        }                      
       }
-    });
-
-    if (newItems.length === 0) return;
-
-    setIsImporting(true);
-    try {
-        await addFileContexts(workspace.id, newItems);
-        onSuccess();
-    } finally {
-        setIsImporting(false);
+    } catch (error) {
+      console.error("Error fetching session data:", error);
     }
+    setIsWaLoading(false);    
   };
+
+  useEffect(() => {
+    if (qrCodeExpiresIn % 10 === 0 && !isWaLoading) {
+      console.log(`⏱️ QR Progress: ${qrCodeExpiresIn}/${sessionWa?.qr?.qr_duration}`);
+      checkSessionWa();
+    }
+  }, [qrCodeExpiresIn, isWaLoading]); 
 
   return (
     <div className="flex flex-col h-full">
@@ -204,83 +258,37 @@ export const TroopsTab: React.FC<TroopsTabProps> = ({
 
           {waStep === 'qr' && (
             <div className="text-center space-y-6 animate-in fade-in duration-300">
+              <div>
+                <h4 className="font-bold text-slate-800 dark:text-slate-100">Scan with WhatsApp</h4>               
+              </div>
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 inline-block">
-                <div className="w-48 h-48 bg-charcoal-900 pattern-dots pattern-gray-100 pattern-size-4 pattern-opacity-100 flex items-center justify-center">
-                  <QrCode size={120} className="text-white" />
+                <div className="w-64 h-64 bg-charcoal-900 pattern-dots pattern-gray-100 pattern-size-4 pattern-opacity-100 flex items-center justify-center">
+                  {imageQrCode && <img src={imageQrCode} alt="QR Code" />}
+                  {!imageQrCode && <QrCode size={120} className="text-white" />}
                 </div>
               </div>
-              <div>
-                <h4 className="font-bold text-slate-800 dark:text-slate-100">Scan with WhatsApp</h4>
+              <div>                
+                <p>QR Code expires in {(sessionWa?.qr?.qr_duration || 0) - qrCodeExpiresIn} seconds (auto-refreshing)</p>
                 <p className="text-sm text-charcoal-500 mt-1">Open WhatsApp on your phone {waPhoneNumber} <br/> Go to Settings {'>'} Linked Devices</p>
               </div>
               <div className="flex gap-3 justify-center max-w-sm mx-auto w-full">
                 <button onClick={handleChangeNumber} className="px-4 py-2 text-sm text-charcoal-500 hover:text-slate-700 dark:hover:text-slate-300">Change Number</button>
-                <button 
-                  onClick={handleScanQR}
-                  disabled={isWaLoading}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-xl shadow-md transition-all font-medium"
-                >
-                  {isWaLoading ? <Loader2 size={18} className="animate-spin" /> : <span>Simulate Scan</span>}
-                </button>
               </div>
             </div>
-          )}
-
-          {waStep === 'groups' && (
-            <div className="space-y-4 animate-in fade-in duration-300 h-full flex flex-col">
-              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 rounded-xl shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600 dark:text-green-400">
-                    <MessageCircle size={20} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{waPhoneNumber}</p>
-                    <p className="text-xs text-green-600 dark:text-green-400 font-medium">Connected</p>
-                  </div>
-                </div>
-                <button onClick={handleChangeNumber} className="text-xs text-charcoal-500 hover:text-red-500 underline decoration-dotted">Change Number</button>
-              </div>
-              
-              <div className="flex items-center justify-between mt-2 shrink-0">
-                <label className="text-xs font-bold text-charcoal-500 uppercase tracking-wider">Available Groups</label>
-                <span className="text-xs text-charcoal-400">{selectedWaGroups.length} selected</span>
-              </div>
-
-              <div className="border border-gray-200 dark:border-charcoal-700 rounded-xl overflow-hidden flex-1 overflow-y-auto bg-gray-50 dark:bg-charcoal-950">
-                {waGroups.map(group => (
-                  <div 
-                    key={group.id} 
-                    className={`flex items-center gap-3 p-3 border-b border-gray-100 dark:border-charcoal-800 last:border-0 cursor-pointer transition-colors ${selectedWaGroups.includes(group.id) ? 'bg-green-50/50 dark:bg-green-900/10' : 'hover:bg-gray-100 dark:hover:bg-charcoal-800'}`} 
-                    onClick={() => {
-                      if (selectedWaGroups.includes(group.id)) setSelectedWaGroups(prev => prev.filter(id => id !== group.id));
-                      else setSelectedWaGroups(prev => [...prev, group.id]);
-                    }}
-                  >
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedWaGroups.includes(group.id) ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 dark:border-charcoal-600'}`}>
-                      {selectedWaGroups.includes(group.id) && <CheckCircle size={12} fill="currentColor" />}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{group.name}</p>
-                      <p className="text-xs text-charcoal-400">{group.count} participants</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          )}      
         </div>
       </div>
 
       <div className="flex justify-end gap-3 shrink-0 pt-4 border-t border-gray-200 dark:border-charcoal-800 bg-white dark:bg-charcoal-900 z-10">
         <button onClick={onClose} className="px-6 py-2.5 text-sm text-charcoal-600 hover:text-slate-900 dark:text-charcoal-400 dark:hover:text-slate-200 font-medium">Cancel</button>
-        <button 
+        {/* <button 
           onClick={handleConfirm}
           disabled={waStep !== 'groups' || selectedWaGroups.length === 0 || isImporting}
           className="flex items-center gap-2 px-8 py-2.5 bg-accent-600 hover:bg-accent-500 text-white rounded-xl shadow-lg shadow-accent-900/20 text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {isImporting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={16} />}
           {isImporting ? 'Submitting...' : 'Submit'}
-        </button>
+        </button> */}
       </div>
     </div>
   );

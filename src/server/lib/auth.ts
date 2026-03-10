@@ -1,12 +1,12 @@
 import NextAuth, { CredentialsSignin } from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/server/lib/db";
-import bcrypt from "bcrypt";
+// import { PrismaAdapter } from "@auth/prisma-adapter";
+// import { prisma } from "@/server/lib/db";
+// import bcrypt from "bcrypt";
 import { authConfig } from "./auth.config";
-import { SignJWT, jwtVerify } from "jose";
-import { nanoid } from "nanoid";
+import { SignJWT } from "jose";
+
 import { createUser } from "../models";
 
 const secret = new TextEncoder().encode(
@@ -38,7 +38,7 @@ const signAccessToken = async (payload: any) => {
     .setExpirationTime("2h") // Token hangus dalam 2 jam
     .sign(secret);
 }
-
+/*
 const authAnythingLLM = async(identifier: string, password: string): Promise<any> => {
   try {
     // Real authentication against RAG_API_URL
@@ -63,20 +63,6 @@ const authAnythingLLM = async(identifier: string, password: string): Promise<any
         message: authData.message || 'Invalid credentials.', status: 401
       };
     }
-    /*
-    // do create folder for workspace (POST /v1/document/create-folder)
-    const createFolder = await fetch(`${ragApiUrl}/api/v1/document/create-folder`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authData.token}`
-        },
-        body: JSON.stringify({
-            name: `${newUser.name} Team`
-        })
-    });
-    console.log("createFolder:", createFolder);
-    */
 
     return {      
       status: 200,
@@ -137,11 +123,12 @@ const createOrAuthAnythingLLM = async(identifier: string, password: string, bio?
     };    
   }
 }
+*/
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
-  basePath: "/restapi/auth",
+  // adapter: PrismaAdapter(prisma),
+  // basePath: "/api/auth",
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -175,7 +162,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.identifier || !credentials?.password) return null;
+        const payload = { 
+          identity: credentials.identifier, 
+          credential: credentials.password 
+        };
+        const authResponse = await fetch(`${process.env.AISSISTANT_API_URL}/api/v1/auth/sign-in`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
+        const authData = await authResponse.json();
+        console.log("Auth Data:", authData);
+        if (!authResponse.ok)  {
+          throw new (class extends CredentialsSignin { code = "invalid_signin" })();
+        }
 
+        return {          
+            ...authData.user,       
+            sso_auth_id: authData.user.id,
+            sso_auth_provider: 'aissistant',
+            last_loggedin: new Date().toISOString(),
+            access_token: authData.access_token                         
+        };
+
+        /*
         const authExternal = await authAnythingLLM(credentials.identifier as string, credentials.password as string);
         if (!authExternal.success) {
           throw new (class extends CredentialsSignin { code = "user_not_found" })();
@@ -222,19 +234,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             data: {
               lastLoggedin: new Date(),
               sessionToken: authExternal.token,
-              // role: authExternal.user?.role || 'default',
-              // bio: authExternal.user?.bio || null,
               deletedAt: null 
             }
           });
           return {...updatedUser, accessToken: accessToken};
         }        
+        */
       }
     })    
   ],
   events: {
     async signIn({ user, account, isNewUser }) {      
       console.log("events::signIn::user:", user, isNewUser);
+      /*
       if(isNewUser) {
           const data = {
             bio: user.bio || `i'm focuses on analyzing citizen feedback, generate sentiment reports and identify service.\n${(account?.provider === 'google') ? 'joined via google-auth' : 'joined via credentials'}`,                        
@@ -249,7 +261,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             data
           });
           
-          //@todo: create default organization for new user, with organization id is new user id, check if organization with id is new user id already exists first
+          //do: create default organization for new user, with organization id is new user id, check if organization with id is new user id already exists first
           const existingOrganization = await (prisma as any).organization.findUnique({
             where: {
               id: user.id
@@ -265,29 +277,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             })
           }
       }
+      */
     }
   },  
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account }) {
-      console.log("callbacks::signIn.....", user, 'account', account);       
+      console.log("callbacks::signIn.....", user, 'account', account);      
+      /* 
       if(user && account?.provider === 'google') {
         try {
           const identifier = user.userName as string;
           const authExternal = await createOrAuthAnythingLLM(identifier, 'raganythingllm');
-          // console.debug("callbacks::signIn::authExternal:", authExternal);   
           if (authExternal.success) {
             // (account as any ).access_token = authExternal.token;
             user.sessionToken = authExternal.token;
             user.ssoAuthId = `${authExternal.user?.id}`;       
-          }            
-          // console.debug("callbacks::signIn::user:", user);
-          // console.debug("callbacks::signIn::account:", account);                 
+          }                           
           return authExternal.success; 
         }catch(error){
           console.error("callbacks::signIn::error:", error);      
         }                     
       }
+      */
       return (user && true);
     },
   }  

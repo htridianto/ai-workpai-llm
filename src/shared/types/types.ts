@@ -4,6 +4,8 @@ export enum Role {
   SYSTEM = 'system'
 }
 
+export type UserRole = 'superuser' | 'admin' | 'manager' | 'member' | 'default';
+
 export interface Attachment {
   mimeType: string;
   data: string; // Base64
@@ -31,17 +33,19 @@ export interface Message {
 export interface Workspace {
   id: string;
   slug: string;
-  title: string;
+  name: string;
   description?: string;
   symbol?: string; // Emoji or abbreviation
   color?: string; // UI decoration
   organizationId?: string;
-  createdAt: number;
-  similarityThreshold: number;
-  fileContexts: FileContext[];
-  folders: Folder[];
-  virtualFolders: Folder[];
-  systemInstruction?: string;  
+  createdAt?: number;
+  similarityThreshold?: number;
+  openAiTemp?: number;
+  systemInstruction?: string;    
+  meta?: any;
+  folders?: Folder[];
+  fileContexts?: FileContext[];
+  virtualFolders?: Folder[];  
   threads?: ChatSession[];
 }
 
@@ -57,9 +61,6 @@ export interface OrganizationUser {
   userId: string;
   role: UserRole;
 }
-
-export type UserRole = 'superuser' | 'admin' | 'manager' | 'member' | 'default';
-
 
 export interface Folder {
   id: string;

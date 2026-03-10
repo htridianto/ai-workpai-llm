@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileContext, Folder as FolderType, Workspace } from '@/shared/types/types';
-import { Eye, Edit2, MoveHorizontal, Trash2, RefreshCw, FileText, Link as LinkIcon, Database, MessageCircle, Loader2, Phone, Settings, Info, Plus, X, UploadCloud } from 'lucide-react';
+import { Eye, Edit2, MoveHorizontal, Trash2, RefreshCw, FileText, Link as LinkIcon, Database, MessageCircle, Loader2, Phone, Settings, Info, Plus, X, UploadCloud, UserIcon, Calendar } from 'lucide-react';
 import { useDashboard } from '@/app/(protected)/dashboard/DashboardContext';
 import { WorkspaceService } from '@/client/services/workspaceService';
 
@@ -34,6 +34,8 @@ export const TroopList: React.FC<TroopListProps> = ({
     onDeleteFile
 }) => {
     const { refreshWorkspaces, setToast } = useDashboard();
+
+    const [waGroups, setWaGroups] = useState<any[]>([]);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [isSaving, setIsSaving] = useState(false);
@@ -47,6 +49,53 @@ export const TroopList: React.FC<TroopListProps> = ({
         }
     }
 
+
+    useEffect(() => {
+        const fetchWaGroups = async () => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi'}/wa/${currentFolder?.id}`);
+                const result = await response.json();
+                console.log("WA groups:", result);
+                setWaGroups(result.data || []);
+            } catch (error) {
+                console.error('Failed to fetch WA groups', error);
+            }
+        };
+        fetchWaGroups();
+        
+        // do check status files by id, interval 5 seconds, if all status == indexed then clear interval 
+        const interval = setInterval(() => {
+            const indexingFiles = files.filter(file => file.status === 'indexing');
+            if (indexingFiles.length === 0) {
+                clearInterval(interval);
+                return;
+            }
+            indexingFiles.forEach(file => {
+                fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi'}/file-contexts/${file.id}`).then(res => res.json()).then(data => {
+                    file.status = data.status;
+                    file.progress = data.progress;
+                    if(data.status === 'indexed' || data.progress != file.progress){
+                        refreshWorkspaces();
+                    }
+                });
+            });
+        }, 1000*30);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleRefreshGroups = async () => {
+        setIsSaving(true);
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || '/restapi'}/wa/${currentFolder?.id}?reload=true`);
+            const result = await response.json();
+            console.log("WA groups:", result);
+            setWaGroups(result.data || []);
+        } catch (error) {
+            console.error('Failed to fetch WA groups', error);
+        } finally {
+            setIsSaving(false);
+        }
+    };
     const handleSaveGroups = async () => {
         if (!workspace || !currentFolder) {
             setToast({ message: "Workspace or Folder context missing.", type: "error" });
@@ -55,7 +104,7 @@ export const TroopList: React.FC<TroopListProps> = ({
 
         setIsSaving(true);
         try {
-            const groupsToSave = DUMMY_GROUPS.filter(g => selectedGroups.includes(g.id));
+            const groupsToSave = waGroups.filter(g => selectedGroups.includes(g.JID));
             
             await Promise.all(groupsToSave.map(async (group) => {
                 const existing = files.find(f => {
@@ -63,7 +112,7 @@ export const TroopList: React.FC<TroopListProps> = ({
                     if (typeof fMeta === 'string') {
                         try { fMeta = JSON.parse(fMeta); } catch { fMeta = {}; }
                     }
-                    return fMeta?.waGroupId === group.id;
+                    return fMeta?.waGroupId === group.JID;
                 });
                 
                 if (existing) return; // Prevent duplicate adds
@@ -71,11 +120,16 @@ export const TroopList: React.FC<TroopListProps> = ({
                 return WorkspaceService.createFileContext({
                     workspaceId: workspace.slug,
                     folderId: currentFolder.id,
-                    name: group.name,
+                    name: group.Name,
                     type: 'whatsapp',
-                    status: 'indexed',
+                    status: 'indexing',
                     size: 0,
-                    meta: { waGroupId: group.id, count: group.count }
+                    meta: {
+                        waGroupId: group.JID, 
+                        waType: 'group',
+                        count: group.Participants?.length || 0,
+                        group
+                    }
                 });
             }));
 
@@ -102,113 +156,88 @@ export const TroopList: React.FC<TroopListProps> = ({
                             </div>
                             <div>
                                 <h4 className="font-semibold text-slate-800 dark:text-slate-200">{currentFolder.name}</h4>
-                                <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${meta.session?.status === 'WORKING' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
-                                    {meta.session?.status || 'Status Unknown'}
-                                </span>
-                            </div>
-                        </div>
-                        
+                                {/* <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${meta.session?.state === 'logged_in' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>
+                                    {(meta.session?.state === 'logged_in' ? 'Connected' : meta.session?.state || 'Status Unknown')}
+                                </span> */}
+                                <div className="mt-1">
+                                    <button 
+                                        onClick={() => setIsManageModalOpen(true)}
+                                        className="flex items-center gap-1.5 text-xs font-semibold bg-accent-50 text-accent-600 hover:bg-accent-100 dark:bg-accent-900/20 dark:text-accent-500 dark:hover:bg-accent-900/40 px-3 py-1.5 rounded-lg transition-colors border border-accent-100 dark:border-accent-800 w-full"
+                                    >
+                                        <Plus size={14} /> Manage Groups
+                                    </button>
+                                </div>                                
+                            </div>                            
+                        </div>                                                
                         <div className="space-y-4">
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs text-charcoal-500 flex items-center gap-1"><UserIcon size={12} /> Profile Name</span>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{meta.session?.display_name || 'N/A'}</span>
+                            </div>
                             <div className="flex flex-col gap-1">
                                 <span className="text-xs text-charcoal-500 flex items-center gap-1"><Phone size={12} /> WA Number</span>
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{meta.waNumber || 'N/A'}</span>
                             </div>
                             <div className="flex flex-col gap-1">
                                 <span className="text-xs text-charcoal-500 flex items-center gap-1"><Settings size={12} /> WA Session</span>
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{meta.session?.name || 'N/A'}</span>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{meta.session?.id || 'N/A'}</span>
                             </div>
                             <div className="flex flex-col gap-1">
                                 <span className="text-xs text-charcoal-500 flex items-center gap-1"><Info size={12} /> WA ID</span>
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={meta.session?.me?.id}>{meta.session?.me?.id || 'N/A'}</span>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate" title={meta.session?.jid}>{meta.session?.jid || 'N/A'}</span>
                             </div>
                             <div className="flex flex-col gap-1">
-                                <span className="text-xs text-charcoal-500 flex items-center gap-1"><Info size={12} /> Registered</span>
+                                <span className="text-xs text-charcoal-500 flex items-center gap-1"><Calendar size={12} /> Registered</span>
                                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{currentFolder?.dateCreated ? new Date(currentFolder.dateCreated).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A'}</span>
                             </div>
-                        </div>
-                    </div>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-xs text-charcoal-500 flex items-center gap-1"><Info size={12} /> Status</span>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">{(meta.session?.state === 'logged_in' ? 'Connected' : meta.session?.state || 'Status Unknown')}</span>
+                            </div>
+                        </div>                        
+                    </div>                  
                 </div>
             )}
             <div className="flex-1">
-                <div className="flex items-center justify-between mb-4">
-                    {/* <h3 className="text-xs font-semibold text-charcoal-500 uppercase tracking-wider mb-0 flex-shrink-0">Channels</h3> */}
-                    <span></span>
-                    <button 
-                        onClick={() => setIsManageModalOpen(true)}
-                        className="flex items-center gap-1.5 text-xs font-semibold bg-accent-50 text-accent-600 hover:bg-accent-100 dark:bg-accent-900/20 dark:text-accent-500 dark:hover:bg-accent-900/40 px-3 py-1.5 rounded-lg transition-colors border border-accent-100 dark:border-accent-800"
-                    >
-                        <Plus size={14} /> Manage Groups
-                    </button>
-                </div>
                 {files.length === 0 && (
                     <div className="h-40 flex flex-col items-center justify-center text-charcoal-400 border-2 border-dashed border-gray-300 dark:border-charcoal-700 rounded-2xl bg-white/50 dark:bg-charcoal-900/50">
                         <div className="w-16 h-16 bg-gray-100 dark:bg-charcoal-800 rounded-full flex items-center justify-center mb-4">
                             <UploadCloud size={32} className="opacity-50" />
                         </div>
-                        <p className="font-medium text-slate-600 dark:text-slate-300">This WhatsApp Group is empty</p>
+                        <p className="font-medium text-slate-600 dark:text-slate-300">This WhatsApp Number is empty context</p>
                         <p className="text-sm">Add WhatsApp Groups to get started.</p>
                     </div>
                 )}
-
-                {viewMode === 'grid' ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {files.map(file => {
-                            const isIndexing = file.status === 'indexing';
-                            const progress = file.progress || 0;
-                            return (
-                                <div key={file.id} className="group relative bg-white dark:bg-charcoal-800 border border-gray-200 dark:border-charcoal-700 rounded-xl hover:shadow-lg hover:border-accent-500/50 transition-all cursor-pointer flex flex-col aspect-[1/1] overflow-hidden">
-                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                        {!isIndexing && <button onClick={(e) => { e.stopPropagation(); onPreviewFile(file); }} className="mr-auto p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><Eye size={14} /></button>}
-                                        {file.type !== 'whatsapp' && <button onClick={(e) => { e.stopPropagation(); onRenameFile(file); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><Edit2 size={14} /></button>}
-                                        {file.type === 'file' && <button onClick={(e) => { e.stopPropagation(); onMoveFile(file); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-accent-500 rounded-full shadow-md"><MoveHorizontal size={14} /></button>}
-                                        <button onClick={(e) => { e.stopPropagation(); onDeleteFile(file.id, file.name); }} className="p-1.5 bg-white dark:bg-charcoal-700 text-charcoal-500 hover:text-red-600 rounded-full shadow-md"><Trash2 size={14} /></button>
+                {files.length > 0 && (
+                <div className="flex flex-col gap-1">
+                    <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-semibold text-charcoal-500 border-b border-gray-200 dark:border-charcoal-800 mb-2"><div className="col-span-6">Name</div><div className="col-span-2">Type</div><div className="col-span-3">Date Added</div><div className="col-span-1 text-right">Action</div></div>
+                    {files.map(file => {
+                        const isIndexing = file.status === 'indexing';
+                        const progress = file.progress || 0;
+                        return (
+                            <div key={file.id} className="grid grid-cols-12 gap-4 px-4 py-3 bg-white dark:bg-charcoal-800 border border-transparent hover:border-gray-200 dark:hover:border-charcoal-700 rounded-lg items-center group hover:bg-gray-50 dark:hover:bg-charcoal-700/50 transition-colors">
+                                <div className="col-span-6 flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => onPreviewFile(file)}>
+                                    <div className="shrink-0 p-1.5 bg-gray-100 dark:bg-charcoal-700 rounded relative overflow-hidden">
+                                        {isIndexing ? <Loader2 size={16} className="text-accent-500 animate-spin" /> : 
+                                        <MessageCircle size={16} className="text-green-500" />}
                                     </div>
-                                    <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 dark:bg-charcoal-800/50 p-6 relative" onClick={() => !isIndexing && onPreviewFile(file)}>
-                                        {isIndexing ? (
-                                            <div className="flex flex-col items-center animate-pulse">
-                                                <RefreshCw size={32} className="text-accent-500 animate-spin mb-2" />
-                                                <span className="text-xs font-semibold text-accent-600 dark:text-accent-400">Processing...</span>
-                                            </div>
-                                        ) : (
-                                            <MessageCircle size={32} className="text-green-500 drop-shadow-sm" />
-                                        )}
-                                        {isIndexing && <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-200 dark:bg-charcoal-700"><div className="h-full bg-accent-500 transition-all duration-300 ease-out" style={{ width: `${progress}%` }} /></div>}
-                                    </div>
-                                    <div className="p-3 border-t border-gray-100 dark:border-charcoal-700 bg-white dark:bg-charcoal-800">
-                                        <div className="font-medium text-sm text-slate-700 dark:text-slate-200 line-clamp-2 truncate" title={file.name}>{file.name}</div>
-                                        <div className="text-[10px] text-charcoal-400 mt-1 flex justify-between items-center"><span className="uppercase">{file.type === 'whatsapp' ? 'WA Group' : file.type}</span>{isIndexing ? <span className="text-accent-600 dark:text-accent-400 font-mono">{progress}%</span> : <span>{new Date(file.dateCreated).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>}</div>
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate hover:text-accent-500">{file.name}</span>
+                                        <div className="text-slate-700 dark:text-slate-300 mt-1 text-xs">Participants: {file.meta.count}</div>
+                                        {isIndexing && <div className="w-24 h-1 bg-gray-200 dark:bg-charcoal-900 rounded-full mt-1 overflow-hidden"><div className="h-full bg-accent-500" style={{ width: `${progress}%` }} /></div>}
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div className="flex flex-col gap-1">
-                        <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-semibold text-charcoal-500 border-b border-gray-200 dark:border-charcoal-800 mb-2"><div className="col-span-6">Name</div><div className="col-span-2">Type</div><div className="col-span-3">Date Added</div><div className="col-span-1 text-right">Action</div></div>
-                        {files.map(file => {
-                            const isIndexing = file.status === 'indexing';
-                            const progress = file.progress || 0;
-                            return (
-                                <div key={file.id} className="grid grid-cols-12 gap-4 px-4 py-3 bg-white dark:bg-charcoal-800 border border-transparent hover:border-gray-200 dark:hover:border-charcoal-700 rounded-lg items-center group hover:bg-gray-50 dark:hover:bg-charcoal-700/50 transition-colors">
-                                    <div className="col-span-6 flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => !isIndexing && onPreviewFile(file)}>
-                                        <div className="shrink-0 p-1.5 bg-gray-100 dark:bg-charcoal-700 rounded relative overflow-hidden">
-                                            {isIndexing ? <Loader2 size={16} className="text-accent-500 animate-spin" /> : 
-                                            <MessageCircle size={16} className="text-green-500" />}
-                                        </div>
-                                        <div className="flex flex-col min-w-0"><span className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate hover:text-accent-500">{file.name}</span>{isIndexing && <div className="w-24 h-1 bg-gray-200 dark:bg-charcoal-900 rounded-full mt-1 overflow-hidden"><div className="h-full bg-accent-500" style={{ width: `${progress}%` }} /></div>}</div>
-                                    </div>
-                                    <div className="col-span-2 text-xs text-charcoal-500 uppercase">{file.type === 'whatsapp' ? 'WA Group' : file.type}</div>
-                                    <div className="col-span-3 text-xs text-charcoal-500">{isIndexing ? <span className="text-accent-600 dark:text-accent-400 animate-pulse">Indexing... {progress}%</span> : new Date(file.dateCreated).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</div>
-                                    <div className="col-span-1 flex justify-end gap-1">
-                                        {!isIndexing && <button onClick={() => onPreviewFile(file)} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Eye size={16} /></button>}
-                                        {file.type !== 'whatsapp' && <button onClick={(e) => { e.stopPropagation(); onRenameFile(file); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 size={16} /></button>}
-                                        {file.type == 'file' && <button onClick={(e) => { e.stopPropagation(); onMoveFile(file); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><MoveHorizontal size={16} /></button>}
-                                        <button onClick={(e) => { e.stopPropagation(); onDeleteFile(file.id, file.name); }} className="p-1.5 text-charcoal-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
-                                    </div>
+                                <div className="col-span-2 text-xs text-charcoal-500 uppercase">{file.type === 'whatsapp' ? 'WA Group' : file.type}</div>
+                                <div className="col-span-3 text-xs text-charcoal-500">{isIndexing ? <span className="text-accent-600 dark:text-accent-400 animate-pulse">Indexing... {progress}%</span> : new Date(file.dateCreated).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</div>
+                                <div className="col-span-1 flex justify-end gap-1">
+                                    <button onClick={() => onPreviewFile(file)} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Eye size={16} /></button>
+                                    {/* <button onClick={(e) => { e.stopPropagation(); onRenameFile(file); }} className="p-1.5 text-charcoal-400 hover:text-accent-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Edit2 size={16} /></button>                              */}
+                                    <button onClick={(e) => { e.stopPropagation(); onDeleteFile(file.id, file.name); }} className="p-1.5 text-charcoal-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
                                 </div>
-                            );
-                        })}
-                    </div>
+                            </div>
+                        );
+                    })}
+                </div>                
                 )}
             </div>
 
@@ -222,29 +251,32 @@ export const TroopList: React.FC<TroopListProps> = ({
                                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Manage WhatsApp Groups</h3>
                                 <p className="text-sm text-charcoal-500 mt-1">Select groups to sync with this troop.</p>
                             </div>
-                            <button onClick={() => setIsManageModalOpen(false)} className="p-1 text-charcoal-400 hover:text-red-500 rounded-lg transition-colors"><X size={20}/></button>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => handleRefreshGroups()} className="p-1 text-charcoal-400 hover:text-red-500 rounded-lg transition-colors"><RefreshCw size={20}/></button>
+                                <button onClick={() => setIsManageModalOpen(false)} className="p-1 text-charcoal-400 hover:text-red-500 rounded-lg transition-colors"><X size={20}/></button>
+                            </div>
                         </div>
                         
                         <div className="flex-1 overflow-y-auto p-2">
-                            {DUMMY_GROUPS.map(group => {
+                            {(waGroups || []).map(group => {
                                 const isAlreadyAdded = files.some(f => {
                                     let fMeta = f.meta;
                                     if (typeof fMeta === 'string') {
                                         try { fMeta = JSON.parse(fMeta); } catch { fMeta = {}; }
                                     }
-                                    return fMeta?.waGroupId === group.id;
+                                    return fMeta?.waGroupId === group.JID;
                                 });
-                                const isSelected = selectedGroups.includes(group.id) || isAlreadyAdded;
+                                const isSelected = selectedGroups.includes(group.JID) || isAlreadyAdded;
 
                                 return (
                                     <div 
-                                        key={group.id}
+                                        key={group.JID}
                                         onClick={() => {
                                             if (isAlreadyAdded) return;
                                             if (isSelected) {
-                                                setSelectedGroups(prev => prev.filter(id => id !== group.id));
+                                                setSelectedGroups(prev => prev.filter(id => id !== group.JID));
                                             } else {
-                                                setSelectedGroups(prev => [...prev, group.id]);
+                                                setSelectedGroups(prev => [...prev, group.JID]);
                                             }
                                         }}
                                         className={`flex items-center gap-3 p-3 mx-3 my-1 rounded-xl transition-colors border ${isAlreadyAdded ? 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-200 dark:bg-charcoal-800 dark:border-charcoal-700' : 'cursor-pointer'} ${(!isAlreadyAdded && isSelected) ? 'bg-accent-50 border-accent-200 dark:bg-accent-900/20 dark:border-accent-800' : (!isAlreadyAdded ? 'border-transparent hover:bg-gray-50 dark:hover:bg-charcoal-800' : '')}`}
@@ -256,8 +288,8 @@ export const TroopList: React.FC<TroopListProps> = ({
                                             <MessageCircle size={20} />
                                         </div>
                                         <div>
-                                            <div className="font-semibold text-sm text-slate-800 dark:text-slate-200">{group.name}</div>
-                                            <div className="text-xs text-charcoal-500">{group.count} members</div>
+                                            <div className="font-semibold text-sm text-slate-800 dark:text-slate-200">{group.Name}</div>
+                                            <div className="text-xs text-charcoal-500">{ group.Participants?.length || group.ParticipantCount || 0} members</div>
                                         </div>
                                     </div>
                                 );

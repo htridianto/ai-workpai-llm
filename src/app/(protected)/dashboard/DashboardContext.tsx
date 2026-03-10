@@ -5,9 +5,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation';
 import { streamChatResponse, ChatService } from '@/client/services/chatService';
 import { WorkspaceService } from '@/client/services/workspaceService';
-import { MockApi } from '@/client/services/mockApiService';
+
 // import { AuthService } from '@/client/services/authService';
-import { Message, ChatSession, Role, Attachment, AppSettings, FileContext, ExportFormat, GeneratedFile, Workspace, UserProfile } from '@/shared/types/types';
+import { Message, ChatSession, Role, Attachment, AppSettings, FileContext, ExportFormat, Workspace, UserProfile } from '@/shared/types/types';
 import { AVAILABLE_MODELS, DEFAULT_SYSTEM_INSTRUCTION } from '@/shared/constants';
 import { ToastType } from '@/client/components/Shared/Toast';
 import { signOut, useSession } from 'next-auth/react';
@@ -73,7 +73,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   // Layout State
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isContextOpen, setIsContextOpen] = useState(false);
+  const [isContextOpen, setIsContextOpen] = useState(true);
   const [toast, setToast] = useState<{message: string, type: ToastType, subMessage?: string} | null>(null);
 
   // App State
@@ -135,15 +135,15 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // localStorage.getItem('isDarkMode') === 'true' ? setIsDarkMode(true) : setIsDarkMode(false);
     refreshWorkspaces();
-    const savedSettings = localStorage.getItem(SETTINGS_KEY);
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
+    // const savedSettings = localStorage.getItem(SETTINGS_KEY);
+    // if (savedSettings) {
+    //   setSettings(JSON.parse(savedSettings));
+    // }
   }, []); 
 
-  useEffect(() => {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  }, [settings]);
+  // useEffect(() => {
+  //     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  // }, [settings]);
 
   // Load sessions when workspace changes
   useEffect(() => {
@@ -162,7 +162,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
             }
         }
     };
-    loadSessions();
+    // loadSessions();
   }, [currentWorkspaceId]);
 
   // Load session when session changes
@@ -259,7 +259,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     
     // We need to find the workspace to get items. 
     if (currentWorkspace) {
-        newSession.fileContextIds = currentWorkspace.fileContexts.map(i => i.id);
+        newSession.fileContextIds = currentWorkspace.fileContexts?.map(i => i.id) || [];
     }
 
     const createdSession = await ChatService.createSession(newSession);
@@ -291,7 +291,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
     if (!sessionToUse) {
        const newId = uuidv4();
-       const initialContextIds = currentWorkspace ? currentWorkspace.fileContexts.map(i => i.id) : [];
+       const initialContextIds = currentWorkspace ? (currentWorkspace.fileContexts?.map(i => i.id) || []) : [];
 
        const newTitle = text.slice(0, 30) || generateUniqueTitle(currentWorkspaceId);
       //  const newSlug = newTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') + '-' + uuidv4().slice(0, 8);
@@ -347,7 +347,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       );
       
       const wsSystemInstruction = currentWorkspace?.systemInstruction || settings.systemInstruction;
-      const systemWithContext = wsSystemInstruction + '\\n\\n[CONTEXT DOCUMENTS FROM WORKSPACE "' + (currentWorkspace?.title || '') + '"]: ' + activeContext.map(i => i.name).join(', ');
+      const systemWithContext = wsSystemInstruction + '\\n\\n[CONTEXT DOCUMENTS FROM WORKSPACE "' + (currentWorkspace?.name || '') + '"]: ' + activeContext.map(i => i.name).join(', ');
 
       const { text: responseText, sources } = await streamChatResponse(
         currentWorkspace?.slug || '',
@@ -435,7 +435,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       );
       
       const wsSystemInstruction = currentWorkspace?.systemInstruction || settings.systemInstruction;
-      const systemWithContext = wsSystemInstruction + '\\n\\n[CONTEXT DOCUMENTS FROM WORKSPACE "' + (currentWorkspace?.title || '') + '"]: ' + activeContext.map(i => i.name).join(', ');
+      const systemWithContext = wsSystemInstruction + '\\n\\n[CONTEXT DOCUMENTS FROM WORKSPACE "' + (currentWorkspace?.name || '') + '"]: ' + activeContext.map(i => i.name).join(', ');
 
       const { text: responseText, sources } = await streamChatResponse(
         currentWorkspace?.slug || '',
@@ -551,6 +551,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   useEffect(() => {
+    console.log('sessionData', sessionData);
     if (sessionData) {
       setUserProfile({
         id: sessionData?.user?.id || '',

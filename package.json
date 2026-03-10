@@ -1,11 +1,11 @@
 {
-  "name": "rag-campaign-v1",
-  "description": "RAG for Campaigns based on anythingllm. each campaign will have Knowledge Base, Troops and Channels",
+  "name": "rag-aissitant-v1",
+  "description": "RAG for Workspace based on anythingllm. each workspace will have Knowledge Base, Troops and Channels",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint",
@@ -23,6 +23,7 @@
     "@tailwindcss/postcss": "4.1.18",
     "bcrypt": "^6.0.0",
     "framer-motion": "^11.0.0",
+    "jose": "^5.6.3",
     "lucide-react": "^0.563.0",
     "minio": "^8.0.6",
     "nanoid": "^5.1.6",
@@ -36,12 +37,11 @@
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.1.18",
     "uuid": "^13.0.0",
-    "zod": "^4.3.6",
-    "jose": "^5.6.3"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.19.13",
     "typescript": "~5.8.2"
   }
 }

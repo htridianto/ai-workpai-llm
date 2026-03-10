@@ -19,7 +19,7 @@ export const NotificationCenter: React.FC = () => {
       const mockNotes = await MockApi.fetchNotifications();
       
       // 2. Fetch real generated files
-      const recentFiles = await GeneratedService.fetchGeneratedFiles();
+      const recentFiles: any[] = [];//await GeneratedService.fetchGeneratedFiles();
       
       // Get read status for generated files from localStorage
       const readGeneratedIds = JSON.parse(localStorage.getItem('read_generated_files') || '[]');

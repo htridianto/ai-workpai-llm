@@ -451,6 +451,7 @@ export default function GeneratedContentPage() {
                       onChange={handleFileUpload} 
                       className="hidden" 
                     />
+                    {/*
                     <button 
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploading}
@@ -459,6 +460,7 @@ export default function GeneratedContentPage() {
                         <Cloud className={isUploading ? "animate-bounce" : ""} size={16} />
                         <span className="hidden sm:inline">{isUploading ? 'Uploading...' : 'Upload'}</span>
                     </button>
+                    */}
                     <button 
                         onClick={() => setIsNewFolderModalOpen(true)}
                         className="flex items-center gap-2 px-3 py-2 bg-accent-600 hover:bg-accent-500 text-white rounded-lg shadow-md transition-colors text-sm font-medium"

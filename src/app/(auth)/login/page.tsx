@@ -1,10 +1,10 @@
 'use client';
 
 import React, { Suspense, useEffect, useState } from 'react';
-import { Mail, Lock, ArrowRight, AlertCircle, Sparkles, Loader2, User } from 'lucide-react';
+import { Lock, ArrowRight, AlertCircle, Sparkles, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -19,19 +19,19 @@ const getErrorMessage = (code: string | null) => {
   switch (code) {
     case "user_not_found":
     case "UserNotFound":
-      return "User tidak ditemukan atau silakan login via Google.";
+      return "User not found or please login via Google.";
     case "invalid_password":
     case "InvalidPassword":
-      return "Password yang Anda masukkan salah.";
+      return "Password not valid or please login via Google.";
     default:
-      return "Gagal masuk. Periksa kembali akun Anda.";
+      return "Failed to login. Please check your account.";
   }
 };     
 
 function ShowErrorMessage() {
   const searchParams = useSearchParams()
-  const errorParam = searchParams.get("error");
-  const codeParam = searchParams.get("code");
+  const errorParam = searchParams?.get("error");
+  const codeParam = searchParams?.get("code");
   
   let error = '';
   if(errorParam === "CredentialsSignin"){
@@ -66,18 +66,6 @@ export default function AuthPage() {
     }
   }, []);  
 
-  // const [error, setError] = useState('');
-  // const searchParams = useSearchParams();
-  // const errorParam = searchParams.get("error");
-  // const codeParam = searchParams.get("code");
-  
-  // useEffect(() => {
-  //   if(errorParam === "CredentialsSignin"){
-  //     setError( getErrorMessage(codeParam || null) );   
-  //   }else if(errorParam === "AccessDenied"){
-  //     setError( "Access Denied. Please try again later." );   
-  //   }
-  // }, []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -118,7 +106,7 @@ export default function AuthPage() {
     <>
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Sign In</h2>
-        <p className="text-slate-500 dark:text-charcoal-400">Access your campAIgn workspace.</p>
+        <p className="text-slate-500 dark:text-charcoal-400">Access your AIssistant workspace.</p>
       </div>
 
       <div className="space-y-4 mb-6">
@@ -188,13 +176,6 @@ export default function AuthPage() {
       <Suspense fallback={<div>Loading error message...</div>}>
         <ShowErrorMessage />
       </Suspense>
-        {/* {error && (
-          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-3 rounded-lg border border-red-200 dark:border-red-900/30">
-            <AlertCircle size={16} />
-            {error}
-          </div>
-        )} */}
-
         <button
           type="submit"
           disabled={isLoading}
@@ -214,7 +195,7 @@ export default function AuthPage() {
         </button>
       </form>
         
-      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-charcoal-800">
+      {/* <div className="mt-6 pt-6 border-t border-gray-200 dark:border-charcoal-800">
         <button 
             type="button"
             onClick={handleDemoLogin}
@@ -236,7 +217,7 @@ export default function AuthPage() {
              </>
            )}
         </button>
-      </div>
+      </div> */}
     </>
   );
 }

@@ -1,5 +1,3 @@
-
-import { signIn, signOut } from 'next-auth/react';
 import { UserProfile } from '@/shared/types/types';
 
 

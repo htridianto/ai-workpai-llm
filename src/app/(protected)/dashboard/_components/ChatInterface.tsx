@@ -188,7 +188,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 bg-gray-50 dark:bg-charcoal-950 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-charcoal-800 transition-colors duration-200">
       {messages.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full text-charcoal-500 dark:text-charcoal-500">
+        <div className="flex flex-col items-center justify-center --h-full text-charcoal-500 dark:text-charcoal-500">
           <div className="w-16 h-16 rounded-2xl bg-white dark:bg-charcoal-900 border border-gray-200 dark:border-charcoal-800 flex items-center justify-center mb-6 shadow-xl">
              <Sparkles size={32} className="text-accent-500" />
           </div>

@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/server/lib/auth';
 import { createFileContext } from '@/server/models';
-import { progress } from 'framer-motion';
+import { uploadFile, deleteFile, getFileUrl } from '@/server/lib/minio';
+import { sanitizeUsernameToFolderName } from '@/server/lib/minio';
+import { nanoid } from 'nanoid';
 
 export async function POST(req: Request) {
     const session = await auth();
@@ -18,7 +20,7 @@ export async function POST(req: Request) {
         if (!file || !workspaceId) {
             return NextResponse.json({ message: 'File and Workspace ID are required' }, { status: 400 });
         }
-
+        /*
         // 1. Upload to RAG server
         const ragApiUrl = process.env.RAG_API_URL;
         const ragApiKey = process.env.RAG_API_KEY;
@@ -75,9 +77,19 @@ export async function POST(req: Request) {
             })
         });
         console.error("RAG pin details:", pinResponse);
+        */
 
-        // 3. Create FileContext in local DB
-        // Save 'documents' as part of meta filecontext as requested
+        // do upload to minio
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const minioFileName = `.source/${sanitizeUsernameToFolderName(session.user?.userName || session.user?.id || '')}/${nanoid(5)}-${file.name}`;
+        const minioResponse = await uploadFile(minioFileName, buffer, {
+            'Content-Type': file.type,
+            'Original-Name': file.name,
+            'Owner-Id': session.user.id,
+        });
+        console.log("Minio upload details:", minioResponse);
+
+        // Create FileContext in local DB, Save 'documents' as part of meta filecontext as requested
         const context = await createFileContext({
             workspaceId,
             folderId: folderId || null,
@@ -87,9 +99,11 @@ export async function POST(req: Request) {
             status: 'indexed',
             meta: {
                 progress: 100,
-                document: ragResult.documents[0] || {}
+                storage: {...minioResponse, location: minioFileName},
+                document: {} //ragResult.documents[0] || {}
             }
         });
+
 
         return NextResponse.json(context, { status: 201 });
     } catch (error: any) {

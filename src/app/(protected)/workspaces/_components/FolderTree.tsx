@@ -60,14 +60,18 @@ export const FolderTree: React.FC<FolderTreeProps> = ({
     // Build hierarchy
     items.forEach(item => {
       const node = map.get(item.id)!;
-      if (item.parentId && map.has(item.parentId)) {
-        map.get(item.parentId)!.children.push(node);
+      if (item.parentId && map.has(item.parentId)) {       
+        const fileCount = (workspace?.fileContexts || []).filter(f => f.folderId === node.id).length;
+        if(item.isShared || fileCount > 0){
+          map.get(item.parentId)!.children.push(node);
+        }        
       } else {
-        const childrenCount = (workspace?.folders || []).filter(f => f.parentId === item.id).length;
-        const fileCount = (workspace?.fileContexts || []).filter(f => f.folderId === item.id).length;
-        if(item.isShared || fileCount > 0 || childrenCount > 0){
-          roots.push(node); // Parent missing or undefined -> root
-        }
+        // const childrenCount = (workspace?.folders || []).filter(f => f.parentId === item.id).length;
+        // const fileCount = (workspace?.fileContexts || []).filter(f => f.folderId === item.id).length;
+        // if(item.isShared || fileCount > 0 || childrenCount > 0){
+        //   roots.push(node); // Parent missing or undefined -> root
+        // }
+        roots.push(node); // Parent missing or undefined -> root
       }
     });
 

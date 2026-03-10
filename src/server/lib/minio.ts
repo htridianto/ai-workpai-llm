@@ -30,4 +30,12 @@ export const deleteFile = async (fileName: string) => {
   return await minioClient.removeObject(BUCKET_NAME, fileName);
 };
 
+export const sanitizeUsernameToFolderName = (username: string) => {
+  return username
+    .toLowerCase()                   // Rule: Lowercase only
+    .trim()                          // Rule: No leading/trailing spaces
+    .replace(/\s+/g, '_')            // Rule: Replace internal spaces with underscores
+    .replace(/[^a-z0-9_-]/g, '_');  // Rule: Replace @ and other symbols with underscores
+}
+
 export { minioClient };

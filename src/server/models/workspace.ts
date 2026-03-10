@@ -1,22 +1,18 @@
 
 import { prisma } from '@/server/lib/db'
 import { Prisma } from '@prisma/client'
-import { Folder, FileContext } from '@/shared/types/types'
+import { Folder, FileContext, Workspace as WorkspaceType } from '@/shared/types/types'
 import { isStringObject } from 'util/types'
-
-export const getAllWorkspaces = async () => {
-  return await prisma.workspace.findMany({
-    where: { deletedAt: null },
-    orderBy: { createdAt: 'desc' }
-  })
-}
+import { DEFAULT_SYSTEM_INSTRUCTION, DEFAULT_COLORS } from '@/shared/constants'
+import { mapChatSession } from './chatSession'
 
 // --- Constants ---
 const systemFolders = [
   { id: '.base', name: 'Knowledge Base', isShared: true },
   { id: '.troops', name: 'Troops', isShared: true, isStarred: true },
   { id: '.links', name: '.links' },  
-  { id: '.databases', name: '.databases' }  
+  { id: '.databases', name: '.databases' },
+  { id: '.whatsapp', name: '.whatsapp' }  
 ]
 // --- Mapping Helpers ---
 
@@ -62,6 +58,37 @@ export const mapFileContext = (f: any): FileContext => {
   }
 }
 
+export const mapWorkspace = (ws: any): WorkspaceType => {
+  const meta = ws.meta ? JSON.parse(ws.meta) : {};
+  return {
+    ...ws,
+    slug: ws.id,
+    title: ws.name,
+    id: ws.id,   
+    description: ws.description || 'Secure AI workspace for document retrieval and RAG.',
+    symbol: ws.name.substring(0, 1).toUpperCase(),
+    color: ws.styleColor || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
+    organizationId: ws.organizationId,
+    createdAt: ws.createdAt.getTime(),
+    meta: meta,
+    folders: [...ws.folders || []].map(mapFolder),
+    fileContexts: [...ws.fileContexts || []].map(mapFileContext),
+    threads: [...ws.chatSessions || []].map(mapChatSession),
+    // systemInstruction: meta.openAiPrompt || DEFAULT_SYSTEM_INSTRUCTION,
+    // openAiTemp: meta.openAiTemp || 0.7,
+    // similarityThreshold: meta.similarityThreshold || 0.25    
+  };
+};
+
+
+export const getAllWorkspaces = async () => {
+  const workspaces = await prisma.workspace.findMany({
+    where: { deletedAt: null },
+    orderBy: { createdAt: 'desc' }
+  })
+  return workspaces.map(mapWorkspace);
+}
+
 export const getWorkspaceById = async (id: string) => {
   const ws = await prisma.workspace.findFirst({
     where: { id, deletedAt: null },
@@ -101,14 +128,7 @@ export const getWorkspaceById = async (id: string) => {
   */
   // console.log('waVirtualFolders', uniqueWaNumbers, waVirtualFolders);
 
-  return {
-    ...ws,
-    slug: ws.id,
-    title: ws.name,
-    createdAt: ws.createdAt.getTime(),
-    folders: [...ws.folders].map(mapFolder),
-    fileContexts: ws.fileContexts.map(mapFileContext) 
-  }
+  return mapWorkspace(ws);
 }
 
 export const getUserWorkspaces = async (userId: string, search?: string) => {
@@ -129,21 +149,47 @@ export const getUserWorkspaces = async (userId: string, search?: string) => {
     ]
   }
 
-  return await prisma.workspace.findMany({
+  const workspaces = await prisma.workspace.findMany({
     where,
+    include: {
+      folders: {
+        where: { deletedAt: null },
+        orderBy: [{ name: 'asc' }, { createdAt: 'desc' }]
+      },
+      fileContexts: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' }
+      },
+      chatSessions: {
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' }
+      }
+    },    
     orderBy: { createdAt: 'desc' }
   })
+  return workspaces.map(mapWorkspace);
 }
 
-export const createWorkspaceService = async (data: { id?: string; name: string; description?: string; styleColor?: string; organizationId?: string; userId?: string[]}) => {
+export const createWorkspaceService = async (data: { id?: string; name: string; description?: string; organizationId?: string; userId?: string[]}) => {
   return await prisma.$transaction(async (tx) => {
     const createData: Prisma.WorkspaceCreateInput = {
       id: data.id,
       name: data.name,
       description: data.description,
-      styleColor: data.styleColor,
-      organization: data.organizationId ? { connect: { id: data.organizationId } } : undefined
-    }
+      styleColor: DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
+      organization: data.organizationId ? { connect: { id: data.organizationId } } : undefined,      
+      meta: JSON.stringify({
+        slug: data.id,
+        name: data.name,
+        similarityThreshold: 0.3,
+        openAiTemp: 0.7,
+        openAiHistory: 20,
+        openAiPrompt: DEFAULT_SYSTEM_INSTRUCTION,
+        queryRefusalResponse: "I'm sorry, but I cannot answer this question.\nThere is no relevant information to answer your query.",
+        chatMode: "chat",
+        topN: 4
+      })
+    } 
 
     const workspace = await tx.workspace.create({
       data: createData
@@ -160,7 +206,7 @@ export const createWorkspaceService = async (data: { id?: string; name: string; 
 
     
     // Create default system folder "Root"    
-    await Promise.all(systemFolders.map(folder => {
+    const folders = await Promise.all(systemFolders.map(folder => {
       return tx.folder.create({
         data: {
           id: folder.id ? `${folder.id}-${workspace.id}` : undefined,
@@ -174,7 +220,7 @@ export const createWorkspaceService = async (data: { id?: string; name: string; 
       })
     }))
     
-    return workspace
+    return mapWorkspace({...workspace, folders})
   })
 }
 
